@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${producto.nombre}">Detalle Producto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255,0,255,0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+        }
+        .container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .back-btn {
+            display: inline-block; color: #00ffff; text-decoration: none;
+            padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff;
+            border-radius: 8px; transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+        .producto-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+            background: rgba(20,20,20,0.85); border: 2px solid #ff00ff;
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 0 40px rgba(255,0,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .imagenes { display: flex; flex-direction: column; gap: 15px; }
+        .imagen-principal {
+            width: 100%; border-radius: 16px; border: 2px solid #ff00ff;
+            box-shadow: 0 0 30px rgba(255,0,255,0.3);
+        }
+        .imagenes-secundarias { display: flex; gap: 10px; }
+        .imagen-secundaria {
+            width: 100px; height: 100px; border-radius: 12px;
+            border: 2px solid #333; cursor: pointer; object-fit: cover;
+            transition: all 0.3s;
+        }
+        .imagen-secundaria:hover { border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+        .info h1 {
+            font-size: 2rem; margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .precio {
+            font-size: 2.5rem; font-weight: 900; color: #00ffff;
+            text-shadow: 0 0 20px rgba(0,255,255,0.6); margin: 15px 0;
+        }
+        .sku { color: #ff00ff; font-size: 0.9rem; margin-bottom: 10px; }
+        .categoria {
+            display: inline-block; background: rgba(255,0,255,0.2);
+            color: #ff00ff; padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; border: 1px solid #ff00ff; margin-bottom: 20px;
+        }
+        .descripcion { color: #ccc; line-height: 1.8; margin: 20px 0; }
+        .medidas {
+            background: rgba(0,255,255,0.05); border: 1px solid #00ffff;
+            border-radius: 12px; padding: 15px; margin: 20px 0;
+        }
+        .medidas h3 { color: #00ffff; margin-bottom: 10px; }
+        .medidas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .medida-item { color: #aaa; font-size: 0.9rem; }
+        .medida-item span { color: #fff; }
+        .btn-comprar {
+            display: block; width: 100%; padding: 18px; text-align: center;
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            color: #fff; font-size: 1.2rem; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            text-decoration: none; margin-top: 20px;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .btn-comprar:hover {
+            background: linear-gradient(45deg, #ff33ff, #ff00ff);
+            box-shadow: 0 0 40px rgba(255,0,255,0.5);
+            transform: scale(1.02);
+        }
+        .btn-whatsapp {
+            display: block; width: 100%; padding: 18px; text-align: center;
+            background: #25D366; color: #fff; font-size: 1.2rem; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            text-decoration: none; margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-whatsapp:hover { box-shadow: 0 0 30px rgba(37,211,102,0.5); }
+        @media (max-width: 768px) {
+            .producto-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+    <a href="/" class="back-btn">← Volver a la tienda</a>
+
+    <div class="producto-container">
+        <div class="imagenes">
+            <img class="imagen-principal" th:src="${producto.imagen1}"
+                 th:alt="${producto.nombre}" id="imgPrincipal">
+            <div class="imagenes-secundarias">
+                <img class="imagen-secundaria" th:src="${producto.imagen1}"
+                     onclick="document.getElementById('imgPrincipal').src=this.src"
+                     th:alt="${producto.nombre}">
+                <img class="imagen-secundaria" th:src="${producto.imagen2}"
+                     onclick="document.getElementById('imgPrincipal').src=this.src"
+                     th:alt="${producto.nombre}">
+            </div>
+        </div>
+
+        <div class="info">
+            <h1 th:text="${producto.nombre}">Nombre</h1>
+            <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
+            <div class="sku" th:text="'SKU: ' + ${producto.sku}">SKU</div>
+            <span class="categoria" th:text="${producto.categoria}">Categoría</span>
+
+            <p class="descripcion" th:text="${producto.descripcion}">Descripción</p>
+
+            <div class="medidas">
+                <h3>📏 Medidas</h3>
+                <div class="medidas-grid">
+                    <div class="medida-item">Largo: <span th:text="${producto.largo}">-</span></div>
+                    <div class="medida-item">Ancho: <span th:text="${producto.ancho}">-</span></div>
+                    <div class="medida-item">Alto: <span th:text="${producto.alto}">-</span></div>
+                    <div class="medida-item">Peso: <span th:text="${producto.peso}">-</span></div>
+                </div>
+            </div>
+
+            <a class="btn-comprar" th:href="'https://wa.me/573186297749?text=Hola,%20me%20interesa:%20' + ${producto.nombre}" target="_blank">
+                🛒 Comprar ahora
+            </a>
+            <a class="btn-whatsapp" th:href="'https://wa.me/573186297749?text=Hola,%20quiero%20info%20de:%20' + ${producto.nombre}" target="_blank">
+                💬 Consultar por WhatsApp
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

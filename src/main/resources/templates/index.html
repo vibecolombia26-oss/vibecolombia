@@ -75,13 +75,18 @@
     </header>
     <div class="products-grid">
         <div th:each="producto : ${productos}" class="product-card">
-            <div class="product-icon">🌱</div>
-            <h3 class="product-name" th:text="${producto.nombre}">Nombre</h3>
-            <div class="product-price" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
-            <p class="product-desc" th:text="${producto.descripcion}">Descripción</p>
-            <span class="product-id" th:text="'ID: ' + ${producto.id}">ID</span>
+            <a th:href="@{/producto/{id}(id=${producto.id})}" style="text-decoration: none; color: inherit;">
+                <img th:if="${producto.imagen1 != null}"
+                     th:src="${producto.imagen1}"
+                     th:alt="${producto.nombre}"
+                     style="width:100%; border-radius:12px; margin-bottom:15px; border:2px solid #ff00ff;">
+                <div class="product-icon" th:if="${producto.imagen1 == null}">🛍️</div>
+                <h3 class="product-name" th:text="${producto.nombre}">Nombre</h3>
+                <div class="product-price" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
+                <p class="product-desc" th:text="${producto.descripcion}">Descripción</p>
+                <span class="product-id" th:text="'SKU: ' + ${producto.sku != null ? producto.sku : 'N/A'}">SKU</span>
+            </a>
         </div>
-    </div>
     <footer>
         <p>⚡ VIBE COLOMBIA 26 ⚡</p>
     </footer>
