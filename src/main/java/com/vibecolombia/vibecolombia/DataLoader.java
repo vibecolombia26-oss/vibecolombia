@@ -52,7 +52,12 @@ public class DataLoader implements CommandLineRunner {
                 35000.0,
                 "Nutrición balanceada para crecimiento vegetativo. 1 litro concentrado."
         ));
-
-        System.out.println("✅ 6 productos VIBE COLOMBIA 26 cargados exitosamente!");
+// 🕰️ HOGAR
+        productoRepository.save(new Producto(
+                "Reloj Despertador Vintage Alarma Estilo Retro Iluminado",
+                57600.0,
+                "SKU: REF:3010 | Diseño vintage con iluminación nocturna. Alarma confiable, mecanismo silencioso. 18x10x18 cm, 246.5g. No requiere enchufe. Decorativo y funcional."
+        ));
+        System.out.println("✅ 7 productos VIBE COLOMBIA 26 cargados exitosamente!");
     }
 }
