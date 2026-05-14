@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${producto.id != null ? 'Editar' : 'Nuevo'} + ' Producto'">Formulario</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a; color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: 0;
+        }
+        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
+        .form-container {
+            background: rgba(20,20,20,0.9); border: 2px solid #ff00ff;
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 0 40px rgba(255,0,255,0.2);
+        }
+        h1 {
+            text-align: center; margin-bottom: 25px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block; margin-bottom: 6px; color: #00ffff;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%; padding: 12px;
+            background: #111; border: 2px solid #333;
+            border-radius: 10px; color: #fff; font-size: 1rem;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none; border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255,0,255,0.2);
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+        .btn-guardar {
+            width: 100%; padding: 15px; margin-top: 20px;
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            color: #fff; font-size: 1.1rem; font-weight: 700;
+            border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase;
+        }
+        .btn-guardar:hover {
+            box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02);
+        }
+        .btn-volver {
+            display: inline-block; margin-bottom: 15px;
+            color: #00ffff; text-decoration: none;
+            padding: 8px 16px; border: 1px solid #00ffff;
+            border-radius: 8px;
+        }
+        .btn-volver:hover { background: rgba(0,255,255,0.1); }
+        .imagen-actual {
+            width: 80px; height: 80px; border-radius: 10px;
+            object-fit: cover; border: 2px solid #ff00ff; margin: 5px;
+        }
+        .file-info { color: #888; font-size: 0.85rem; margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+    <a th:href="@{/admin/panel(key=${key})}" class="btn-volver">← Volver al panel</a>
+
+    <div class="form-container">
+        <h1 th:text="${producto.id != null ? '✏️ Editar Producto' : '➕ Nuevo Producto'}">Formulario</h1>
+
+        <form th:action="@{/admin/guardar}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="key" th:value="${key}">
+            <input type="hidden" name="id" th:value="${producto.id}">
+
+            <div class="form-group">
+                <label>Nombre del Producto *</label>
+                <input type="text" name="nombre" th:value="${producto.nombre}" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio (COP) *</label>
+                    <input type="number" name="precio" th:value="${producto.precio}" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>SKU</label>
+                    <input type="text" name="sku" th:value="${producto.sku}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select name="categoria">
+                        <option value="">Seleccionar...</option>
+                        <option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option>
+                        <option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option>
+                        <option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option>
+                        <option value="Accesorios" th:selected="${producto.categoria == 'Accesorios'}">Accesorios</option>
+                        <option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea name="descripcion" th:text="${producto.descripcion}"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Imagen Principal</label>
+                    <input type="file" name="imagen1File" accept="image/*">
+                    <div class="file-info">Dejar vacío para mantener la actual</div>
+                    <img th:if="${producto.imagen1 != null}" class="imagen-actual"
+                         th:src="${producto.imagen1}" alt="Imagen 1">
+                </div>
+                <div class="form-group">
+                    <label>Imagen Secundaria</label>
+                    <input type="file" name="imagen2File" accept="image/*">
+                    <div class="file-info">Dejar vacío para mantener la actual</div>
+                    <img th:if="${producto.imagen2 != null}" class="imagen-actual"
+                         th:src="${producto.imagen2}" alt="Imagen 2">
+                </div>
+            </div>
+
+            <div class="form-row-4">
+                <div class="form-group">
+                    <label>Largo</label>
+                    <input type="text" name="largo" th:value="${producto.largo}" placeholder="ej: 18 cm">
+                </div>
+                <div class="form-group">
+                    <label>Ancho</label>
+                    <input type="text" name="ancho" th:value="${producto.ancho}" placeholder="ej: 10 cm">
+                </div>
+                <div class="form-group">
+                    <label>Alto</label>
+                    <input type="text" name="alto" th:value="${producto.alto}" placeholder="ej: 18 cm">
+                </div>
+                <div class="form-group">
+                    <label>Peso</label>
+                    <input type="text" name="peso" th:value="${producto.peso}" placeholder="ej: 246.5 g">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-guardar">
+                💾 Guardar Producto
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

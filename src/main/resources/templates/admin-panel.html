@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a; color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: 0;
+        }
+        .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 15px; margin-bottom: 30px;
+            padding: 20px; background: rgba(20,20,20,0.8);
+            border: 2px solid #ff00ff; border-radius: 16px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn {
+            padding: 12px 24px; border-radius: 10px; text-decoration: none;
+            font-weight: 700; transition: all 0.3s; display: inline-block;
+        }
+        .btn-agregar {
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            color: #fff;
+        }
+        .btn-agregar:hover { box-shadow: 0 0 25px rgba(255,0,255,0.5); }
+        .btn-ver { background: #111; color: #00ffff; border: 1px solid #00ffff; }
+        .btn-ver:hover { box-shadow: 0 0 15px rgba(0,255,255,0.3); }
+        .mensaje {
+            background: rgba(0,255,0,0.1); border: 1px solid #0f0;
+            padding: 12px; border-radius: 8px; margin-bottom: 20px;
+            color: #0f0;
+        }
+        table {
+            width: 100%; border-collapse: collapse;
+            background: rgba(20,20,20,0.8); border-radius: 16px;
+            overflow: hidden; border: 2px solid #333;
+        }
+        th {
+            background: rgba(255,0,255,0.1); padding: 15px;
+            color: #ff00ff; text-align: left;
+        }
+        td { padding: 12px 15px; border-bottom: 1px solid #222; }
+        tr:hover td { background: rgba(255,0,255,0.05); }
+        .acciones { display: flex; gap: 8px; }
+        .btn-editar {
+            background: #00ffff; color: #000; padding: 8px 16px;
+            border-radius: 8px; text-decoration: none; font-weight: 600;
+        }
+        .btn-eliminar {
+            background: #ff0044; color: #fff; padding: 8px 16px;
+            border-radius: 8px; text-decoration: none; font-weight: 600;
+        }
+        .btn-editar:hover { box-shadow: 0 0 15px rgba(0,255,255,0.5); }
+        .btn-eliminar:hover { box-shadow: 0 0 15px rgba(255,0,68,0.5); }
+        .producto-img {
+            width: 50px; height: 50px; border-radius: 8px;
+            object-fit: cover; border: 1px solid #ff00ff;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+    <div class="header">
+        <h1>🔒 Panel Administrador</h1>
+        <div>
+            <a th:href="@{/admin/nuevo(key=${key})}" class="btn btn-agregar">+ Agregar Producto</a>
+            <a href="/" class="btn btn-ver">Ver Tienda</a>
+        </div>
+    </div>
+
+    <div class="mensaje" th:if="${mensaje}" th:text="${mensaje}"></div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Imagen</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Categoría</th>
+            <th>SKU</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${productos}">
+            <td th:text="${p.id}">1</td>
+            <td>
+                <img class="producto-img" th:src="${p.imagen1}" th:alt="${p.nombre}"
+                     th:if="${p.imagen1 != null}">
+                <span th:if="${p.imagen1 == null}">-</span>
+            </td>
+            <td th:text="${p.nombre}">Nombre</td>
+            <td th:text="'$' + ${#numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
+            <td th:text="${p.categoria}">Cat</td>
+            <td th:text="${p.sku}">SKU</td>
+            <td>
+                <div class="acciones">
+                    <a th:href="@{/admin/editar/{id}(id=${p.id}, key=${key})}" class="btn-editar">✏️</a>
+                    <a th:href="@{/admin/eliminar/{id}(id=${p.id}, key=${key})}"
+                       class="btn-eliminar"
+                       onclick="return confirm('¿Eliminar este producto?')">🗑️</a>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255,0,255,0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+        }
+        .login-container {
+            position: relative; z-index: 1;
+            background: rgba(20,20,20,0.9);
+            border: 2px solid #ff00ff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(255,0,255,0.3);
+            backdrop-filter: blur(10px);
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .subtitle { color: #00ffff; font-size: 0.9rem; margin-bottom: 30px; }
+        input {
+            width: 100%; padding: 15px; margin: 10px 0;
+            background: #111; border: 2px solid #333;
+            border-radius: 10px; color: #fff; font-size: 1rem;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none; border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255,0,255,0.3);
+        }
+        button {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            color: #fff; font-size: 1.1rem; font-weight: 700;
+            border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase;
+        }
+        button:hover {
+            box-shadow: 0 0 30px rgba(255,0,255,0.6);
+            transform: scale(1.02);
+        }
+        .error { color: #ff4444; margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="login-container">
+    <h1>🔒 ADMIN</h1>
+    <p class="subtitle">VIBE COLOMBIA 26</p>
+    <form method="post" action="/admin/login">
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Entrar</button>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+    </form>
+</div>
+</body>
+</html>
