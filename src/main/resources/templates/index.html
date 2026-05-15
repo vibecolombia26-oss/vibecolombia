@@ -17,11 +17,52 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-image:
-                    linear-gradient(rgba(255, 0, 255, 0.05) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
             z-index: 0;
+            background-color: #0a0a0a;
+            overflow: hidden;
+        }
+
+        /* Partículas flotantes */
+        .particulas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+
+        .particula {
+            position: absolute;
+            border-radius: 50%;
+            animation: flotar linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes flotar {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Grid sutil de fondo */
+        .bg-grid::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255, 0, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
         }
         .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px; }
         .header { text-align: center; padding: 50px 20px 30px; }
@@ -106,7 +147,10 @@
     </style>
 </head>
 <body>
-<div class="bg-grid"></div>
+<div class="bg-grid">
+    <div class="particulas" id="particulas"></div>
+</div>
+
 <div class="container">
     <header class="header">
         <div class="logo-container">
@@ -115,7 +159,7 @@
         </div>
         <p class="subtitle">✦ NEON ERA ✦</p>
     </header>
-    </header>
+
     <div class="products-grid">
         <div th:each="producto : ${productos}" class="product-card">
             <a th:href="@{/producto/{id}(id=${producto.id})}" style="text-decoration: none; color: inherit;">
@@ -130,9 +174,44 @@
                 <span class="product-id" th:text="'SKU: ' + ${producto.sku != null ? producto.sku : 'N/A'}">SKU</span>
             </a>
         </div>
+    </div>
+
     <footer>
         <p>⚡ VIBE COLOMBIA 26 ⚡</p>
     </footer>
 </div>
+
+<script>
+    // Crear partículas neón flotantes
+    const particulasContainer = document.getElementById('particulas');
+    const colores = ['#ff00ff', '#00ffff', '#ff66ff', '#66ffff', '#cc00ff', '#00ccff'];
+
+    for (let i = 0; i < 40; i++) {
+        const particula = document.createElement('div');
+        particula.className = 'particula';
+
+        const tamaño = Math.random() * 5 + 3; // 3px a 8px (un poco más grandes)
+        const color = colores[Math.floor(Math.random() * colores.length)];
+        const left = Math.random() * 100;
+        const duracion = Math.random() * 18 + 12; // 12s a 30s
+        const delay = Math.random() * 15;
+
+        // Algunas brillan más que otras
+        const brilloBase = tamaño * 3;
+        const brilloExtra = Math.random() < 0.3 ? brilloBase * 2 : brilloBase; // 30% brillan el doble
+
+        particula.style.cssText = `
+            width: ${tamaño}px;
+            height: ${tamaño}px;
+            background: ${color};
+            left: ${left}%;
+            box-shadow: 0 0 ${brilloBase}px ${color}, 0 0 ${brilloExtra}px ${color};
+            animation-duration: ${duracion}s;
+            animation-delay: ${delay}s;
+        `;
+
+        particulasContainer.appendChild(particula);
+    }
+</script>
 </body>
 </html>
