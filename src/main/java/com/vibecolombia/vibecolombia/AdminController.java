@@ -98,32 +98,37 @@ public class AdminController {
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) uploadDir.mkdirs();
 
-            MultipartFile[] imagenes = {imagen1File, imagen2File, imagen3File, imagen4File, imagen5File,
+            MultipartFile[] nuevasImagenes = {imagen1File, imagen2File, imagen3File, imagen4File, imagen5File,
                     imagen6File, imagen7File, imagen8File, imagen9File, imagen10File};
 
+            // Si está editando, mantener TODAS las imágenes existentes
             if (producto.getId() != null) {
                 Producto existente = productoRepository.findById(producto.getId()).orElse(null);
                 if (existente != null) {
-                    for (int i = 0; i < 10; i++) {
-                        if (imagenes[i] == null || imagenes[i].isEmpty()) {
-                            try {
-                                java.lang.reflect.Method getter = Producto.class.getMethod("getImagen" + (i + 1));
-                                java.lang.reflect.Method setter = Producto.class.getMethod("setImagen" + (i + 1), String.class);
-                                Object valor = getter.invoke(existente);
-                                setter.invoke(producto, valor);
-                            } catch (Exception e) { }
-                        }
-                    }
+                    producto.setImagen1(existente.getImagen1());
+                    producto.setImagen2(existente.getImagen2());
+                    producto.setImagen3(existente.getImagen3());
+                    producto.setImagen4(existente.getImagen4());
+                    producto.setImagen5(existente.getImagen5());
+                    producto.setImagen6(existente.getImagen6());
+                    producto.setImagen7(existente.getImagen7());
+                    producto.setImagen8(existente.getImagen8());
+                    producto.setImagen9(existente.getImagen9());
+                    producto.setImagen10(existente.getImagen10());
                 }
             }
 
+            // Procesar SOLO las imágenes nuevas subidas
+            String[] setters = {"setImagen1", "setImagen2", "setImagen3", "setImagen4", "setImagen5",
+                    "setImagen6", "setImagen7", "setImagen8", "setImagen9", "setImagen10"};
+
             for (int i = 0; i < 10; i++) {
-                if (imagenes[i] != null && !imagenes[i].isEmpty()) {
-                    String filename = UUID.randomUUID().toString() + "_" + imagenes[i].getOriginalFilename();
+                if (nuevasImagenes[i] != null && !nuevasImagenes[i].isEmpty()) {
+                    String filename = UUID.randomUUID().toString() + "_" + nuevasImagenes[i].getOriginalFilename();
                     Path path = Paths.get(uploadPath + filename);
-                    Files.write(path, imagenes[i].getBytes());
+                    Files.write(path, nuevasImagenes[i].getBytes());
                     try {
-                        java.lang.reflect.Method setter = Producto.class.getMethod("setImagen" + (i + 1), String.class);
+                        java.lang.reflect.Method setter = Producto.class.getMethod(setters[i], String.class);
                         setter.invoke(producto, "/images/" + filename);
                     } catch (Exception e) { }
                 }
