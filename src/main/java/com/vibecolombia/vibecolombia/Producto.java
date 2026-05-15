@@ -12,7 +12,7 @@ public class Producto {
     private String nombre;
     private Double precio;
 
-    @Column(length = 500)
+    @Column(length = 5000)
     private String descripcionCorta;
 
     @Column(length = 3000)
