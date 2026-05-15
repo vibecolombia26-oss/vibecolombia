@@ -89,10 +89,65 @@ public class AdminController {
                                   @RequestParam String key,
                                   @RequestParam(required = false) MultipartFile imagen1File,
                                   @RequestParam(required = false) MultipartFile imagen2File,
+                                  @RequestParam(required = false) MultipartFile imagen3File,
+                                  @RequestParam(required = false) MultipartFile imagen4File,
+                                  @RequestParam(required = false) MultipartFile imagen5File,
+                                  @RequestParam(required = false) MultipartFile imagen6File,
+                                  @RequestParam(required = false) MultipartFile imagen7File,
+                                  @RequestParam(required = false) MultipartFile imagen8File,
+                                  @RequestParam(required = false) MultipartFile imagen9File,
+                                  @RequestParam(required = false) MultipartFile imagen10File,
                                   RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) {
             return "redirect:/admin/login";
         }
+
+        try {
+            String uploadPath = Files.exists(Paths.get(UPLOAD_DIR)) ? UPLOAD_DIR : UPLOAD_DIR_RENDER;
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) uploadDir.mkdirs();
+
+            MultipartFile[] imagenes = {imagen1File, imagen2File, imagen3File, imagen4File, imagen5File,
+                    imagen6File, imagen7File, imagen8File, imagen9File, imagen10File};
+
+            // Si está editando, mantener imágenes existentes que no se reemplacen
+            if (producto.getId() != null) {
+                Producto existente = productoRepository.findById(producto.getId()).orElse(null);
+                if (existente != null) {
+                    for (int i = 0; i < 10; i++) {
+                        if (imagenes[i] == null || imagenes[i].isEmpty()) {
+                            try {
+                                java.lang.reflect.Method getter = Producto.class.getMethod("getImagen" + (i + 1));
+                                java.lang.reflect.Method setter = Producto.class.getMethod("setImagen" + (i + 1), String.class);
+                                Object valor = getter.invoke(existente);
+                                setter.invoke(producto, valor);
+                            } catch (Exception e) { /* ignorar si el getter/setter no existe */ }
+                        }
+                    }
+                }
+            }
+
+            // Procesar las nuevas imágenes subidas
+            for (int i = 0; i < 10; i++) {
+                if (imagenes[i] != null && !imagenes[i].isEmpty()) {
+                    String filename = UUID.randomUUID().toString() + "_" + imagenes[i].getOriginalFilename();
+                    Path path = Paths.get(uploadPath + filename);
+                    Files.write(path, imagenes[i].getBytes());
+                    try {
+                        java.lang.reflect.Method setter = Producto.class.getMethod("setImagen" + (i + 1), String.class);
+                        setter.invoke(producto, "/images/" + filename);
+                    } catch (Exception e) { /* ignorar */ }
+                }
+            }
+
+            productoRepository.save(producto);
+            redirect.addFlashAttribute("mensaje", "✅ Producto guardado exitosamente!");
+        } catch (IOException e) {
+            redirect.addFlashAttribute("error", "❌ Error al subir imágenes: " + e.getMessage());
+        }
+
+        return "redirect:/admin/panel?key=" + key;
+    }
 
         try {
             String uploadPath = Files.exists(Paths.get(UPLOAD_DIR)) ? UPLOAD_DIR : UPLOAD_DIR_RENDER;

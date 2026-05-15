@@ -123,7 +123,7 @@
             <div class="sku" th:text="'SKU: ' + ${producto.sku}">SKU</div>
             <span class="categoria" th:text="${producto.categoria}">Categoría</span>
 
-            <p class="descripcion" th:text="${producto.descripcion}">Descripción</p>
+            <p class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
 
             <div class="medidas">
                 <h3>📏 Medidas</h3>
