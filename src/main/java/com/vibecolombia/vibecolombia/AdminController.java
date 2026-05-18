@@ -24,7 +24,7 @@ public class AdminController {
     private String adminPassword;
 
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/src/main/resources/static/images/";
-    private static final String UPLOAD_DIR_RENDER = System.getProperty("user.dir") + "/target/classes/static/images/";
+    private static final String UPLOAD_DIR_RENDER = "/opt/render/project/target/classes/static/images/";
 
     public AdminController(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
