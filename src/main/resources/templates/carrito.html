@@ -7,8 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #0a0a0a;
-            color: #fff;
+            background-color: #0a0a0a; color: #fff;
             font-family: 'Segoe UI', system-ui, sans-serif;
             min-height: 100vh;
         }
@@ -18,13 +17,9 @@
             background-image:
                     linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            z-index: 0;
+            background-size: 60px 60px; z-index: 0;
         }
-        .container {
-            position: relative; z-index: 1;
-            max-width: 900px; margin: 0 auto; padding: 20px;
-        }
+        .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px; }
         h1 {
             text-align: center; font-size: 2rem; margin-bottom: 10px;
             background: linear-gradient(45deg, #ff00ff, #00ffff);
@@ -56,9 +51,7 @@
             background: #111; color: #fff; border: 1px solid #333;
             padding: 8px 12px; border-radius: 8px;
         }
-        .quantity-control {
-            display: flex; align-items: center; gap: 10px;
-        }
+        .quantity-control { display: flex; align-items: center; gap: 10px; }
         .qty-btn {
             background: #ff00ff; color: #fff; border: none;
             width: 35px; height: 35px; border-radius: 50%;
@@ -71,13 +64,10 @@
         }
         .remove-btn {
             background: #ff0044; color: #fff; border: none;
-            padding: 10px 20px; border-radius: 8px; cursor: pointer;
-            transition: all 0.3s;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s;
         }
         .remove-btn:hover { box-shadow: 0 0 15px rgba(255,0,68,0.6); }
-        .cart-empty {
-            text-align: center; padding: 60px 20px; color: #666; font-size: 1.2rem;
-        }
+        .cart-empty { text-align: center; padding: 60px 20px; color: #666; font-size: 1.2rem; }
         .cart-total {
             text-align: right; font-size: 1.5rem; padding: 20px;
             background: rgba(20,20,20,0.85); border: 2px solid #00ffff;
@@ -85,16 +75,12 @@
         }
         .cart-total span { color: #00ffff; font-weight: 900; font-size: 2rem; }
 
-        /* Formulario */
         .form-section {
             background: rgba(20,20,20,0.85); border: 2px solid #ff00ff;
             border-radius: 20px; padding: 30px; margin: 30px 0;
             backdrop-filter: blur(10px);
         }
-        .form-section h2 {
-            color: #ff00ff; margin-bottom: 20px; border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
+        .form-section h2 { color: #ff00ff; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-group.full { grid-column: 1 / -1; }
@@ -108,26 +94,6 @@
             outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.2);
         }
 
-        /* Shipping options */
-        .shipping-options {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px; margin-top: 10px;
-        }
-        .shipping-option {
-            background: #111; border: 2px solid #333; border-radius: 12px;
-            padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s;
-        }
-        .shipping-option:hover, .shipping-option.selected {
-            border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.3);
-        }
-        .shipping-option .name { font-weight: 700; }
-        .shipping-option .price { color: #00ffff; font-size: 0.9rem; }
-        .free-shipping {
-            color: #00ff88; font-weight: 700; font-size: 1.1rem;
-            text-align: center; margin: 10px 0;
-            text-shadow: 0 0 10px rgba(0,255,136,0.5);
-        }
-
         .btn-submit {
             display: block; width: 100%; padding: 18px; text-align: center;
             background: linear-gradient(45deg, #00ff88, #00cc66);
@@ -136,9 +102,7 @@
             transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
             margin-top: 20px;
         }
-        .btn-submit:hover {
-            box-shadow: 0 0 40px rgba(0,255,136,0.5); transform: scale(1.02);
-        }
+        .btn-submit:hover { box-shadow: 0 0 40px rgba(0,255,136,0.5); transform: scale(1.02); }
         .btn-cancel {
             display: block; width: 100%; padding: 14px; text-align: center;
             background: transparent; color: #ff0044; font-size: 1rem;
@@ -167,7 +131,6 @@
         <a href="/" style="color:#ff00ff;">Ver productos</a>
     </div>
 
-    <!-- Formulario de pedido -->
     <div id="checkoutForm" class="form-section" style="display:none;">
         <h2>📋 Información de envío</h2>
 
@@ -190,12 +153,18 @@
             <div class="form-group">
                 <label>Departamento *</label>
                 <select id="departamento" required>
-                    <option value="">Seleccionar...</option>
-                    <option>Cundinamarca</option><option>Antioquia</option>
-                    <option>Valle del Cauca</option><option>Atlántico</option>
-                    <option>Santander</option><option>Bolívar</option>
-                    <option>Boyacá</option><option>Caldas</option>
-                    <option>Otro</option>
+                    <option value="">Seleccionar departamento...</option>
+                    <option>Amazonas</option><option>Antioquia</option><option>Arauca</option>
+                    <option>Atlántico</option><option>Bogotá D.C.</option><option>Bolívar</option>
+                    <option>Boyacá</option><option>Caldas</option><option>Caquetá</option>
+                    <option>Casanare</option><option>Cauca</option><option>Cesar</option>
+                    <option>Chocó</option><option>Córdoba</option><option>Cundinamarca</option>
+                    <option>Guainía</option><option>Guaviare</option><option>Huila</option>
+                    <option>La Guajira</option><option>Magdalena</option><option>Meta</option>
+                    <option>Nariño</option><option>Norte de Santander</option><option>Putumayo</option>
+                    <option>Quindío</option><option>Risaralda</option><option>San Andrés y Providencia</option>
+                    <option>Santander</option><option>Sucre</option><option>Tolima</option>
+                    <option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option>
                 </select>
             </div>
             <div class="form-group">
@@ -224,30 +193,12 @@
             </div>
         </div>
 
-        <h2>🚚 Opciones de envío</h2>
-        <p class="free-shipping">🎉 ¡ENVÍO GRATIS EN TODOS TUS PEDIDOS! 🎉</p>
-        <div class="shipping-options" id="shippingOptions">
-            <div class="shipping-option selected" data-shipping="Veloces">
-                <div class="name">🚀 Veloces</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="Envia">
-                <div class="name">📦 Envia</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="Interrapidísimo">
-                <div class="name">⚡ Interrapidísimo</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="Domina">
-                <div class="name">🏠 Domina</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="Coordinadora">
-                <div class="name">📋 Coordinadora</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="99minutos">
-                <div class="name">⏱️ 99minutos</div><div class="price">GRATIS</div>
-            </div>
-            <div class="shipping-option" data-shipping="TCC">
-                <div class="name">🚛 TCC</div><div class="price">GRATIS</div>
-            </div>
+        <h2>🚚 Envío</h2>
+        <div style="background: rgba(0,255,136,0.08); border: 2px solid #00ff88; border-radius: 16px; padding: 25px; text-align: center; margin: 15px 0;">
+            <div style="font-size: 3rem;">🎉</div>
+            <h3 style="color: #00ff88; font-size: 1.4rem; margin: 10px 0;">¡ENVÍO TOTALMENTE GRATIS!</h3>
+            <p style="color: #aaa; font-size: 1rem;">En todos tus pedidos · A cualquier parte de Colombia</p>
+            <p style="color: #00ff88; font-weight: 700; margin-top: 8px;">Sin mínimo de compra · Sin letra pequeña</p>
         </div>
 
         <h2>💰 Resumen de la orden</h2>
@@ -265,9 +216,7 @@
 <script>
     let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
 
-    function guardarCarrito() {
-        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
-    }
+    function guardarCarrito() { localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); }
 
     function renderCarrito() {
         const container = document.getElementById('cartItems');
@@ -373,8 +322,7 @@
 
         html += `
             <div style="display:flex; justify-content:space-between; padding:10px 0; color:#00ff88; font-weight:700;">
-                <span>🎉 Envío</span>
-                <span>¡GRATIS!</span>
+                <span>🎉 Envío</span><span>¡GRATIS!</span>
             </div>
             <div style="display:flex; justify-content:space-between; padding:15px 0; font-size:1.3rem; font-weight:900; border-top:2px solid #ff00ff; margin-top:10px;">
                 <span>Total a recaudar</span>
@@ -391,7 +339,6 @@
         const ciudad = document.getElementById('ciudad').value;
         const direccion = document.getElementById('direccion').value;
         const notas = document.getElementById('notas').value;
-        const shipping = document.querySelector('.shipping-option.selected')?.dataset?.shipping || 'Veloces';
 
         if (!nombre || !telefono || !departamento || !ciudad || !direccion) {
             alert('Por favor completa todos los campos requeridos (*)');
@@ -402,7 +349,7 @@
         mensaje += `👤 *Cliente:* ${nombre}%0A`;
         mensaje += `📞 *Teléfono:* ${telefono}%0A`;
         mensaje += `📍 *Dirección:* ${direccion}, ${ciudad}, ${departamento}%0A`;
-        mensaje += `🚚 *Envío:* ${shipping} (GRATIS)%0A`;
+        mensaje += `🚚 *Envío:* GRATIS%0A`;
         if (notas) mensaje += `📝 *Notas:* ${notas}%0A`;
         mensaje += `%0A--- 📦 *Productos* ---%0A`;
 
@@ -420,7 +367,6 @@
         mensaje += `💵 *Pago:* Contra entrega`;
 
         window.open(`https://wa.me/573234329406?text=${mensaje}`, '_blank');
-
         localStorage.removeItem('carritoVibeColombia');
         carrito = [];
         renderCarrito();
@@ -436,16 +382,7 @@
         }
     }
 
-    // Inicializar
     renderCarrito();
-
-    // Selección de envío
-    document.querySelectorAll('.shipping-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-            document.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
-            this.classList.add('selected');
-        });
-    });
 </script>
 </body>
 </html>

@@ -76,7 +76,6 @@
         .medida-item { color: #aaa; font-size: 0.9rem; }
         .medida-item span { color: #fff; }
 
-        /* Variaciones */
         .variaciones {
             background: rgba(255,0,255,0.05); border: 1px solid #ff00ff;
             border-radius: 12px; padding: 15px; margin: 20px 0;
@@ -92,7 +91,6 @@
         }
         .variacion-group select:focus { border-color: #ff00ff; outline: none; }
 
-        /* Cantidad */
         .cantidad-row {
             display: flex; align-items: center; gap: 15px; margin: 20px 0;
             background: rgba(0,255,255,0.05); padding: 15px;
@@ -112,7 +110,6 @@
         }
         .subtotal-display { color: #00ffff; font-weight: 900; font-size: 1.3rem; margin-left: auto; }
 
-        /* Botones de acción */
         .acciones {
             display: flex; flex-direction: column; gap: 12px; margin-top: 25px;
         }
@@ -125,15 +122,15 @@
         }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
 
-        .btn-whatsapp {
+        .btn-contraentrega {
             width: 100%; padding: 16px; text-align: center;
-            background: #25D366; color: #fff; font-size: 1.1rem; font-weight: 700;
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: #000; font-size: 1.1rem; font-weight: 700;
             border: none; border-radius: 12px; cursor: pointer;
-            text-decoration: none; transition: all 0.3s; display: block;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
         }
-        .btn-whatsapp:hover { box-shadow: 0 0 30px rgba(37,211,102,0.6); }
+        .btn-contraentrega:hover { box-shadow: 0 0 30px rgba(0,255,136,0.6); transform: scale(1.02); }
 
-        /* Banner pago contra entrega */
         .banner-pago {
             background: linear-gradient(45deg, rgba(0,255,136,0.1), rgba(0,255,136,0.05));
             border: 2px solid #00ff88; border-radius: 16px;
@@ -158,7 +155,6 @@
     <a href="/" class="back-btn">← Volver a la tienda</a>
 
     <div class="producto-container">
-        <!-- Imágenes -->
         <div class="imagenes">
             <img class="imagen-principal" th:src="${producto.imagen1}"
                  th:alt="${producto.nombre}" id="imgPrincipal">
@@ -179,7 +175,6 @@
             </div>
         </div>
 
-        <!-- Info -->
         <div class="info">
             <h1 th:text="${producto.nombre}">Nombre</h1>
             <div class="precio" id="precioBase" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
@@ -187,7 +182,6 @@
             <span class="categoria" th:text="${producto.categoria}">Categoría</span>
             <p class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
 
-            <!-- Medidas -->
             <div class="medidas" th:if="${producto.largo != null}">
                 <h3>📏 Medidas</h3>
                 <div class="medidas-grid">
@@ -198,7 +192,6 @@
                 </div>
             </div>
 
-            <!-- Variaciones -->
             <div class="variaciones">
                 <h3>🎨 Personaliza tu producto</h3>
                 <div class="variacion-row">
@@ -226,7 +219,6 @@
                 </div>
             </div>
 
-            <!-- Cantidad -->
             <div class="cantidad-row">
                 <label>Cantidad:</label>
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
@@ -235,19 +227,18 @@
                 <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
             </div>
 
-            <!-- Botones -->
             <div class="acciones">
                 <button class="btn-carrito" onclick="agregarAlCarrito()">
                     🛒 Agregar al carrito
                 </button>
-                <a class="btn-whatsapp"
-                   th:href="'https://wa.me/573234329406?text=Hola,%20quiero%20info%20de:%20' + ${producto.nombre}"
-                   target="_blank">
-                    💬 Consultar por WhatsApp
-                </a>
+                <button class="btn-contraentrega" onclick="comprarContraEntrega()">
+                    💵 Pagar contra entrega
+                </button>
+                <p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:5px;">
+                    🛒 Carrito para pago con tarjeta · 💵 Contra entrega para pagar al recibir
+                </p>
             </div>
 
-            <!-- Banner pago contra entrega -->
             <div class="banner-pago">
                 <div class="icono">💵</div>
                 <h3>¡Pago contra entrega!</h3>
@@ -272,8 +263,7 @@
     function actualizarSubtotal() {
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
         const subtotal = precioBase * cantidad;
-        document.getElementById('subtotalDisplay').innerHTML =
-            '= $' + subtotal.toLocaleString('es-CO');
+        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO');
     }
 
     function agregarAlCarrito() {
@@ -284,17 +274,9 @@
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
 
         let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-        carrito.push({
-            nombre: nombre,
-            precio: precioBase,
-            imagen: imagen,
-            cantidad: cantidad,
-            color: color,
-            talla: talla
-        });
+        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
         localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
 
-        // Animación en el botón
         const btn = document.querySelector('.btn-carrito');
         btn.textContent = '✅ ¡Agregado!';
         btn.style.background = 'linear-gradient(45deg, #00ff88, #00cc66)';
@@ -309,7 +291,19 @@
         }, 500);
     }
 
-    // Actualizar subtotal al cargar
+    function comprarContraEntrega() {
+        const nombre = document.querySelector('.info h1').textContent.trim();
+        const imagen = document.getElementById('imgPrincipal')?.src || '';
+        const color = document.getElementById('colorSelect').value;
+        const talla = document.getElementById('tallaSelect').value;
+        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+
+        let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
+        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
+        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
+        window.location.href = '/carrito';
+    }
+
     actualizarSubtotal();
 </script>
 </body>
