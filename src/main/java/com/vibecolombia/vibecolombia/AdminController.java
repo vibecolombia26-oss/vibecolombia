@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;package com.vibecolombia.vibecolombia;
+package com.vibecolombia.vibecolombia;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -90,7 +90,6 @@ public class AdminController {
             MultipartFile[] nuevasImagenes = {imagen1File, imagen2File, imagen3File, imagen4File, imagen5File,
                     imagen6File, imagen7File, imagen8File, imagen9File, imagen10File};
 
-            // Si está editando, mantener TODAS las imágenes existentes
             if (producto.getId() != null) {
                 Producto existente = productoRepository.findById(producto.getId()).orElse(null);
                 if (existente != null) {
@@ -107,7 +106,6 @@ public class AdminController {
                 }
             }
 
-            // Procesar SOLO las imágenes nuevas y convertirlas a Base64
             String[] setters = {"setImagen1", "setImagen2", "setImagen3", "setImagen4", "setImagen5",
                     "setImagen6", "setImagen7", "setImagen8", "setImagen9", "setImagen10"};
 
