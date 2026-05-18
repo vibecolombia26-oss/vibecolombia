@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                    linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+        .container {
+            position: relative; z-index: 1;
+            max-width: 900px; margin: 0 auto; padding: 20px;
+        }
+        h1 {
+            text-align: center; font-size: 2rem; margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #00ffff; margin-bottom: 30px; }
+        .back-btn {
+            display: inline-block; color: #00ffff; text-decoration: none;
+            padding: 10px 20px; margin-bottom: 20px; border: 1px solid #00ffff;
+            border-radius: 8px; transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(0,255,255,0.1); }
+        .cart-item {
+            background: rgba(20,20,20,0.85); border: 2px solid #ff00ff;
+            border-radius: 16px; padding: 20px; margin-bottom: 15px;
+            display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+        }
+        .cart-item img {
+            width: 100px; height: 100px; border-radius: 12px;
+            object-fit: cover; border: 2px solid #ff00ff;
+        }
+        .cart-item-info { flex: 1; min-width: 200px; }
+        .cart-item-name { font-size: 1.1rem; font-weight: 700; }
+        .cart-item-price { color: #00ffff; font-size: 1.3rem; font-weight: 900; margin: 5px 0; }
+        .cart-item-variation { display: flex; gap: 15px; margin: 10px 0; flex-wrap: wrap; }
+        .cart-item-variation select, .cart-item-variation input {
+            background: #111; color: #fff; border: 1px solid #333;
+            padding: 8px 12px; border-radius: 8px;
+        }
+        .quantity-control {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .qty-btn {
+            background: #ff00ff; color: #fff; border: none;
+            width: 35px; height: 35px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; transition: all 0.3s;
+        }
+        .qty-btn:hover { box-shadow: 0 0 15px rgba(255,0,255,0.6); }
+        .qty-input {
+            width: 50px; text-align: center; background: #111;
+            color: #fff; border: 1px solid #333; padding: 8px; border-radius: 8px;
+        }
+        .remove-btn {
+            background: #ff0044; color: #fff; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .remove-btn:hover { box-shadow: 0 0 15px rgba(255,0,68,0.6); }
+        .cart-empty {
+            text-align: center; padding: 60px 20px; color: #666; font-size: 1.2rem;
+        }
+        .cart-total {
+            text-align: right; font-size: 1.5rem; padding: 20px;
+            background: rgba(20,20,20,0.85); border: 2px solid #00ffff;
+            border-radius: 16px; margin: 20px 0;
+        }
+        .cart-total span { color: #00ffff; font-weight: 900; font-size: 2rem; }
+
+        /* Formulario */
+        .form-section {
+            background: rgba(20,20,20,0.85); border: 2px solid #ff00ff;
+            border-radius: 20px; padding: 30px; margin: 30px 0;
+            backdrop-filter: blur(10px);
+        }
+        .form-section h2 {
+            color: #ff00ff; margin-bottom: 20px; border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { display: block; margin-bottom: 5px; color: #00ffff; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px; background: #111;
+            border: 2px solid #333; border-radius: 10px;
+            color: #fff; font-size: 1rem; transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.2);
+        }
+
+        /* Shipping options */
+        .shipping-options {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px; margin-top: 10px;
+        }
+        .shipping-option {
+            background: #111; border: 2px solid #333; border-radius: 12px;
+            padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s;
+        }
+        .shipping-option:hover, .shipping-option.selected {
+            border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.3);
+        }
+        .shipping-option .name { font-weight: 700; }
+        .shipping-option .price { color: #00ffff; font-size: 0.9rem; }
+        .free-shipping {
+            color: #00ff88; font-weight: 700; font-size: 1.1rem;
+            text-align: center; margin: 10px 0;
+            text-shadow: 0 0 10px rgba(0,255,136,0.5);
+        }
+
+        .btn-submit {
+            display: block; width: 100%; padding: 18px; text-align: center;
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: #000; font-size: 1.2rem; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
+            margin-top: 20px;
+        }
+        .btn-submit:hover {
+            box-shadow: 0 0 40px rgba(0,255,136,0.5); transform: scale(1.02);
+        }
+        .btn-cancel {
+            display: block; width: 100%; padding: 14px; text-align: center;
+            background: transparent; color: #ff0044; font-size: 1rem;
+            border: 1px solid #ff0044; border-radius: 12px; cursor: pointer;
+            margin-top: 10px; transition: all 0.3s;
+        }
+        .btn-cancel:hover { background: rgba(255,0,68,0.1); }
+
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .cart-item { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+    <a href="/" class="back-btn">← Volver a la tienda</a>
+    <h1>🛒 Tu Carrito</h1>
+    <p class="subtitle">✦ VIBE COLOMBIA 26 ✦</p>
+
+    <div id="cartItems"></div>
+    <div id="cartTotal" class="cart-total"></div>
+    <div id="cartEmpty" class="cart-empty" style="display:none;">
+        <p>🛍️ Tu carrito está vacío</p>
+        <a href="/" style="color:#ff00ff;">Ver productos</a>
+    </div>
+
+    <!-- Formulario de pedido -->
+    <div id="checkoutForm" class="form-section" style="display:none;">
+        <h2>📋 Información de envío</h2>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label>Nombre completo *</label>
+                <input type="text" id="nombreCliente" placeholder="Tu nombre completo" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono *</label>
+                <input type="tel" id="telefono" placeholder="3001234567" required>
+            </div>
+            <div class="form-group">
+                <label>Correo electrónico</label>
+                <input type="email" id="email" placeholder="tucorreo@email.com">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Departamento *</label>
+                <select id="departamento" required>
+                    <option value="">Seleccionar...</option>
+                    <option>Cundinamarca</option><option>Antioquia</option>
+                    <option>Valle del Cauca</option><option>Atlántico</option>
+                    <option>Santander</option><option>Bolívar</option>
+                    <option>Boyacá</option><option>Caldas</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ciudad *</label>
+                <input type="text" id="ciudad" placeholder="Tu ciudad" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group full">
+                <label>Dirección *</label>
+                <input type="text" id="direccion" placeholder="Calle, carrera, número, barrio" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Tienda</label>
+                <select id="tienda">
+                    <option>VIBE COLOMBIA 26</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notas (opcional)</label>
+                <input type="text" id="notas" placeholder="Instrucciones especiales...">
+            </div>
+        </div>
+
+        <h2>🚚 Opciones de envío</h2>
+        <p class="free-shipping">🎉 ¡ENVÍO GRATIS EN TODOS TUS PEDIDOS! 🎉</p>
+        <div class="shipping-options" id="shippingOptions">
+            <div class="shipping-option selected" data-shipping="Veloces">
+                <div class="name">🚀 Veloces</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="Envia">
+                <div class="name">📦 Envia</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="Interrapidísimo">
+                <div class="name">⚡ Interrapidísimo</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="Domina">
+                <div class="name">🏠 Domina</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="Coordinadora">
+                <div class="name">📋 Coordinadora</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="99minutos">
+                <div class="name">⏱️ 99minutos</div><div class="price">GRATIS</div>
+            </div>
+            <div class="shipping-option" data-shipping="TCC">
+                <div class="name">🚛 TCC</div><div class="price">GRATIS</div>
+            </div>
+        </div>
+
+        <h2>💰 Resumen de la orden</h2>
+        <div id="orderSummary" style="background:#111; padding:20px; border-radius:12px; margin-top:10px;"></div>
+
+        <button class="btn-submit" onclick="completarOrden()">✅ COMPLETAR ORDEN</button>
+        <button class="btn-cancel" onclick="cancelarOrden()">❌ Cancelar</button>
+
+        <p style="text-align:center; color:#00ff88; margin-top:15px; font-weight:700;">
+            💵 Pago contra entrega · Recibes tu pedido y luego pagas
+        </p>
+    </div>
+</div>
+
+<script>
+    let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
+
+    function guardarCarrito() {
+        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
+    }
+
+    function renderCarrito() {
+        const container = document.getElementById('cartItems');
+        const totalDiv = document.getElementById('cartTotal');
+        const emptyDiv = document.getElementById('cartEmpty');
+        const checkoutForm = document.getElementById('checkoutForm');
+
+        if (carrito.length === 0) {
+            container.innerHTML = '';
+            totalDiv.innerHTML = '';
+            emptyDiv.style.display = 'block';
+            checkoutForm.style.display = 'none';
+            return;
+        }
+
+        emptyDiv.style.display = 'none';
+        checkoutForm.style.display = 'block';
+
+        let html = '';
+        let total = 0;
+
+        carrito.forEach((item, index) => {
+            const precio = item.precio || 0;
+            const cantidad = item.cantidad || 1;
+            const subtotal = precio * cantidad;
+            total += subtotal;
+
+            html += `
+                <div class="cart-item">
+                    <img src="${item.imagen || ''}" alt="${item.nombre}" onerror="this.style.display='none'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.nombre}</div>
+                        <div class="cart-item-price">$${precio.toLocaleString('es-CO')}</div>
+                        <div class="cart-item-variation">
+                            <select onchange="cambiarVariacion(${index}, 'color', this.value)">
+                                <option value="">Color</option>
+                                <option value="Blanco" ${item.color === 'Blanco' ? 'selected' : ''}>Blanco</option>
+                                <option value="Azul" ${item.color === 'Azul' ? 'selected' : ''}>Azul</option>
+                                <option value="Negro" ${item.color === 'Negro' ? 'selected' : ''}>Negro</option>
+                                <option value="Rojo" ${item.color === 'Rojo' ? 'selected' : ''}>Rojo</option>
+                            </select>
+                            <select onchange="cambiarVariacion(${index}, 'talla', this.value)">
+                                <option value="">Talla</option>
+                                <option value="38" ${item.talla === '38' ? 'selected' : ''}>38</option>
+                                <option value="40" ${item.talla === '40' ? 'selected' : ''}>40</option>
+                                <option value="42" ${item.talla === '42' ? 'selected' : ''}>42</option>
+                                <option value="44" ${item.talla === '44' ? 'selected' : ''}>44</option>
+                                <option value="Única" ${item.talla === 'Única' ? 'selected' : ''}>Única</option>
+                            </select>
+                        </div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="cambiarCantidad(${index}, -1)">−</button>
+                            <input class="qty-input" type="number" value="${cantidad}" min="1" onchange="cambiarCantidad(${index}, 0, this.value)">
+                            <button class="qty-btn" onclick="cambiarCantidad(${index}, 1)">+</button>
+                            <span style="margin-left:10px;">Subtotal: $${subtotal.toLocaleString('es-CO')}</span>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="eliminarItem(${index})">🗑️</button>
+                </div>`;
+        });
+
+        container.innerHTML = html;
+        totalDiv.innerHTML = `<strong>Total:</strong> <span>$${total.toLocaleString('es-CO')}</span>`;
+        renderOrderSummary();
+    }
+
+    function cambiarCantidad(index, delta, valorDirecto) {
+        if (valorDirecto) {
+            carrito[index].cantidad = Math.max(1, parseInt(valorDirecto) || 1);
+        } else {
+            carrito[index].cantidad = Math.max(1, (carrito[index].cantidad || 1) + delta);
+        }
+        guardarCarrito();
+        renderCarrito();
+    }
+
+    function cambiarVariacion(index, tipo, valor) {
+        carrito[index][tipo] = valor;
+        guardarCarrito();
+        renderCarrito();
+    }
+
+    function eliminarItem(index) {
+        carrito.splice(index, 1);
+        guardarCarrito();
+        renderCarrito();
+    }
+
+    function renderOrderSummary() {
+        const summary = document.getElementById('orderSummary');
+        let total = 0;
+        let html = '';
+
+        carrito.forEach(item => {
+            const subtotal = item.precio * (item.cantidad || 1);
+            total += subtotal;
+            html += `
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #222;">
+                    <span>${item.nombre} ${item.color ? '· ' + item.color : ''} ${item.talla ? '· Talla ' + item.talla : ''} x${item.cantidad || 1}</span>
+                    <span>$${subtotal.toLocaleString('es-CO')}</span>
+                </div>`;
+        });
+
+        html += `
+            <div style="display:flex; justify-content:space-between; padding:10px 0; color:#00ff88; font-weight:700;">
+                <span>🎉 Envío</span>
+                <span>¡GRATIS!</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:15px 0; font-size:1.3rem; font-weight:900; border-top:2px solid #ff00ff; margin-top:10px;">
+                <span>Total a recaudar</span>
+                <span style="color:#00ffff;">$${total.toLocaleString('es-CO')}</span>
+            </div>`;
+
+        summary.innerHTML = html;
+    }
+
+    function completarOrden() {
+        const nombre = document.getElementById('nombreCliente').value;
+        const telefono = document.getElementById('telefono').value;
+        const departamento = document.getElementById('departamento').value;
+        const ciudad = document.getElementById('ciudad').value;
+        const direccion = document.getElementById('direccion').value;
+        const notas = document.getElementById('notas').value;
+        const shipping = document.querySelector('.shipping-option.selected')?.dataset?.shipping || 'Veloces';
+
+        if (!nombre || !telefono || !departamento || !ciudad || !direccion) {
+            alert('Por favor completa todos los campos requeridos (*)');
+            return;
+        }
+
+        let mensaje = `🛒 *NUEVO PEDIDO - VIBE COLOMBIA 26*%0A%0A`;
+        mensaje += `👤 *Cliente:* ${nombre}%0A`;
+        mensaje += `📞 *Teléfono:* ${telefono}%0A`;
+        mensaje += `📍 *Dirección:* ${direccion}, ${ciudad}, ${departamento}%0A`;
+        mensaje += `🚚 *Envío:* ${shipping} (GRATIS)%0A`;
+        if (notas) mensaje += `📝 *Notas:* ${notas}%0A`;
+        mensaje += `%0A--- 📦 *Productos* ---%0A`;
+
+        let total = 0;
+        carrito.forEach(item => {
+            const subtotal = item.precio * (item.cantidad || 1);
+            total += subtotal;
+            mensaje += `• ${item.nombre} x${item.cantidad || 1}`;
+            if (item.color) mensaje += ` · ${item.color}`;
+            if (item.talla) mensaje += ` · Talla ${item.talla}`;
+            mensaje += ` · $${subtotal.toLocaleString('es-CO')}%0A`;
+        });
+
+        mensaje += `%0A💰 *Total:* $${total.toLocaleString('es-CO')}%0A`;
+        mensaje += `💵 *Pago:* Contra entrega`;
+
+        window.open(`https://wa.me/573234329406?text=${mensaje}`, '_blank');
+
+        localStorage.removeItem('carritoVibeColombia');
+        carrito = [];
+        renderCarrito();
+        alert('✅ ¡Pedido enviado! Te contactaremos pronto.');
+    }
+
+    function cancelarOrden() {
+        if (confirm('¿Cancelar el pedido? Se vaciará tu carrito.')) {
+            localStorage.removeItem('carritoVibeColombia');
+            carrito = [];
+            renderCarrito();
+            window.location.href = '/';
+        }
+    }
+
+    // Inicializar
+    renderCarrito();
+
+    // Selección de envío
+    document.querySelectorAll('.shipping-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+</script>
+</body>
+</html>

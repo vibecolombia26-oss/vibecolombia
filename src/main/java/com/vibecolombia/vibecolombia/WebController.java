@@ -26,4 +26,8 @@ public class WebController {
         model.addAttribute("producto", producto);
         return "producto-detalle";
     }
+    @GetMapping("/carrito")
+    public String carrito() {
+        return "carrito";
+    }
 }
