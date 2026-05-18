@@ -117,7 +117,10 @@ public class AdminController {
                     producto.setImagen10(existente.getImagen10());
                 }
             }
-
+// Asegurar que la descripción del formulario se guarde
+            if (producto.getDescripcion() != null && !producto.getDescripcion().isEmpty()) {
+                producto.setDescripcionCorta(producto.getDescripcion());
+            }
             // Procesar SOLO las imágenes nuevas subidas
             String[] setters = {"setImagen1", "setImagen2", "setImagen3", "setImagen4", "setImagen5",
                     "setImagen6", "setImagen7", "setImagen8", "setImagen9", "setImagen10"};
