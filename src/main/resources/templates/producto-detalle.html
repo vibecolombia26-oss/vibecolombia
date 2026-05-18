@@ -263,7 +263,9 @@
     function actualizarSubtotal() {
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
         const subtotal = precioBase * cantidad;
-        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO');
+        const subtotalFormateado = subtotal.toLocaleString('es-CO');
+        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotalFormateado;
+        document.getElementById('subtotalDisplay').setAttribute('data-subtotal', subtotal);
     }
 
     function agregarAlCarrito() {
@@ -272,9 +274,18 @@
         const color = document.getElementById('colorSelect').value;
         const talla = document.getElementById('tallaSelect').value;
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        const subtotal = precioBase * cantidad;
 
         let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
+        carrito.push({
+            nombre: nombre,
+            precio: precioBase,
+            imagen: imagen,
+            cantidad: cantidad,
+            color: color,
+            talla: talla,
+            subtotal: subtotal
+        });
         localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
 
         const btn = document.querySelector('.btn-carrito');
@@ -297,9 +308,19 @@
         const color = document.getElementById('colorSelect').value;
         const talla = document.getElementById('tallaSelect').value;
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        const subtotal = precioBase * cantidad;
 
         let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
+        carrito.push({
+            nombre: nombre,
+            precio: precioBase,
+            imagen: imagen,
+            cantidad: cantidad,
+            color: color,
+            talla: talla,
+            subtotal: subtotal,
+            contraentrega: true
+        });
         localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
         window.location.href = '/carrito';
     }
