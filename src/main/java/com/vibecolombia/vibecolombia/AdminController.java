@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;
+package com.vibecolombia.vibecolombia;package com.vibecolombia.vibecolombia;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -7,12 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.Base64;
 
 @Controller
 @RequestMapping("/admin")
@@ -22,9 +18,6 @@ public class AdminController {
 
     @Value("${admin.password}")
     private String adminPassword;
-
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/src/main/resources/static/images/";
-    private static final String UPLOAD_DIR_RENDER = "/opt/render/project/target/classes/static/images/";
 
     public AdminController(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
@@ -94,10 +87,6 @@ public class AdminController {
         }
 
         try {
-            String uploadPath = UPLOAD_DIR_RENDER;
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) uploadDir.mkdirs();
-
             MultipartFile[] nuevasImagenes = {imagen1File, imagen2File, imagen3File, imagen4File, imagen5File,
                     imagen6File, imagen7File, imagen8File, imagen9File, imagen10File};
 
@@ -117,22 +106,19 @@ public class AdminController {
                     producto.setImagen10(existente.getImagen10());
                 }
             }
-// Asegurar que la descripción del formulario se guarde
-            if (producto.getDescripcion() != null && !producto.getDescripcion().isEmpty()) {
-                producto.setDescripcionCorta(producto.getDescripcion());
-            }
-            // Procesar SOLO las imágenes nuevas subidas
+
+            // Procesar SOLO las imágenes nuevas y convertirlas a Base64
             String[] setters = {"setImagen1", "setImagen2", "setImagen3", "setImagen4", "setImagen5",
                     "setImagen6", "setImagen7", "setImagen8", "setImagen9", "setImagen10"};
 
             for (int i = 0; i < 10; i++) {
                 if (nuevasImagenes[i] != null && !nuevasImagenes[i].isEmpty()) {
-                    String filename = UUID.randomUUID().toString() + "_" + nuevasImagenes[i].getOriginalFilename();
-                    Path path = Paths.get(uploadPath + filename);
-                    Files.write(path, nuevasImagenes[i].getBytes());
+                    String contentType = nuevasImagenes[i].getContentType();
+                    String base64 = "data:" + contentType + ";base64," +
+                            Base64.getEncoder().encodeToString(nuevasImagenes[i].getBytes());
                     try {
                         java.lang.reflect.Method setter = Producto.class.getMethod(setters[i], String.class);
-                        setter.invoke(producto, "/images/" + filename);
+                        setter.invoke(producto, base64);
                     } catch (Exception e) { }
                 }
             }
@@ -140,7 +126,7 @@ public class AdminController {
             productoRepository.save(producto);
             redirect.addFlashAttribute("mensaje", "✅ Producto guardado exitosamente!");
         } catch (IOException e) {
-            redirect.addFlashAttribute("error", "❌ Error al subir imágenes: " + e.getMessage());
+            redirect.addFlashAttribute("error", "❌ Error al procesar imágenes: " + e.getMessage());
         }
 
         return "redirect:/admin/panel?key=" + key;

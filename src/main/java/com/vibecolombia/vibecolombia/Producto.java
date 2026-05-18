@@ -21,16 +21,25 @@ public class Producto {
     private String sku;
     private String categoria;
 
-    // Hasta 10 imágenes
+    @Column(columnDefinition = "TEXT")
     private String imagen1;
+    @Column(columnDefinition = "TEXT")
     private String imagen2;
+    @Column(columnDefinition = "TEXT")
     private String imagen3;
+    @Column(columnDefinition = "TEXT")
     private String imagen4;
+    @Column(columnDefinition = "TEXT")
     private String imagen5;
+    @Column(columnDefinition = "TEXT")
     private String imagen6;
+    @Column(columnDefinition = "TEXT")
     private String imagen7;
+    @Column(columnDefinition = "TEXT")
     private String imagen8;
+    @Column(columnDefinition = "TEXT")
     private String imagen9;
+    @Column(columnDefinition = "TEXT")
     private String imagen10;
 
     private String largo;
@@ -40,14 +49,12 @@ public class Producto {
 
     public Producto() {}
 
-    // Constructor simple
     public Producto(String nombre, Double precio, String descripcionCorta) {
         this.nombre = nombre;
         this.precio = precio;
         this.descripcionCorta = descripcionCorta;
     }
 
-    // Constructor completo
     public Producto(String nombre, Double precio, String descripcionCorta, String descripcionLarga,
                     String sku, String categoria, String imagen1, String imagen2,
                     String largo, String ancho, String alto, String peso) {
@@ -65,7 +72,6 @@ public class Producto {
         this.peso = peso;
     }
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -81,7 +87,6 @@ public class Producto {
     public String getDescripcionLarga() { return descripcionLarga; }
     public void setDescripcionLarga(String descripcionLarga) { this.descripcionLarga = descripcionLarga; }
 
-    // Para compatibilidad con código anterior
     public String getDescripcion() { return descripcionCorta; }
     public void setDescripcion(String descripcion) { this.descripcionCorta = descripcion; }
 
