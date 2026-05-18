@@ -94,7 +94,7 @@ public class AdminController {
         }
 
         try {
-            String uploadPath = Files.exists(Paths.get(UPLOAD_DIR)) ? UPLOAD_DIR : UPLOAD_DIR_RENDER;
+            String uploadPath = UPLOAD_DIR_RENDER;
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) uploadDir.mkdirs();
 
