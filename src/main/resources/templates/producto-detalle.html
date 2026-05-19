@@ -256,7 +256,7 @@
         if (precioElement) {
             var texto = precioElement.textContent || precioElement.innerText || '';
             texto = texto.replace('$', '').replace(/\./g, '').replace(/\s/g, '');
-            precioBase = parseInt(texto) || 0;
+            precioBase = parseInt(texto.replace(/\./g, '')) || 0;
         }
     });
 
