@@ -239,47 +239,46 @@
         let total = 0;
 
         carrito.forEach((item, index) => {
-            const precio = item.precio || 0;
-            const cantidad = item.cantidad || 1;
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
             const subtotal = precio * cantidad;
             total += subtotal;
 
-            html += `
-                <div class="cart-item">
-                    <img src="${item.imagen || ''}" alt="${item.nombre}" onerror="this.style.display='none'">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.nombre}</div>
-                        <div class="cart-item-price">$${precio.toLocaleString('es-CO')}</div>
-                        <div class="cart-item-variation">
-                            <select onchange="cambiarVariacion(${index}, 'color', this.value)">
-                                <option value="">Color</option>
-                                <option value="Blanco" ${item.color === 'Blanco' ? 'selected' : ''}>Blanco</option>
-                                <option value="Azul" ${item.color === 'Azul' ? 'selected' : ''}>Azul</option>
-                                <option value="Negro" ${item.color === 'Negro' ? 'selected' : ''}>Negro</option>
-                                <option value="Rojo" ${item.color === 'Rojo' ? 'selected' : ''}>Rojo</option>
-                            </select>
-                            <select onchange="cambiarVariacion(${index}, 'talla', this.value)">
-                                <option value="">Talla</option>
-                                <option value="38" ${item.talla === '38' ? 'selected' : ''}>38</option>
-                                <option value="40" ${item.talla === '40' ? 'selected' : ''}>40</option>
-                                <option value="42" ${item.talla === '42' ? 'selected' : ''}>42</option>
-                                <option value="44" ${item.talla === '44' ? 'selected' : ''}>44</option>
-                                <option value="Única" ${item.talla === 'Única' ? 'selected' : ''}>Única</option>
-                            </select>
-                        </div>
-                        <div class="quantity-control">
-                            <button class="qty-btn" onclick="cambiarCantidad(${index}, -1)">−</button>
-                            <input class="qty-input" type="number" value="${cantidad}" min="1" onchange="cambiarCantidad(${index}, 0, this.value)">
-                            <button class="qty-btn" onclick="cambiarCantidad(${index}, 1)">+</button>
-                            <span style="margin-left:10px;">Subtotal: $${subtotal.toLocaleString('es-CO')}</span>
-                        </div>
-                    </div>
-                    <button class="remove-btn" onclick="eliminarItem(${index})">🗑️</button>
-                </div>`;
+            html += '<div class="cart-item">' +
+                '<img src="' + (item.imagen || '') + '" alt="' + item.nombre + '" onerror="this.style.display=\'none\'">' +
+                '<div class="cart-item-info">' +
+                '<div class="cart-item-name">' + item.nombre + '</div>' +
+                '<div class="cart-item-price">$' + precio.toLocaleString('es-CO') + '</div>' +
+                '<div class="cart-item-variation">' +
+                '<select onchange="cambiarVariacion(' + index + ', \'color\', this.value)">' +
+                '<option value="">Color</option>' +
+                '<option value="Blanco"' + (item.color === 'Blanco' ? ' selected' : '') + '>Blanco</option>' +
+                '<option value="Azul"' + (item.color === 'Azul' ? ' selected' : '') + '>Azul</option>' +
+                '<option value="Negro"' + (item.color === 'Negro' ? ' selected' : '') + '>Negro</option>' +
+                '<option value="Rojo"' + (item.color === 'Rojo' ? ' selected' : '') + '>Rojo</option>' +
+                '</select>' +
+                '<select onchange="cambiarVariacion(' + index + ', \'talla\', this.value)">' +
+                '<option value="">Talla</option>' +
+                '<option value="38"' + (item.talla === '38' ? ' selected' : '') + '>38</option>' +
+                '<option value="40"' + (item.talla === '40' ? ' selected' : '') + '>40</option>' +
+                '<option value="42"' + (item.talla === '42' ? ' selected' : '') + '>42</option>' +
+                '<option value="44"' + (item.talla === '44' ? ' selected' : '') + '>44</option>' +
+                '<option value="Única"' + (item.talla === 'Única' ? ' selected' : '') + '>Única</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="quantity-control">' +
+                '<button class="qty-btn" onclick="cambiarCantidad(' + index + ', -1)">−</button>' +
+                '<input class="qty-input" type="number" value="' + cantidad + '" min="1" onchange="cambiarCantidad(' + index + ', 0, this.value)">' +
+                '<button class="qty-btn" onclick="cambiarCantidad(' + index + ', 1)">+</button>' +
+                '<span style="margin-left:10px;">Subtotal: $' + subtotal.toLocaleString('es-CO') + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<button class="remove-btn" onclick="eliminarItem(' + index + ')">🗑️</button>' +
+                '</div>';
         });
 
         container.innerHTML = html;
-        totalDiv.innerHTML = `<strong>Total:</strong> <span>$${total.toLocaleString('es-CO')}</span>`;
+        totalDiv.innerHTML = '<strong>Total:</strong> <span>$' + total.toLocaleString('es-CO') + '</span>';
         renderOrderSummary();
     }
 
@@ -287,7 +286,7 @@
         if (valorDirecto) {
             carrito[index].cantidad = Math.max(1, parseInt(valorDirecto) || 1);
         } else {
-            carrito[index].cantidad = Math.max(1, (carrito[index].cantidad || 1) + delta);
+            carrito[index].cantidad = Math.max(1, (Number(carrito[index].cantidad) || 1) + delta);
         }
         guardarCarrito();
         renderCarrito();
@@ -311,23 +310,21 @@
         let html = '';
 
         carrito.forEach(item => {
-            const subtotal = item.precio * (item.cantidad || 1);
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
             total += subtotal;
-            html += `
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #222;">
-                    <span>${item.nombre} ${item.color ? '· ' + item.color : ''} ${item.talla ? '· Talla ' + item.talla : ''} x${item.cantidad || 1}</span>
-                    <span>$${subtotal.toLocaleString('es-CO')}</span>
-                </div>`;
+            html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;">' +
+                '<span>' + item.nombre + (item.color ? ' · ' + item.color : '') + (item.talla ? ' · Talla ' + item.talla : '') + ' x' + cantidad + '</span>' +
+                '<span>$' + subtotal.toLocaleString('es-CO') + '</span>' +
+                '</div>';
         });
 
-        html += `
-            <div style="display:flex; justify-content:space-between; padding:10px 0; color:#00ff88; font-weight:700;">
-                <span>🎉 Envío</span><span>¡GRATIS!</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:15px 0; font-size:1.3rem; font-weight:900; border-top:2px solid #ff00ff; margin-top:10px;">
-                <span>Total a recaudar</span>
-                <span style="color:#00ffff;">$${total.toLocaleString('es-CO')}</span>
-            </div>`;
+        html += '<div style="display:flex;justify-content:space-between;padding:10px 0;color:#00ff88;font-weight:700;">' +
+            '<span>🎉 Envío</span><span>¡GRATIS!</span></div>' +
+            '<div style="display:flex;justify-content:space-between;padding:15px 0;font-size:1.3rem;font-weight:900;border-top:2px solid #ff00ff;margin-top:10px;">' +
+            '<span>Total a recaudar</span>' +
+            '<span style="color:#00ffff;">$' + total.toLocaleString('es-CO') + '</span></div>';
 
         summary.innerHTML = html;
     }
@@ -345,28 +342,30 @@
             return;
         }
 
-        let mensaje = `🛒 *NUEVO PEDIDO - VIBE COLOMBIA 26*%0A%0A`;
-        mensaje += `👤 *Cliente:* ${nombre}%0A`;
-        mensaje += `📞 *Teléfono:* ${telefono}%0A`;
-        mensaje += `📍 *Dirección:* ${direccion}, ${ciudad}, ${departamento}%0A`;
-        mensaje += `🚚 *Envío:* GRATIS%0A`;
-        if (notas) mensaje += `📝 *Notas:* ${notas}%0A`;
-        mensaje += `%0A--- 📦 *Productos* ---%0A`;
+        let mensaje = '🛒 *NUEVO PEDIDO - VIBE COLOMBIA 26*%0A%0A';
+        mensaje += '👤 *Cliente:* ' + nombre + '%0A';
+        mensaje += '📞 *Teléfono:* ' + telefono + '%0A';
+        mensaje += '📍 *Dirección:* ' + direccion + ', ' + ciudad + ', ' + departamento + '%0A';
+        mensaje += '🚚 *Envío:* GRATIS%0A';
+        if (notas) mensaje += '📝 *Notas:* ' + notas + '%0A';
+        mensaje += '%0A--- 📦 *Productos* ---%0A';
 
         let total = 0;
         carrito.forEach(item => {
-            const subtotal = item.precio * (item.cantidad || 1);
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
             total += subtotal;
-            mensaje += `• ${item.nombre} x${item.cantidad || 1}`;
-            if (item.color) mensaje += ` · ${item.color}`;
-            if (item.talla) mensaje += ` · Talla ${item.talla}`;
-            mensaje += ` · $${subtotal.toLocaleString('es-CO')}%0A`;
+            mensaje += '• ' + item.nombre + ' x' + cantidad;
+            if (item.color) mensaje += ' · ' + item.color;
+            if (item.talla) mensaje += ' · Talla ' + item.talla;
+            mensaje += ' · $' + subtotal.toLocaleString('es-CO') + '%0A';
         });
 
-        mensaje += `%0A💰 *Total:* $${total.toLocaleString('es-CO')}%0A`;
-        mensaje += `💵 *Pago:* Contra entrega`;
+        mensaje += '%0A💰 *Total:* $' + total.toLocaleString('es-CO') + '%0A';
+        mensaje += '💵 *Pago:* Contra entrega';
 
-        window.open(`https://wa.me/573234329406?text=${mensaje}`, '_blank');
+        window.open('https://wa.me/573234329406?text=' + mensaje, '_blank');
         localStorage.removeItem('carritoVibeColombia');
         carrito = [];
         renderCarrito();
