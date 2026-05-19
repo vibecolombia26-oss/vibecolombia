@@ -250,9 +250,7 @@
 </div>
 
 <script>
-    let precioText = document.getElementById('precioBase').textContent;
-    precioText = precioText.replace('$', '').replace(/\./g, '').trim();
-    const precioBase = parseInt(precioText) || 0;
+    const precioBase = /*[[${producto.precio}]]*/ 0;
 
     function cambiarCantidad(delta) {
         const input = document.getElementById('cantidad');
