@@ -30,4 +30,8 @@ public class WebController {
     public String carrito() {
         return "carrito";
     }
+    @GetMapping("/seguimiento")
+    public String seguimiento() {
+        return "seguimiento";
+    }
 }

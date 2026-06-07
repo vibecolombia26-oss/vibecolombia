@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+        .container { background:rgba(20,20,20,0.9); border:2px solid #ff00ff; border-radius:20px; padding:40px; max-width:550px; width:100%; text-align:center; box-shadow:0 0 40px rgba(255,0,255,0.2); }
+        h1 { font-size:1.5rem; font-weight:700; color:#ff00ff; letter-spacing:3px; margin-bottom:20px; }
+        input { width:100%; padding:15px; background:#111; border:2px solid #333; border-radius:8px; color:#fff; font-size:1rem; text-align:center; margin-bottom:15px; }
+        input:focus { border-color:#ff00ff; outline:none; box-shadow:0 0 15px rgba(255,0,255,0.3); }
+        button { width:100%; padding:15px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:25px; font-weight:700; cursor:pointer; font-size:0.95rem; text-transform:uppercase; letter-spacing:2px; }
+        button:hover { box-shadow:0 0 25px rgba(255,0,255,0.6); }
+        .resultado { margin-top:20px; padding:20px; background:#111; border-radius:12px; text-align:left; display:none; }
+        .label { color:#ff00ff; font-size:0.8rem; text-transform:uppercase; }
+        .value { color:#fff; margin-bottom:10px; }
+        .estado { display:inline-block; padding:5px 15px; border-radius:20px; font-size:0.8rem; font-weight:600; }
+        .estado-pendiente { background:rgba(255,193,7,0.15); color:#ffc107; border:1px solid #ffc107; }
+        .error { color:#ff4444; margin-top:10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 Seguimiento VIBE</h1>
+    <p style="color:#aaa; margin-bottom:20px;">Ingresa tu código de seguimiento o celular</p>
+    <input type="text" id="codigoInput" placeholder="Ej: VB-123456789 o 3001234567">
+    <button onclick="buscarPedido()">Consultar</button>
+    <div class="error" id="errorMsg"></div>
+    <div class="resultado" id="resultado">
+        <div class="label">Código</div><div class="value" id="rCodigo"></div>
+        <div class="label">Estado</div><div id="rEstado"></div>
+        <div class="label" style="margin-top:10px;">Productos</div><div class="value" id="rProductos"></div>
+        <div id="infoEnvio" style="display:none; margin-top:15px; padding:15px; background:rgba(255,0,255,0.05); border:1px solid #ff00ff; border-radius:8px;">
+            <div class="label">🚚 Transportadora</div><div class="value" id="rTransportadora"></div>
+            <div class="label">📋 Guía</div><div class="value" id="rGuia"></div>
+        </div>
+    </div>
+</div>
+<script>
+    function buscarPedido() {
+        var codigo = document.getElementById('codigoInput').value.trim();
+        if (!codigo) { document.getElementById('errorMsg').textContent = 'Ingresa un código o teléfono'; return; }
+        fetch('/api/pedido/' + codigo).then(r => r.json()).then(data => {
+            if (!data.error) { mostrarResultado(data); }
+            else {
+                var tel = codigo.replace(/[^0-9]/g, '');
+                if (tel.length >= 10) {
+                    fetch('/api/pedido/telefono/' + tel).then(r => r.json()).then(d => {
+                        if (!d.error) mostrarResultado(d);
+                        else { document.getElementById('errorMsg').textContent = 'Pedido no encontrado'; document.getElementById('resultado').style.display = 'none'; }
+                    });
+                } else { document.getElementById('errorMsg').textContent = 'Pedido no encontrado'; document.getElementById('resultado').style.display = 'none'; }
+            }
+        });
+    }
+    function mostrarResultado(data) {
+        document.getElementById('errorMsg').textContent = ''; document.getElementById('resultado').style.display = 'block';
+        document.getElementById('rCodigo').textContent = data.codigo;
+        document.getElementById('rEstado').innerHTML = '<span class="estado estado-pendiente">' + data.estado + '</span>';
+        document.getElementById('rProductos').textContent = data.productos;
+        if (data.transportadora) { document.getElementById('rTransportadora').textContent = data.transportadora; document.getElementById('rGuia').textContent = data.numeroGuia || 'Pendiente'; document.getElementById('infoEnvio').style.display = 'block'; }
+        else { document.getElementById('infoEnvio').style.display = 'none'; }
+    }
+</script>
+</body>
+</html>
