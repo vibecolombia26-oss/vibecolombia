@@ -3,95 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${producto.nombre}">Detalle Producto</title>
+    <title th:text="${producto.nombre}">VIBE COLOMBIA 26</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; z-index: 0; }
-        .container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 8px; transition: all 0.3s; }
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: 0; }
+        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
-        .producto-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; box-shadow: 0 0 40px rgba(255,0,255,0.2); backdrop-filter: blur(10px); margin-bottom: 30px; }
-        .imagenes { display: flex; flex-direction: column; gap: 15px; }
-        .imagen-principal { width: 100%; border-radius: 16px; border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255,0,255,0.3); }
-        .imagenes-secundarias { display: flex; gap: 10px; flex-wrap: wrap; }
-        .imagen-secundaria { width: 70px; height: 70px; border-radius: 10px; border: 2px solid #333; cursor: pointer; object-fit: cover; transition: all 0.3s; }
-        .imagen-secundaria:hover { border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
-        .info h1 { font-size: 1.8rem; margin-bottom: 15px; background: linear-gradient(45deg, #ff00ff, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.6); margin: 15px 0; }
-        .sku { color: #ff00ff; font-size: 0.9rem; margin-bottom: 10px; }
-        .categoria { display: inline-block; background: rgba(255,0,255,0.2); color: #ff00ff; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #ff00ff; margin-bottom: 20px; }
-        .descripcion { color: #ccc; line-height: 1.8; margin: 20px 0; font-size: 0.95rem; }
-        .medidas { background: rgba(0,255,255,0.05); border: 1px solid #00ffff; border-radius: 12px; padding: 15px; margin: 20px 0; }
-        .medidas h3 { color: #00ffff; margin-bottom: 10px; }
-        .medidas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .medida-item { color: #aaa; font-size: 0.9rem; }
-        .medida-item span { color: #fff; }
-        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
-        .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
-        .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
-        .variacion-group { flex: 1; min-width: 120px; }
-        .variacion-group label { display: block; color: #00ffff; margin-bottom: 5px; font-weight: 600; }
-        .variacion-group select { width: 100%; padding: 10px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; }
-        .variacion-group select:focus { border-color: #ff00ff; outline: none; }
-        .cantidad-row { display: flex; align-items: center; gap: 15px; margin: 20px 0; background: rgba(0,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid #00ffff; }
-        .cantidad-row label { color: #00ffff; font-weight: 600; }
-        .qty-btn { background: #ff00ff; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; transition: all 0.3s; }
-        .qty-btn:hover { box-shadow: 0 0 20px rgba(255,0,255,0.6); }
-        .qty-input { width: 60px; text-align: center; background: #111; color: #fff; border: 2px solid #333; padding: 10px; border-radius: 8px; font-size: 1.1rem; }
-        .subtotal-display { color: #00ffff; font-weight: 900; font-size: 1.3rem; margin-left: auto; }
-        .acciones { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
-        .btn-carrito { width: 100%; padding: 16px; text-align: center; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
+        .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
+        .imagen-principal { width: 100%; max-height: 450px; object-fit: cover; display: block; }
+        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); }
+        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; filter: brightness(0.9); }
+        .imagen-secundaria:hover { border-color: #00ffff; filter: brightness(1); box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+        .info-section { padding: 30px; }
+        .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 10px; }
+        .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); margin-bottom: 10px; }
+        .meta { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .sku { color: #ff00ff; font-size: 0.85rem; }
+        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; border: 1px solid #ff00ff; text-transform: uppercase; }
+        .especificaciones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 10px; text-align: center; }
+        .esp-item .esp-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
+        .esp-item .esp-value { color: #fff; font-size: 0.95rem; font-weight: 500; }
+        .descripcion { color: #aaa; line-height: 1.8; font-size: 0.9rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); }
+        .cantidad-row label { color: #00ffff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
+        .qty-btn:hover { background: #ff00ff; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.6); }
+        .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 0.95rem; }
+        .subtotal-display { color: #00ffff; font-weight: 700; font-size: 1.1rem; }
+        .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .btn-carrito { width: 100%; padding: 16px; text-align: center; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-contraentrega { width: 100%; padding: 16px; text-align: center; background: linear-gradient(45deg, #00ff88, #00cc66); color: #000; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
-        .btn-contraentrega:hover { box-shadow: 0 0 30px rgba(0,255,136,0.6); transform: scale(1.02); }
-        .banner-pago { background: linear-gradient(45deg, rgba(0,255,136,0.1), rgba(0,255,136,0.05)); border: 2px solid #00ff88; border-radius: 16px; padding: 20px; text-align: center; margin-top: 20px; }
-        .banner-pago .icono { font-size: 2.5rem; }
-        .banner-pago h3 { color: #00ff88; font-size: 1.2rem; margin: 8px 0; }
-        .banner-pago p { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
-        .banner-pago .destacado { color: #00ff88; font-weight: 700; font-size: 1.1rem; text-shadow: 0 0 10px rgba(0,255,136,0.5); }
-        @media (max-width: 768px) { .producto-container { grid-template-columns: 1fr; } }
+        .btn-contraentrega { width: 100%; padding: 16px; text-align: center; background: transparent; color: #00ffff; font-size: 0.95rem; font-weight: 700; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-contraentrega:hover { background: #00ffff; color: #000; box-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        .acciones-hint { text-align: center; color: #666; font-size: 0.7rem; margin-top: 5px; }
+        .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
+        .banner-pago .icono { font-size: 1.5rem; }
+        .banner-pago h3 { color: #ff00ff; font-size: 0.9rem; margin: 5px 0; font-weight: 600; }
+        .banner-pago p { color: #888; font-size: 0.8rem; }
+        .banner-pago .destacado { color: #fff; font-weight: 600; }
+        @media (max-width: 500px) { .especificaciones { grid-template-columns: repeat(2, 1fr); } .info-section { padding: 20px; } }
     </style>
 </head>
 <body>
 <div class="bg-grid"></div>
 <div class="container">
-    <a href="/" class="back-btn">← Volver a la tienda</a>
-    <div class="producto-container">
-        <div class="imagenes">
-            <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
-            <div class="imagenes-secundarias">
-                <img class="imagen-secundaria" th:src="${producto.imagen1}" onclick="document.getElementById('imgPrincipal').src=this.src" th:alt="${producto.nombre}">
-                <img class="imagen-secundaria" th:if="${producto.imagen2 != null}" th:src="${producto.imagen2}" onclick="document.getElementById('imgPrincipal').src=this.src">
-                <img class="imagen-secundaria" th:if="${producto.imagen3 != null}" th:src="${producto.imagen3}" onclick="document.getElementById('imgPrincipal').src=this.src">
-                <img class="imagen-secundaria" th:if="${producto.imagen4 != null}" th:src="${producto.imagen4}" onclick="document.getElementById('imgPrincipal').src=this.src">
-            </div>
+    <a href="/" class="back-btn">← Volver</a>
+    <div class="producto-card">
+        <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+        <div class="imagenes-secundarias" th:if="${producto.imagen2 != null or producto.imagen3 != null or producto.imagen4 != null}">
+            <img class="imagen-secundaria" th:src="${producto.imagen1}" onclick="document.getElementById('imgPrincipal').src=this.src">
+            <img class="imagen-secundaria" th:if="${producto.imagen2 != null}" th:src="${producto.imagen2}" onclick="document.getElementById('imgPrincipal').src=this.src">
+            <img class="imagen-secundaria" th:if="${producto.imagen3 != null}" th:src="${producto.imagen3}" onclick="document.getElementById('imgPrincipal').src=this.src">
+            <img class="imagen-secundaria" th:if="${producto.imagen4 != null}" th:src="${producto.imagen4}" onclick="document.getElementById('imgPrincipal').src=this.src">
         </div>
-        <div class="info">
-            <h1 th:text="${producto.nombre}">Nombre</h1>
+        <div class="info-section">
+            <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
             <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
-            <div class="sku" th:text="'SKU: ' + ${producto.sku}">SKU</div>
-            <span class="categoria" th:text="${producto.categoria}">Categoría</span>
-            <p class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
-            <div class="medidas" th:if="${producto.largo != null}">
-                <h3>📏 Medidas</h3>
-                <div class="medidas-grid">
-                    <div class="medida-item">Largo: <span th:text="${producto.largo}">-</span></div>
-                    <div class="medida-item">Ancho: <span th:text="${producto.ancho}">-</span></div>
-                    <div class="medida-item">Alto: <span th:text="${producto.alto}">-</span></div>
-                    <div class="medida-item">Peso: <span th:text="${producto.peso}">-</span></div>
-                </div>
+            <div class="meta"><span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span><span class="categoria" th:text="${producto.categoria}">Categoría</span></div>
+            <div class="especificaciones" th:if="${producto.largo != null}">
+                <div class="esp-item"><div class="esp-label">Largo</div><div class="esp-value" th:text="${producto.largo}">-</div></div>
+                <div class="esp-item"><div class="esp-label">Ancho</div><div class="esp-value" th:text="${producto.ancho}">-</div></div>
+                <div class="esp-item"><div class="esp-label">Alto</div><div class="esp-value" th:text="${producto.alto}">-</div></div>
+                <div class="esp-item"><div class="esp-label">Peso</div><div class="esp-value" th:text="${producto.peso}">-</div></div>
             </div>
-            <div class="variaciones">
-                <h3>🎨 Personaliza tu producto</h3>
-                <div class="variacion-row">
-                    <div class="variacion-group"><label>Color</label><select id="colorSelect"><option value="">Seleccionar</option><option value="Blanco">Blanco</option><option value="Azul">Azul</option><option value="Negro">Negro</option><option value="Rojo">Rojo</option></select></div>
-                    <div class="variacion-group"><label>Talla</label><select id="tallaSelect"><option value="">Seleccionar</option><option value="38">38</option><option value="40">40</option><option value="42">42</option><option value="44">44</option><option value="Única">Única</option></select></div>
-                </div>
-            </div>
+            <div class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</div>
             <div class="cantidad-row">
-                <label>Cantidad:</label>
-                <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
+                <label>Cantidad</label><button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
                 <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
                 <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
                 <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
@@ -99,68 +78,20 @@
             <div class="acciones">
                 <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
                 <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
-                <p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:5px;">🛒 Carrito para pago con tarjeta · 💵 Contra entrega para pagar al recibir</p>
+                <p class="acciones-hint">Carrito para pago electrónico · Contra entrega para pagar al recibir</p>
             </div>
-            <div class="banner-pago">
-                <div class="icono">💵</div>
-                <h3>¡Pago contra entrega!</h3>
-                <p>Recibe tu pedido en la puerta de tu casa y <span class="destacado">pagas cuando lo tengas en tus manos</span>.</p>
-                <p style="margin-top:8px;">🚚 Envío <span class="destacado">GRATIS</span> a todo Colombia</p>
-            </div>
+            <div class="banner-pago"><div class="icono">💜</div><h3>Pago contra entrega</h3><p>Recibe tu producto y <span class="destacado">pagas al recibirlo</span>. Envío <span class="destacado">GRATIS</span></p></div>
         </div>
     </div>
 </div>
+
 <script>
-    var precioBase = /*[[${producto.precio}]]*/ 57600;
-
-    function cambiarCantidad(delta) {
-        const input = document.getElementById('cantidad');
-        let val = parseInt(input.value) || 1;
-        val = Math.max(1, val + delta);
-        input.value = val;
-        actualizarSubtotal();
-    }
-
-    function actualizarSubtotal() {
-        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        const subtotal = precioBase * cantidad;
-        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO');
-    }
-
-    function agregarAlCarrito() {
-        const nombre = document.querySelector('.info h1').textContent.trim();
-        const imagen = document.getElementById('imgPrincipal')?.src || '';
-        const color = document.getElementById('colorSelect').value;
-        const talla = document.getElementById('tallaSelect').value;
-        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
-        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
-        const btn = document.querySelector('.btn-carrito');
-        btn.textContent = '✅ ¡Agregado!';
-        btn.style.background = 'linear-gradient(45deg, #00ff88, #00cc66)';
-        setTimeout(() => {
-            if (confirm('✅ ¡Agregado al carrito!\n\n¿Ver carrito?')) {
-                window.location.href = '/carrito';
-            } else {
-                btn.textContent = '🛒 Agregar al carrito';
-                btn.style.background = 'linear-gradient(45deg, #ff00ff, #cc00cc)';
-            }
-        }, 500);
-    }
-
-    function comprarContraEntrega() {
-        const nombre = document.querySelector('.info h1').textContent.trim();
-        const imagen = document.getElementById('imgPrincipal')?.src || '';
-        const color = document.getElementById('colorSelect').value;
-        const talla = document.getElementById('tallaSelect').value;
-        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
-        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
-        window.location.href = '/carrito';
-    }
-
+    var precioBase = 0;
+    window.onload = function() { var precioTexto = document.querySelector('.precio').textContent; precioTexto = precioTexto.replace('$', '').replace(/\./g, '').replace(/,/g, '').trim(); precioBase = parseInt(precioTexto) || 0; };
+    function cambiarCantidad(delta) { const input = document.getElementById('cantidad'); let val = parseInt(input.value) || 1; val = Math.max(1, val + delta); input.value = val; actualizarSubtotal(); }
+    function actualizarSubtotal() { const cantidad = parseInt(document.getElementById('cantidad').value) || 1; const subtotal = precioBase * cantidad; document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO'); }
+    function agregarAlCarrito() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '' }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); const btn = document.querySelector('.btn-carrito'); btn.textContent = '✓ Agregado'; setTimeout(() => { if (confirm('¿Ver carrito?')) window.location.href = '/carrito'; else btn.textContent = '🛒 Agregar al carrito'; }, 500); }
+    function comprarContraEntrega() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '', contraentrega: true }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); window.location.href = '/carrito'; }
     actualizarSubtotal();
 </script>
 </body>
