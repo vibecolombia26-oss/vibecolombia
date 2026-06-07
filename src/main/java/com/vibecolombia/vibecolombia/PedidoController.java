@@ -9,10 +9,12 @@ public class PedidoController {
 
     private final PedidoRepository pedidoRepository;
     private final MensajeRepository mensajeRepository;
+    private final EmailService emailService;
 
-    public PedidoController(PedidoRepository pedidoRepository, MensajeRepository mensajeRepository) {
+    public PedidoController(PedidoRepository pedidoRepository, MensajeRepository mensajeRepository, EmailService emailService) {
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
+        this.emailService = emailService;
     }
 
     @PostMapping("/api/pedido")
@@ -21,6 +23,12 @@ public class PedidoController {
         pedido.setEstado("Pendiente");
         pedido.setCodigo("VB-" + System.currentTimeMillis());
         pedidoRepository.save(pedido);
+
+        if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
+            try { emailService.enviarConfirmacion(pedido.getEmail(), pedido.getNombreCliente(), pedido.getProductos(), pedido.getTotal()); }
+            catch (Exception e) {}
+        }
+
         Map<String, String> response = new HashMap<>();
         response.put("codigo", pedido.getCodigo());
         response.put("status", "OK");
@@ -35,12 +43,9 @@ public class PedidoController {
         Map<String, Object> response = new HashMap<>();
         if (pedido == null) { response.put("error", "Pedido no encontrado"); }
         else {
-            response.put("codigo", pedido.getCodigo());
-            response.put("estado", pedido.getEstado());
-            response.put("productos", pedido.getProductos());
-            response.put("total", pedido.getTotal());
-            response.put("transportadora", pedido.getTransportadora());
-            response.put("numeroGuia", pedido.getNumeroGuia());
+            response.put("codigo", pedido.getCodigo()); response.put("estado", pedido.getEstado());
+            response.put("productos", pedido.getProductos()); response.put("total", pedido.getTotal());
+            response.put("transportadora", pedido.getTransportadora()); response.put("numeroGuia", pedido.getNumeroGuia());
             response.put("telefono", pedido.getTelefono());
         }
         return response;
@@ -54,12 +59,9 @@ public class PedidoController {
         Map<String, Object> response = new HashMap<>();
         if (pedido == null) { response.put("error", "Pedido no encontrado"); }
         else {
-            response.put("codigo", pedido.getCodigo());
-            response.put("estado", pedido.getEstado());
-            response.put("productos", pedido.getProductos());
-            response.put("transportadora", pedido.getTransportadora());
-            response.put("numeroGuia", pedido.getNumeroGuia());
-            response.put("telefono", pedido.getTelefono());
+            response.put("codigo", pedido.getCodigo()); response.put("estado", pedido.getEstado());
+            response.put("productos", pedido.getProductos()); response.put("transportadora", pedido.getTransportadora());
+            response.put("numeroGuia", pedido.getNumeroGuia()); response.put("telefono", pedido.getTelefono());
         }
         return response;
     }
