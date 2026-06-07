@@ -7,7 +7,11 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: 0; }
+        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
+        .particula { position: absolute; border-radius: 50%; animation: flotar linear infinite; opacity: 0.5; }
+        .particula-emoji { position: absolute; animation: flotarEmoji linear infinite; opacity: 0.4; font-size: 1.5rem; }
+        @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+        @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
         .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
@@ -15,39 +19,41 @@
         .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); }
         .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); }
         .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; filter: brightness(0.9); }
-        .imagen-secundaria:hover { border-color: #00ffff; filter: brightness(1); box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+        .imagen-secundaria:hover { border-color: #ffd700; filter: brightness(1); box-shadow: 0 0 15px rgba(255,215,0,0.4); }
         .info-section { padding: 30px; }
         .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 10px; }
         .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); margin-bottom: 10px; }
         .meta { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
         .sku { color: #ff00ff; font-size: 0.85rem; }
         .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; border: 1px solid #ff00ff; text-transform: uppercase; }
+        .colombia-badge { display: inline-block; margin: 10px 0; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
         .especificaciones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 10px; text-align: center; }
         .esp-item .esp-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
         .esp-item .esp-value { color: #fff; font-size: 0.95rem; font-weight: 500; }
         .descripcion { color: #aaa; line-height: 1.8; font-size: 0.9rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; }
         .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); }
-        .cantidad-row label { color: #00ffff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .cantidad-row label { color: #00ffff; font-size: 0.8rem; text-transform: uppercase; }
         .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
         .qty-btn:hover { background: #ff00ff; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.6); }
         .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 0.95rem; }
         .subtotal-display { color: #00ffff; font-weight: 700; font-size: 1.1rem; }
         .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-carrito { width: 100%; padding: 16px; text-align: center; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
-        .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-contraentrega { width: 100%; padding: 16px; text-align: center; background: transparent; color: #00ffff; font-size: 0.95rem; font-weight: 700; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); }
+        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; font-size: 0.95rem; font-weight: 700; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
         .btn-contraentrega:hover { background: #00ffff; color: #000; box-shadow: 0 0 20px rgba(0,255,255,0.5); }
         .acciones-hint { text-align: center; color: #666; font-size: 0.7rem; margin-top: 5px; }
         .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
         .banner-pago .icono { font-size: 1.5rem; }
-        .banner-pago h3 { color: #ff00ff; font-size: 0.9rem; margin: 5px 0; font-weight: 600; }
+        .banner-pago h3 { color: #ff00ff; font-size: 0.9rem; margin: 5px 0; }
         .banner-pago p { color: #888; font-size: 0.8rem; }
         .banner-pago .destacado { color: #fff; font-weight: 600; }
+        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
         @media (max-width: 500px) { .especificaciones { grid-template-columns: repeat(2, 1fr); } .info-section { padding: 20px; } }
     </style>
 </head>
 <body>
-<div class="bg-grid"></div>
+<div class="bg-grid" id="bgAnimado"></div>
 <div class="container">
     <a href="/" class="back-btn">← Volver</a>
     <div class="producto-card">
@@ -62,6 +68,7 @@
             <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
             <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
             <div class="meta"><span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span><span class="categoria" th:text="${producto.categoria}">Categoría</span></div>
+            <div class="colombia-badge">🇨🇴 Envío GRATIS a todo Colombia</div>
             <div class="especificaciones" th:if="${producto.largo != null}">
                 <div class="esp-item"><div class="esp-label">Largo</div><div class="esp-value" th:text="${producto.largo}">-</div></div>
                 <div class="esp-item"><div class="esp-label">Ancho</div><div class="esp-value" th:text="${producto.ancho}">-</div></div>
@@ -83,6 +90,7 @@
             <div class="banner-pago"><div class="icono">💜</div><h3>Pago contra entrega</h3><p>Recibe tu producto y <span class="destacado">pagas al recibirlo</span>. Envío <span class="destacado">GRATIS</span></p></div>
         </div>
     </div>
+    <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </div>
 
 <script>
@@ -93,6 +101,12 @@
     function agregarAlCarrito() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '' }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); const btn = document.querySelector('.btn-carrito'); btn.textContent = '✓ Agregado'; setTimeout(() => { if (confirm('¿Ver carrito?')) window.location.href = '/carrito'; else btn.textContent = '🛒 Agregar al carrito'; }, 500); }
     function comprarContraEntrega() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '', contraentrega: true }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); window.location.href = '/carrito'; }
     actualizarSubtotal();
+
+    const bg = document.getElementById('bgAnimado');
+    const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*3+1; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;'; bg.appendChild(el); }
+    const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+    for (let i=0;i<10;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; bg.appendChild(el); }
 </script>
 </body>
 </html>

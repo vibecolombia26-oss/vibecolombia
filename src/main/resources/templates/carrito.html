@@ -7,11 +7,17 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
+        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
+        .particula { position: absolute; border-radius: 50%; animation: flotar linear infinite; opacity: 0.5; }
+        .particula-emoji { position: absolute; animation: flotarEmoji linear infinite; opacity: 0.4; font-size: 1.5rem; }
+        @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+        @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
         .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px; }
-        h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 4px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; }
+        h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 4px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; }
         @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         .subtitle { text-align: center; color: #00ffff; margin-bottom: 30px; font-size: 1rem; }
+        .colombia-badge { text-align: center; margin: 10px 0 20px; }
+        .colombia-badge span { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin-bottom: 20px; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .cart-item { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
@@ -40,15 +46,17 @@
         .btn-submit:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
         .btn-cancel { display: block; width: 100%; padding: 14px; text-align: center; background: transparent; color: #ff0044; font-size: 1rem; border: 1px solid #ff0044; border-radius: 25px; cursor: pointer; margin-top: 10px; }
         .btn-cancel:hover { background: rgba(255,0,68,0.1); }
+        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .cart-item { flex-direction: column; text-align: center; } }
     </style>
 </head>
 <body>
-<div class="bg-grid"></div>
+<div class="bg-grid" id="bgAnimado"></div>
 <div class="container">
     <a href="/" class="back-btn">← Volver a la tienda</a>
     <h1>🛒 Tu Carrito</h1>
     <p class="subtitle">✦ VIBE COLOMBIA 26 ✦</p>
+    <div class="colombia-badge"><span>🇨🇴 Envío GRATIS a todo Colombia</span></div>
     <div id="cartItems"></div>
     <div id="cartTotal" class="cart-total"></div>
     <div id="cartEmpty" class="cart-empty" style="display:none;"><p>🛍️ Tu carrito está vacío</p><a href="/" style="color:#ff00ff;">Ver productos</a></div>
@@ -75,26 +83,35 @@
                     <option>Vaupés</option><option>Vichada</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Ciudad *</label>
-                <select id="ciudad" required>
-                    <option value="">Primero selecciona un departamento</option>
-                </select>
-            </div>
+            <div class="form-group"><label>Ciudad *</label><select id="ciudad" required><option value="">Primero selecciona un departamento</option></select></div>
         </div>
         <div class="form-row"><div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" placeholder="Calle, carrera, número, barrio" required></div></div>
         <div class="form-row"><div class="form-group"><label>Tienda</label><select id="tienda"><option>VIBE COLOMBIA 26</option></select></div><div class="form-group"><label>Notas (opcional)</label><input type="text" id="notas" placeholder="Instrucciones especiales..."></div></div>
         <h2>🚚 Envío</h2>
-        <div style="background:rgba(255,0,255,0.05);border:2px solid #ff00ff;border-radius:12px;padding:25px;text-align:center;margin:15px 0;">
-            <div style="font-size:2.5rem;">🚀</div>
-            <h3 style="color:#ff00ff;">¡ENVÍO GRATIS!</h3>
-            <p style="color:#aaa;">A cualquier parte de Colombia</p>
+        <div style="background:rgba(255,215,0,0.05);border:2px solid #ffd700;border-radius:12px;padding:25px;text-align:center;margin:15px 0;">
+            <div style="font-size:2.5rem;">🇨🇴</div>
+            <h3 style="color:#ffd700;">¡ENVÍO GRATIS!</h3><p style="color:#aaa;">A cualquier parte de Colombia</p>
         </div>
         <h2>💰 Resumen</h2>
         <div id="orderSummary" style="background:#111;padding:20px;border-radius:12px;margin-top:10px;"></div>
         <button class="btn-submit" onclick="completarOrden()">✅ COMPLETAR ORDEN</button>
         <button class="btn-cancel" onclick="cancelarOrden()">❌ Cancelar</button>
         <p style="text-align:center;color:#ff00ff;margin-top:15px;font-weight:700;">💵 Pago contra entrega</p>
+    </div>
+    <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
+</div>
+
+<!-- POP-UP DE CONFIRMACIÓN -->
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#1a1a1a; border:2px solid #ffd700; border-radius:20px; padding:40px; text-align:center; max-width:450px; width:90%; box-shadow:0 0 40px rgba(255,215,0,0.3);">
+        <div style="font-size:4rem; margin-bottom:15px;">🎉</div>
+        <h2 style="color:#fff; font-weight:700; letter-spacing:2px; margin-bottom:10px;">¡Pedido Confirmado!</h2>
+        <div style="color:#ffd700; margin-bottom:5px;">🇨🇴 ¡Gracias por apoyar el emprendimiento colombiano! 🇨🇴</div>
+        <p style="color:#aaa; margin-bottom:20px;">Tu código de seguimiento es:</p>
+        <div style="background:#111; border:2px solid #ffd700; border-radius:10px; padding:15px; font-size:1.8rem; color:#ffd700; font-weight:900; letter-spacing:3px; margin-bottom:20px; box-shadow:0 0 20px rgba(255,215,0,0.3);" id="modalCodigo">------</div>
+        <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">📧 Recibirás un correo de confirmación</p>
+        <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">Guarda este código para hacer seguimiento</p>
+        <button onclick="document.getElementById('modalOverlay').style.display='none'; window.location.href='/';">🏪 Volver a la tienda</button>
     </div>
 </div>
 
@@ -106,21 +123,13 @@
         if (carrito.length === 0) { container.innerHTML = ''; totalDiv.innerHTML = ''; emptyDiv.style.display = 'block'; checkoutForm.style.display = 'none'; return; }
         emptyDiv.style.display = 'none'; checkoutForm.style.display = 'block';
         let html = '', total = 0;
-        carrito.forEach((item, index) => {
-            const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad;
-            total += subtotal;
-            html += '<div class="cart-item"><img src="' + (item.imagen || '') + '" alt="' + item.nombre + '" onerror="this.style.display=\'none\'"><div class="cart-item-info"><div class="cart-item-name">' + item.nombre + '</div><div class="cart-item-price">$' + precio.toLocaleString('es-CO') + '</div><div class="quantity-control"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',-1)">−</button><input class="qty-input" type="number" value="' + cantidad + '" min="1" onchange="cambiarCantidad(' + index + ',0,this.value)"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',1)">+</button><span style="margin-left:10px;">Subtotal: $' + subtotal.toLocaleString('es-CO') + '</span></div></div><button class="remove-btn" onclick="eliminarItem(' + index + ')">🗑️</button></div>';
-        });
+        carrito.forEach((item, index) => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal;
+            html += '<div class="cart-item"><img src="' + (item.imagen || '') + '" alt="' + item.nombre + '" onerror="this.style.display=\'none\'"><div class="cart-item-info"><div class="cart-item-name">' + item.nombre + '</div><div class="cart-item-price">$' + precio.toLocaleString('es-CO') + '</div><div class="quantity-control"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',-1)">−</button><input class="qty-input" type="number" value="' + cantidad + '" min="1" onchange="cambiarCantidad(' + index + ',0,this.value)"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',1)">+</button><span style="margin-left:10px;">Subtotal: $' + subtotal.toLocaleString('es-CO') + '</span></div></div><button class="remove-btn" onclick="eliminarItem(' + index + ')">🗑️</button></div>'; });
         container.innerHTML = html; totalDiv.innerHTML = '<strong>Total:</strong> <span>$' + total.toLocaleString('es-CO') + '</span>'; renderOrderSummary();
     }
     function cambiarCantidad(index, delta, valorDirecto) { if (valorDirecto) carrito[index].cantidad = Math.max(1, parseInt(valorDirecto) || 1); else carrito[index].cantidad = Math.max(1, (Number(carrito[index].cantidad) || 1) + delta); guardarCarrito(); renderCarrito(); }
     function eliminarItem(index) { carrito.splice(index, 1); guardarCarrito(); renderCarrito(); }
-    function renderOrderSummary() {
-        const summary = document.getElementById('orderSummary'); let total = 0, html = '';
-        carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;"><span>' + item.nombre + ' x' + cantidad + '</span><span>$' + subtotal.toLocaleString('es-CO') + '</span></div>'; });
-        html += '<div style="display:flex;justify-content:space-between;padding:10px 0;color:#ff00ff;font-weight:700;"><span>Envío</span><span>GRATIS</span></div><div style="display:flex;justify-content:space-between;padding:15px 0;font-size:1.3rem;font-weight:900;border-top:2px solid #ff00ff;margin-top:10px;"><span>Total a recaudar</span><span style="color:#00ffff;">$' + total.toLocaleString('es-CO') + '</span></div>';
-        summary.innerHTML = html;
-    }
+    function renderOrderSummary() { const summary = document.getElementById('orderSummary'); let total = 0, html = ''; carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;"><span>' + item.nombre + ' x' + cantidad + '</span><span>$' + subtotal.toLocaleString('es-CO') + '</span></div>'; }); html += '<div style="display:flex;justify-content:space-between;padding:10px 0;color:#ffd700;font-weight:700;"><span>Envío</span><span>GRATIS</span></div><div style="display:flex;justify-content:space-between;padding:15px 0;font-size:1.3rem;font-weight:900;border-top:2px solid #ff00ff;margin-top:10px;"><span>Total</span><span style="color:#00ffff;">$' + total.toLocaleString('es-CO') + '</span></div>'; summary.innerHTML = html; }
     function completarOrden() {
         const nombre = document.getElementById('nombreCliente').value, telefono = document.getElementById('telefono').value, email = document.getElementById('email').value;
         const departamento = document.getElementById('departamento').value, ciudad = document.getElementById('ciudad').value, direccion = document.getElementById('direccion').value, notas = document.getElementById('notas').value;
@@ -129,52 +138,19 @@
         carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; productosTexto += '• ' + item.nombre + ' x' + cantidad + ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
         const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'VIBE COLOMBIA 26', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
         fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido) })
-            .then(r => r.json()).then(data => {
-            localStorage.removeItem('carritoVibeColombia');
-            carrito = [];
-            renderCarrito();
-            document.getElementById('modalCodigo').textContent = data.codigo;
-            document.getElementById('modalOverlay').style.display = 'flex';
-        })
+            .then(r => r.json()).then(data => { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); document.getElementById('modalCodigo').textContent = data.codigo; document.getElementById('modalOverlay').style.display = 'flex'; })
             .catch(() => { alert('Error al procesar'); });
     }
     function cancelarOrden() { if (confirm('¿Cancelar?')) { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); window.location.href = '/'; } }
-
-    // Municipios
-    var municipios = {
-        "Amazonas":["Leticia","Puerto Nariño"],"Antioquia":["Medellín","Bello","Envigado","Itagüí","Rionegro","Apartadó","Turbo","Caucasia"],
-        "Arauca":["Arauca","Saravena","Tame"],"Atlántico":["Barranquilla","Soledad","Malambo","Puerto Colombia","Sabanalarga"],
-        "Bogotá D.C.":["Bogotá"],"Bolívar":["Cartagena","Magangué","Turbaco"],"Boyacá":["Tunja","Duitama","Sogamoso"],
-        "Caldas":["Manizales","La Dorada"],"Caquetá":["Florencia"],"Casanare":["Yopal"],"Cauca":["Popayán"],
-        "Cesar":["Valledupar","Aguachica"],"Chocó":["Quibdó"],"Córdoba":["Montería","Lorica","Cereté"],
-        "Cundinamarca":["Soacha","Facatativá","Zipaquirá","Girardot","Fusagasugá","Chía","Mosquera"],
-        "Guainía":["Inírida"],"Guaviare":["San José del Guaviare"],"Huila":["Neiva","Pitalito","Garzón"],
-        "La Guajira":["Riohacha","Maicao"],"Magdalena":["Santa Marta","Ciénaga"],"Meta":["Villavicencio","Acacías"],
-        "Nariño":["Pasto","Tumaco","Ipiales"],"Norte de Santander":["Cúcuta","Ocaña"],"Putumayo":["Mocoa"],
-        "Quindío":["Armenia","Calarcá"],"Risaralda":["Pereira","Dosquebradas"],"San Andrés y Providencia":["San Andrés"],
-        "Santander":["Bucaramanga","Floridablanca","Barrancabermeja","Girón","Piedecuesta"],
-        "Sucre":["Sincelejo","Corozal"],"Tolima":["Ibagué","Espinal","Melgar"],
-        "Valle del Cauca":["Cali","Palmira","Buenaventura","Tuluá","Cartago","Jamundí"],
-        "Vaupés":["Mitú"],"Vichada":["Puerto Carreño"]
-    };
-    document.getElementById('departamento').addEventListener('change', function() {
-        var depto = this.value, ciudadSelect = document.getElementById('ciudad');
-        ciudadSelect.innerHTML = '<option value="">Seleccionar municipio...</option>';
-        if (municipios[depto]) { municipios[depto].forEach(function(m) { ciudadSelect.innerHTML += '<option value="' + m + '">' + m + '</option>'; }); }
-    });
+    var municipios = {"Amazonas":["Leticia","Puerto Nariño"],"Antioquia":["Medellín","Bello","Envigado","Rionegro","Apartadó"],"Arauca":["Arauca","Saravena"],"Atlántico":["Barranquilla","Soledad","Malambo"],"Bogotá D.C.":["Bogotá"],"Bolívar":["Cartagena","Magangué"],"Boyacá":["Tunja","Duitama","Sogamoso"],"Caldas":["Manizales","La Dorada"],"Caquetá":["Florencia"],"Casanare":["Yopal"],"Cauca":["Popayán"],"Cesar":["Valledupar","Aguachica"],"Chocó":["Quibdó"],"Córdoba":["Montería","Lorica","Cereté"],"Cundinamarca":["Soacha","Facatativá","Zipaquirá","Girardot","Fusagasugá","Chía"],"Guainía":["Inírida"],"Guaviare":["San José del Guaviare"],"Huila":["Neiva","Pitalito"],"La Guajira":["Riohacha","Maicao"],"Magdalena":["Santa Marta","Ciénaga"],"Meta":["Villavicencio","Acacías"],"Nariño":["Pasto","Tumaco"],"Norte de Santander":["Cúcuta","Ocaña"],"Putumayo":["Mocoa"],"Quindío":["Armenia","Calarcá"],"Risaralda":["Pereira","Dosquebradas"],"San Andrés y Providencia":["San Andrés"],"Santander":["Bucaramanga","Floridablanca","Barrancabermeja","Girón"],"Sucre":["Sincelejo","Corozal"],"Tolima":["Ibagué","Espinal","Melgar"],"Valle del Cauca":["Cali","Palmira","Buenaventura","Tuluá","Cartago"],"Vaupés":["Mitú"],"Vichada":["Puerto Carreño"]};
+    document.getElementById('departamento').addEventListener('change', function() { var depto = this.value, ciudadSelect = document.getElementById('ciudad'); ciudadSelect.innerHTML = '<option value="">Seleccionar municipio...</option>'; if (municipios[depto]) { municipios[depto].forEach(function(m) { ciudadSelect.innerHTML += '<option value="' + m + '">' + m + '</option>'; }); } });
     renderCarrito();
+
+    const bg = document.getElementById('bgAnimado');
+    const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (let i=0;i<10;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*3+1; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;'; bg.appendChild(el); }
+    const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+    for (let i=0;i<8;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; bg.appendChild(el); }
 </script>
-<!-- POP-UP DE CONFIRMACIÓN -->
-<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#1a1a1a; border:2px solid #ff00ff; border-radius:20px; padding:40px; text-align:center; max-width:450px; width:90%; box-shadow:0 0 40px rgba(255,0,255,0.4);">
-        <div style="font-size:4rem; margin-bottom:15px;">🎉</div>
-        <h2 style="color:#fff; font-weight:700; letter-spacing:2px; margin-bottom:10px;">¡Pedido Confirmado!</h2>
-        <p style="color:#aaa; margin-bottom:20px;">Tu código de seguimiento es:</p>
-        <div style="background:#111; border:2px solid #ff00ff; border-radius:10px; padding:15px; font-size:1.8rem; color:#ff00ff; font-weight:900; letter-spacing:3px; margin-bottom:20px; box-shadow:0 0 20px rgba(255,0,255,0.3);" id="modalCodigo">------</div>
-        <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">📧 Recibirás un correo de confirmación</p>
-        <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">Guarda este código para hacer seguimiento</p>
-        <button onclick="document.getElementById('modalOverlay').style.display='none'; window.location.href='/';">🏪 Volver a la tienda</button>
-    </div>
-</div>
 </body>
 </html>
