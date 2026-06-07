@@ -129,7 +129,13 @@
         carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; productosTexto += '• ' + item.nombre + ' x' + cantidad + ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
         const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'VIBE COLOMBIA 26', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
         fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido) })
-            .then(r => r.json()).then(data => { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); alert('✅ ¡Pedido confirmado!\nTu código: ' + data.codigo); window.location.href = '/'; })
+            .then(r => r.json()).then(data => {
+            localStorage.removeItem('carritoVibeColombia');
+            carrito = [];
+            renderCarrito();
+            document.getElementById('modalCodigo').textContent = data.codigo;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        })
             .catch(() => { alert('Error al procesar'); });
     }
     function cancelarOrden() { if (confirm('¿Cancelar?')) { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); window.location.href = '/'; } }
@@ -158,5 +164,17 @@
     });
     renderCarrito();
 </script>
+<!-- POP-UP DE CONFIRMACIÓN -->
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#1a1a1a; border:2px solid #ff00ff; border-radius:20px; padding:40px; text-align:center; max-width:450px; width:90%; box-shadow:0 0 40px rgba(255,0,255,0.4);">
+        <div style="font-size:4rem; margin-bottom:15px;">🎉</div>
+        <h2 style="color:#fff; font-weight:700; letter-spacing:2px; margin-bottom:10px;">¡Pedido Confirmado!</h2>
+        <p style="color:#aaa; margin-bottom:20px;">Tu código de seguimiento es:</p>
+        <div style="background:#111; border:2px solid #ff00ff; border-radius:10px; padding:15px; font-size:1.8rem; color:#ff00ff; font-weight:900; letter-spacing:3px; margin-bottom:20px; box-shadow:0 0 20px rgba(255,0,255,0.3);" id="modalCodigo">------</div>
+        <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">📧 Recibirás un correo de confirmación</p>
+        <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">Guarda este código para hacer seguimiento</p>
+        <button onclick="document.getElementById('modalOverlay').style.display='none'; window.location.href='/';">🏪 Volver a la tienda</button>
+    </div>
+</div>
 </body>
 </html>
