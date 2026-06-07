@@ -62,7 +62,11 @@
                 🚚 <strong th:text="${pedido.transportadora}"></strong> | 📋 <span th:text="${pedido.numeroGuia}"></span>
             </div>
             <div class="acciones">
-                <a th:if="${pedido.estado=='Pendiente'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Procesando')}" class="btn-accion btn-procesar">🔄 Procesar</a>
+                <form th:if="${pedido.estado=='Pendiente'}" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="key" th:value="${key}">
+                    <input type="hidden" name="estado" value="Procesando">
+                    <button type="submit" class="btn-accion btn-procesar">🔄 Procesar</button>
+                </form>
                 <div th:if="${pedido.estado=='Procesando'}">
                     <form class="envio-form" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post">
                         <input type="hidden" name="key" th:value="${key}"><input type="hidden" name="estado" value="Enviado">
@@ -71,7 +75,11 @@
                         <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
                     </form>
                 </div>
-                <a th:if="${pedido.estado=='Enviado'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Entregado')}" class="btn-accion btn-entregar">✅ Entregado</a>
+                <form th:if="${pedido.estado=='Enviado'}" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="key" th:value="${key}">
+                    <input type="hidden" name="estado" value="Entregado">
+                    <button type="submit" class="btn-accion btn-entregar">✅ Entregado</button>
+                </form>
             </div>
         </div>
     </div>
