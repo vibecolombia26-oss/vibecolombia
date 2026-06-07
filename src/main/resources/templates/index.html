@@ -97,5 +97,48 @@
     function actualizarContador(){ const carrito=JSON.parse(localStorage.getItem('carritoVibeColombia'))||[]; const el=document.getElementById('cartCount'); if(el)el.textContent=carrito.length; }
     actualizarContador(); setInterval(actualizarContador,3000);
 </script>
+<!-- CHAT FLOTANTE -->
+<div id="chatFloating" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+    <button onclick="toggleChat()" style="background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; width:60px; height:60px; border-radius:50%; font-size:1.5rem; cursor:pointer; box-shadow:0 0 20px rgba(255,0,255,0.5);">💬</button>
+    <div id="chatBox" style="display:none; position:absolute; bottom:70px; right:0; width:380px; max-height:450px; background:#1a1a1a; border:2px solid #ff00ff; border-radius:16px; overflow-y:auto;">
+        <div style="background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center;"><h3 style="margin:0;">💬 VIBE COLOMBIA</h3><button onclick="toggleChat()" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer;">✕</button></div>
+        <div id="chatLogin" style="padding:20px;">
+            <p style="color:#aaa; font-size:0.8rem; margin-bottom:10px;">Ingresa tu código de seguimiento o celular</p>
+            <input type="text" id="chatCodigoInput" placeholder="Código o celular..." style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; margin-bottom:10px;">
+            <button onclick="iniciarChat()" style="width:100%; padding:10px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;">Ver mi pedido</button>
+            <div id="chatError" style="color:#ff4444; font-size:0.75rem; margin-top:8px;"></div>
+        </div>
+        <div id="chatContent" style="display:none; flex-direction:column; height:400px;">
+            <div id="chatPedidoInfo" style="padding:12px; background:rgba(255,0,255,0.1); border-bottom:1px solid #333; font-size:0.8rem;"></div>
+            <div id="chatMensajes" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:8px;"></div>
+            <div style="padding:12px; border-top:1px solid #333; display:flex; gap:8px;">
+                <input type="text" id="chatMensajeInput" placeholder="Escribe..." style="flex:1; padding:10px; background:#111; border:1px solid #333; border-radius:8px; color:#fff;">
+                <button onclick="enviarMensajeChat()" style="background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:600;">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var chatCodigo = '';
+    function toggleChat() { var box = document.getElementById('chatBox'); box.style.display = box.style.display === 'none' ? 'block' : 'none'; }
+    function iniciarChat() {
+        var codigo = document.getElementById('chatCodigoInput').value.trim(); if (!codigo) return; document.getElementById('chatError').textContent = '';
+        fetch('/api/pedido/' + codigo).then(r => r.json()).then(data => {
+            if (!data.error) { chatCodigo = data.codigo; mostrarChatInfo(data); }
+            else { var telefono = codigo.replace(/[^0-9]/g, ''); if (telefono.length >= 10) { fetch('/api/pedido/telefono/' + telefono).then(r => r.json()).then(data2 => { if (!data2.error) { chatCodigo = data2.codigo; mostrarChatInfo(data2); } else { document.getElementById('chatError').textContent = 'No se encontró el pedido.'; } }); } else { document.getElementById('chatError').textContent = 'No se encontró el pedido.'; } }
+        });
+    }
+    function mostrarChatInfo(data) { document.getElementById('chatLogin').style.display = 'none'; document.getElementById('chatContent').style.display = 'flex'; document.getElementById('chatPedidoInfo').innerHTML = '<strong style="color:#ff00ff;">📦 ' + data.codigo + '</strong> | Estado: ' + data.estado + (data.transportadora ? ' | 🚚 ' + data.transportadora + ' - ' + data.numeroGuia : ''); cargarMensajesChat(); }
+    function cargarMensajesChat() {
+        fetch('/api/chat/mensajes?codigo=' + chatCodigo).then(r => r.json()).then(mensajes => {
+            var html = ''; mensajes.forEach(function(m) { if (m.esCliente) { html += '<div style="align-self:flex-end; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } else { html += '<div style="align-self:flex-start; background:#333; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } });
+            document.getElementById('chatMensajes').innerHTML = html || '<p style="color:#666; text-align:center;">Envía un mensaje</p>'; document.getElementById('chatMensajes').scrollTop = document.getElementById('chatMensajes').scrollHeight;
+        });
+        if (document.activeElement !== document.getElementById('chatMensajeInput')) { setTimeout(cargarMensajesChat, 3000); } else { setTimeout(cargarMensajesChat, 5000); }
+    }
+    function enviarMensajeChat() { var mensaje = document.getElementById('chatMensajeInput').value.trim(); if (!mensaje) return; fetch('/api/chat/enviar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo:chatCodigo, telefono:'', mensaje:mensaje}) }).then(function() { document.getElementById('chatMensajeInput').value = ''; cargarMensajesChat(); }); }
+</script>
+
 </body>
 </html>
