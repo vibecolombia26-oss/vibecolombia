@@ -80,4 +80,10 @@ public class PedidoController {
         if (codigo != null && !codigo.isEmpty()) return mensajeRepository.findByCodigoPedidoOrderByFechaAsc(codigo);
         return List.of();
     }
+
+    @GetMapping("/api/chat/todos")
+    @ResponseBody
+    public List<Mensaje> obtenerTodosMensajes() {
+        return mensajeRepository.findAll();
+    }
 }

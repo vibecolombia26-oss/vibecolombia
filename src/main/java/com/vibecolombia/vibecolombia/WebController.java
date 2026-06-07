@@ -22,16 +22,13 @@ public class WebController {
 
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
-        Producto producto = productoRepository.findById(id).orElse(null);
-        model.addAttribute("producto", producto);
+        model.addAttribute("producto", productoRepository.findById(id).orElse(null));
         return "producto-detalle";
     }
+
     @GetMapping("/carrito")
-    public String carrito() {
-        return "carrito";
-    }
+    public String carrito() { return "carrito"; }
+
     @GetMapping("/seguimiento")
-    public String seguimiento() {
-        return "seguimiento";
-    }
+    public String seguimiento() { return "seguimiento"; }
 }

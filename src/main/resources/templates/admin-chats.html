@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+        .container { max-width:900px; margin:0 auto; padding:20px; }
+        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
+        .header h1 { color:#ff00ff; }
+        .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; }
+        .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
+        .chat-card { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:20px; margin-bottom:15px; }
+        .chat-header { color:#ff00ff; font-weight:600; margin-bottom:10px; }
+        .msg-cliente { text-align:right; margin:5px 0; }
+        .msg-cliente span { display:inline-block; background:#ff00ff; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; }
+        .msg-respuesta { text-align:left; margin:5px 0; }
+        .msg-respuesta span { display:inline-block; background:#333; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; }
+        .responder-form { display:flex; gap:10px; margin-top:10px; }
+        .responder-form input { flex:1; padding:10px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; }
+        .responder-form button { background:#ff00ff; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header"><h1>💬 Chats VIBE</h1><a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Panel</a></div>
+    <div id="chatsContainer"><p style="text-align:center;color:#666;">Cargando...</p></div>
+</div>
+<script th:inline="javascript">
+    var key = /*[[${key}]]*/ '';
+    function cargarChats() {
+        fetch('/api/chat/todos').then(r=>r.json()).then(mensajes=>{
+            var agrupados={};
+            mensajes.forEach(function(m){ if(!agrupados[m.codigoPedido])agrupados[m.codigoPedido]=[]; agrupados[m.codigoPedido].push(m); });
+            var html='';
+            for(var codigo in agrupados){
+                var msgs=agrupados[codigo];
+                var sinResponder=msgs.filter(function(m){return m.esCliente&&!m.respuesta;}).length;
+                html+='<div class="chat-card"><div class="chat-header">📦 '+codigo+(sinResponder>0?' <span style="color:#ffc107;">('+sinResponder+' pendientes)</span>':'')+'</div>';
+                msgs.forEach(function(m){ if(m.esCliente){ html+='<div class="msg-cliente"><span>'+m.mensaje+'</span></div>'; } else { html+='<div class="msg-respuesta"><span>'+m.mensaje+'</span></div>'; } });
+                if(sinResponder>0){ html+='<div class="responder-form"><input type="text" id="resp_'+msgs[0].id+'" placeholder="Respuesta..." autocomplete="off"><button onclick="responder('+msgs[0].id+')">Enviar</button></div>'; }
+                html+='</div>';
+            }
+            document.getElementById('chatsContainer').innerHTML=html||'<p style="text-align:center;color:#666;">No hay mensajes</p>';
+        });
+    }
+    function responder(msgId){
+        var input=document.getElementById('resp_'+msgId); if(!input)return;
+        var respuesta=input.value.trim(); if(!respuesta)return;
+        var formData=new FormData(); formData.append('key',key); formData.append('respuesta',respuesta);
+        fetch('/admin/responder/'+msgId,{method:'POST',body:formData}).then(function(){ cargarChats(); });
+    }
+    cargarChats();
+    setInterval(function(){ if(document.activeElement&&document.activeElement.tagName!=='INPUT')cargarChats(); },5000);
+</script>
+</body>
+</html>

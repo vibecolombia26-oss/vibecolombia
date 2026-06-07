@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - VIBE COLOMBIA 26</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+        .container { max-width:1100px; margin:0 auto; padding:20px; }
+        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
+        .header h1 { font-size:1.5rem; color:#ff00ff; }
+        .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; }
+        .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
+        .pedido-card { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:20px; margin-bottom:20px; }
+        .pedido-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px solid #333; }
+        .pedido-id { color:#ff00ff; font-weight:600; }
+        .estado { padding:5px 15px; border-radius:20px; font-size:0.8rem; font-weight:600; text-transform:uppercase; }
+        .estado-pendiente { background:rgba(255,193,7,0.15); color:#ffc107; }
+        .estado-procesando { background:rgba(33,150,243,0.15); color:#2196F3; }
+        .estado-enviado { background:rgba(0,255,255,0.15); color:#00ffff; }
+        .pedido-body { display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:0.9rem; }
+        .label { color:#888; } .value { color:#fff; }
+        .pedido-productos { grid-column:1/-1; background:#111; padding:15px; border-radius:8px; white-space:pre-line; }
+        .acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
+        .btn-accion { padding:8px 16px; border-radius:20px; font-size:0.75rem; text-decoration:none; font-weight:600; border:none; cursor:pointer; text-transform:uppercase; }
+        .btn-procesar { background:#2196F3; color:#fff; }
+        .btn-enviar { background:#00ffff; color:#000; }
+        .btn-entregar { background:#ff00ff; color:#fff; }
+        .guia-info { background:rgba(0,255,255,0.05); border:1px solid #00ffff; border-radius:8px; padding:10px; margin-top:10px; }
+        .envio-form { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .envio-form input, .envio-form select { padding:8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📋 Pedidos VIBE</h1>
+        <div>
+            <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Productos</a>
+            <a th:href="@{/admin/chats(key=${key})}" class="btn btn-back" style="margin-left:10px;">💬 Chats</a>
+        </div>
+    </div>
+    <div th:if="${pedidos.isEmpty()}"><p style="text-align:center;color:#666;padding:40px;">No hay pedidos aún</p></div>
+    <div th:each="pedido : ${pedidos}">
+        <div class="pedido-card">
+            <div class="pedido-header">
+                <div><span class="pedido-id">#<span th:text="${pedido.codigo}"></span></span></div>
+                <span class="estado estado-pendiente" th:if="${pedido.estado=='Pendiente'}">Pendiente</span>
+                <span class="estado estado-procesando" th:if="${pedido.estado=='Procesando'}">Procesando</span>
+                <span class="estado estado-enviado" th:if="${pedido.estado=='Enviado'}">Enviado</span>
+                <span class="estado estado-enviado" th:if="${pedido.estado=='Entregado'}">Entregado</span>
+            </div>
+            <div class="pedido-body">
+                <div><span class="label">Cliente:</span> <span class="value" th:text="${pedido.nombreCliente}"></span></div>
+                <div><span class="label">Teléfono:</span> <span class="value" th:text="${pedido.telefono}"></span></div>
+                <div><span class="label">Dirección:</span> <span class="value" th:text="${pedido.direccion+', '+pedido.ciudad+', '+pedido.departamento}"></span></div>
+                <div class="pedido-productos"><strong style="color:#ff00ff;">Productos:</strong><br><span th:text="${pedido.productos}"></span></div>
+                <div style="text-align:right;"><span class="label">Total:</span> <span style="color:#00ffff;font-weight:700;">$<span th:text="${#numbers.formatDecimal(pedido.total,0,'COMMA',0,'POINT')}"></span></span></div>
+            </div>
+            <div class="guia-info" th:if="${pedido.transportadora!=null}">
+                🚚 <strong th:text="${pedido.transportadora}"></strong> | 📋 <span th:text="${pedido.numeroGuia}"></span>
+            </div>
+            <div class="acciones">
+                <a th:if="${pedido.estado=='Pendiente'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Procesando')}" class="btn-accion btn-procesar">🔄 Procesar</a>
+                <div th:if="${pedido.estado=='Procesando'}">
+                    <form class="envio-form" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post">
+                        <input type="hidden" name="key" th:value="${key}"><input type="hidden" name="estado" value="Enviado">
+                        <select name="transportadora" required><option value="">Transportadora...</option><option>Veloces</option><option>Envia</option><option>Interrapidísimo</option><option>TCC</option><option>Droppi</option></select>
+                        <input type="text" name="numeroGuia" placeholder="Guía" required>
+                        <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
+                    </form>
+                </div>
+                <a th:if="${pedido.estado=='Enviado'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Entregado')}" class="btn-accion btn-entregar">✅ Entregado</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
