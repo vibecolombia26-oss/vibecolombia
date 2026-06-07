@@ -9,22 +9,26 @@
         body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
         .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background-color: #0a0a0a; overflow: hidden; }
         .particulas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .particula { position: absolute; border-radius: 50%; animation: flotar linear infinite; opacity: 0.6; }
-        @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.3; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
-        .bg-grid::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; }
-        .navbar { position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; gap: 12px; padding: 12px 20px; background: rgba(10,10,10,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,0,255,0.2); flex-wrap: wrap; }
-        .nav-link { color: #aaa; text-decoration: none; padding: 8px 18px; border-radius: 25px; transition: all 0.3s; font-size: 0.9rem; border: 1px solid transparent; white-space: nowrap; }
+        .particula { position: absolute; border-radius: 50%; animation: flotar linear infinite; opacity: 0.5; }
+        .particula-emoji { position: absolute; animation: flotarEmoji linear infinite; opacity: 0.4; font-size: 1.5rem; }
+        @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+        @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+        .bg-grid::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.02) 1px, transparent 1px); background-size: 50px 50px; }
+        .navbar { position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,0,255,0.2); flex-wrap: wrap; }
+        .nav-link { color: #aaa; text-decoration: none; padding: 8px 15px; border-radius: 25px; transition: all 0.3s; font-size: 0.85rem; border: 1px solid transparent; white-space: nowrap; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,0,255,0.15); border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.3); }
+        .nav-flag { color: #ffd700; margin: 0 5px; }
         .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; padding: 50px 20px 30px; }
-        .logo-text { font-size: 3rem; font-weight: 900; letter-spacing: 6px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 2s ease infinite; text-transform: uppercase; }
+        .header { text-align: center; padding: 40px 20px 25px; }
+        .logo-text { font-size: 3rem; font-weight: 900; letter-spacing: 6px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; text-transform: uppercase; }
         @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .subtitle { font-size: 1rem; color: #00ffff; text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; letter-spacing: 8px; animation: flicker 3s infinite; text-transform: uppercase; margin-top: 8px; }
+        .subtitle { font-size: 0.9rem; color: #00ffff; text-shadow: 0 0 10px #00ffff; letter-spacing: 6px; animation: flicker 3s infinite; text-transform: uppercase; margin-top: 5px; }
         @keyframes flicker { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .colombia-badge { display: inline-block; margin: 10px 0; padding: 6px 18px; border-radius: 20px; font-size: 0.85rem; background: linear-gradient(45deg, rgba(255,205,0,0.1), rgba(0,0,255,0.1), rgba(255,0,0,0.1)); border: 1px solid #ffd700; color: #ffd700; letter-spacing: 2px; }
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 20px 0; }
-        .product-card { background: rgba(20,20,20,0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255,0,255,0.25); border-radius: 20px; padding: 25px; transition: all 0.4s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
-        .product-card:hover { transform: translateY(-10px) scale(1.03); border-color: #00ffff; box-shadow: 0 0 40px rgba(255,0,255,0.25), 0 0 80px rgba(0,255,255,0.15); }
-        .product-card img { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 2px solid rgba(255,0,255,0.3); }
+        .product-card { background: rgba(20,20,20,0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255,0,255,0.2); border-radius: 20px; padding: 25px; transition: all 0.4s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-8px) scale(1.02); border-color: #ffd700; box-shadow: 0 0 30px rgba(255,0,255,0.2), 0 0 60px rgba(255,215,0,0.1); }
+        .product-card img { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 2px solid rgba(255,0,255,0.25); }
         .product-icon { font-size: 3.5rem; text-align: center; margin-bottom: 15px; }
         .product-name { font-size: 1.2rem; font-weight: 700; color: #fff; text-align: center; margin-bottom: 8px; }
         .product-price { font-size: 1.8rem; font-weight: 900; text-align: center; color: #00ffff; text-shadow: 0 0 15px rgba(0,255,255,0.5); margin: 8px 0; }
@@ -32,17 +36,19 @@
         .product-sku { display: block; text-align: center; color: #ff00ff; font-size: 0.7rem; margin-top: 12px; opacity: 0.7; }
         .btn-add-cart { width: 100%; margin-top: 15px; padding: 12px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
         .btn-add-cart:hover { box-shadow: 0 0 25px rgba(255,0,255,0.6); transform: scale(1.03); }
-        footer { border-top: 1px solid rgba(255,0,255,0.2); padding: 30px 20px; text-align: center; margin-top: 40px; position: relative; z-index: 1; }
+        footer { border-top: 1px solid rgba(255,0,255,0.15); padding: 30px 20px; text-align: center; margin-top: 40px; position: relative; z-index: 1; background: rgba(10,10,10,0.8); }
         .footer-links { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 15px; }
         .footer-links a { color: #00ffff; text-decoration: none; font-size: 0.85rem; transition: all 0.3s; }
-        .footer-links a:hover { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+        .footer-links a:hover { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
         .footer-copy { color: #555; font-size: 0.8rem; }
-        @media (max-width: 600px) { .logo-text { font-size: 2rem; letter-spacing: 3px; } }
+        .footer-colombia { color: #ffd700; font-size: 0.75rem; margin-top: 5px; letter-spacing: 2px; }
+        @media (max-width: 600px) { .logo-text { font-size: 2rem; letter-spacing: 3px; } .nav-link { padding: 6px 10px; font-size: 0.75rem; } }
     </style>
 </head>
 <body>
 <div class="bg-grid"><div class="particulas" id="particulas"></div></div>
 <nav class="navbar">
+    <span class="nav-flag">🇨🇴</span>
     <a href="/" class="nav-link active">✨ Todo</a>
     <a href="#" class="nav-link">🌱 Cultivo</a>
     <a href="#" class="nav-link">🏠 Hogar</a>
@@ -51,7 +57,11 @@
     <a href="/carrito" class="nav-link cart-nav-link">🛒 <span id="cartCount">0</span></a>
 </nav>
 <div class="container">
-    <header class="header"><h1 class="logo-text">VIBE COLOMBIA 26</h1><p class="subtitle">✦ NEON ERA ✦</p></header>
+    <header class="header">
+        <h1 class="logo-text">VIBE COLOMBIA 26</h1>
+        <p class="subtitle">✦ NEON ERA ✦</p>
+        <div class="colombia-badge">🇨🇴 ENVÍOS GRATIS A TODO COLOMBIA 🇨🇴</div>
+    </header>
     <div class="products-grid">
         <div th:each="producto : ${productos}" class="product-card">
             <a th:href="@{/producto/{id}(id=${producto.id})}" style="text-decoration: none; color: inherit;">
@@ -69,11 +79,20 @@
 <footer>
     <div class="footer-links"><a href="/">Inicio</a><a href="/carrito">Carrito</a><a href="/seguimiento">Seguimiento</a><a href="#">Contacto</a></div>
     <p class="footer-copy">⚡ VIBE COLOMBIA 26 &copy; 2026 ⚡</p>
+    <p class="footer-colombia">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </footer>
 
 <script>
-    const p = document.getElementById('particulas'); const c = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (let i=0;i<50;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*5+2; const co=c[Math.floor(Math.random()*c.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*18+12)+'s;animation-delay:'+Math.random()*15+'s;'; p.appendChild(el); }
+    // Partículas neón
+    const p = document.getElementById('particulas');
+    const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (let i=0;i<35;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*4+2; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*18+12)+'s;animation-delay:'+Math.random()*15+'s;'; p.appendChild(el); }
+
+    // Emojis colombianos flotantes
+    const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵','🫘','🌮'];
+    for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; p.appendChild(el); }
+
+    // Carrito
     function agregarAlCarrito(nombre,precio,imagen){ let carrito=JSON.parse(localStorage.getItem('carritoVibeColombia'))||[]; carrito.push({nombre,precio,imagen,cantidad:1,color:'',talla:''}); localStorage.setItem('carritoVibeColombia',JSON.stringify(carrito)); actualizarContador(); alert('✅ ¡Agregado!'); }
     function actualizarContador(){ const carrito=JSON.parse(localStorage.getItem('carritoVibeColombia'))||[]; const el=document.getElementById('cartCount'); if(el)el.textContent=carrito.length; }
     actualizarContador(); setInterval(actualizarContador,3000);
