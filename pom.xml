@@ -57,7 +57,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
+		git add pom.xml src/main/resources/application.properties<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
