@@ -52,7 +52,7 @@
         fetch('/admin/responder/'+msgId,{method:'POST',body:formData}).then(function(){ cargarChats(); });
     }
     cargarChats();
-    setInterval(function(){ if(document.activeElement&&document.activeElement.tagName!=='INPUT')cargarChats(); },5000);
+    setInterval(function(){ if(document.activeElement&&document.activeElement.tagName!=='INPUT')cargarChats(); },10000);
 </script>
 </body>
 </html>

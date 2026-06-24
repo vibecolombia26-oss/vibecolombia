@@ -95,7 +95,7 @@
     // Carrito
     function agregarAlCarrito(nombre,precio,imagen){ let carrito=JSON.parse(localStorage.getItem('carritoVibeColombia'))||[]; carrito.push({nombre,precio,imagen,cantidad:1,color:'',talla:''}); localStorage.setItem('carritoVibeColombia',JSON.stringify(carrito)); actualizarContador(); alert('✅ ¡Agregado!'); }
     function actualizarContador(){ const carrito=JSON.parse(localStorage.getItem('carritoVibeColombia'))||[]; const el=document.getElementById('cartCount'); if(el)el.textContent=carrito.length; }
-    actualizarContador(); setInterval(actualizarContador,3000);
+    actualizarContador(); setInterval(actualizarContador,10000);
 </script>
 <!-- CHAT FLOTANTE -->
 <div id="chatFloating" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
@@ -135,7 +135,7 @@
             var html = ''; mensajes.forEach(function(m) { if (m.esCliente) { html += '<div style="align-self:flex-end; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } else { html += '<div style="align-self:flex-start; background:#333; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } });
             document.getElementById('chatMensajes').innerHTML = html || '<p style="color:#666; text-align:center;">Envía un mensaje</p>'; document.getElementById('chatMensajes').scrollTop = document.getElementById('chatMensajes').scrollHeight;
         });
-        if (document.activeElement !== document.getElementById('chatMensajeInput')) { setTimeout(cargarMensajesChat, 3000); } else { setTimeout(cargarMensajesChat, 5000); }
+        if (document.activeElement !== document.getElementById('chatMensajeInput')) { setTimeout(cargarMensajesChat, 3000); } else { setTimeout(cargarMensajesChat, 10000); }
     }
     function enviarMensajeChat() { var mensaje = document.getElementById('chatMensajeInput').value.trim(); if (!mensaje) return; fetch('/api/chat/enviar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo:chatCodigo, telefono:'', mensaje:mensaje}) }).then(function() { document.getElementById('chatMensajeInput').value = ''; cargarMensajesChat(); }); }
 </script>
