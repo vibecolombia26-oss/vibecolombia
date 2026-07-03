@@ -47,6 +47,11 @@ public class Producto {
     private String alto;
     private String peso;
 
+    // Variaciones
+    private boolean tieneVariaciones;
+    @Column(length = 500)
+    private String variacionesDisponibles;
+
     public Producto() {}
 
     public Producto(String nombre, Double precio, String descripcionCorta) {
@@ -72,30 +77,23 @@ public class Producto {
         this.peso = peso;
     }
 
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
-
     public Double getPrecio() { return precio; }
     public void setPrecio(Double precio) { this.precio = precio; }
-
     public String getDescripcionCorta() { return descripcionCorta; }
     public void setDescripcionCorta(String descripcionCorta) { this.descripcionCorta = descripcionCorta; }
-
     public String getDescripcionLarga() { return descripcionLarga; }
     public void setDescripcionLarga(String descripcionLarga) { this.descripcionLarga = descripcionLarga; }
-
     public String getDescripcion() { return descripcionCorta; }
     public void setDescripcion(String descripcion) { this.descripcionCorta = descripcion; }
-
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
-
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
-
     public String getImagen1() { return imagen1; }
     public void setImagen1(String imagen1) { this.imagen1 = imagen1; }
     public String getImagen2() { return imagen2; }
@@ -116,7 +114,6 @@ public class Producto {
     public void setImagen9(String imagen9) { this.imagen9 = imagen9; }
     public String getImagen10() { return imagen10; }
     public void setImagen10(String imagen10) { this.imagen10 = imagen10; }
-
     public String getLargo() { return largo; }
     public void setLargo(String largo) { this.largo = largo; }
     public String getAncho() { return ancho; }
@@ -125,4 +122,10 @@ public class Producto {
     public void setAlto(String alto) { this.alto = alto; }
     public String getPeso() { return peso; }
     public void setPeso(String peso) { this.peso = peso; }
+
+    // Variaciones
+    public boolean isTieneVariaciones() { return tieneVariaciones; }
+    public void setTieneVariaciones(boolean tieneVariaciones) { this.tieneVariaciones = tieneVariaciones; }
+    public String getVariacionesDisponibles() { return variacionesDisponibles; }
+    public void setVariacionesDisponibles(String variacionesDisponibles) { this.variacionesDisponibles = variacionesDisponibles; }
 }

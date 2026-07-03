@@ -6,165 +6,85 @@
     <title th:text="${producto.id != null ? 'Editar' : 'Nuevo'} + ' Producto'">Formulario</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,0,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: 0; }
-        .container { position: relative; z-index: 1; max-width: 750px; margin: 0 auto; padding: 20px; }
-        .form-container { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
-        h1 { text-align: center; margin-bottom: 25px; background: linear-gradient(45deg, #ff00ff, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .container { max-width: 750px; margin: 0 auto; padding: 20px; }
+        .form-container { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; }
+        h1 { text-align: center; margin-bottom: 25px; color: #ff00ff; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #00ffff; font-weight: 600; }
-        input, textarea, select { width: 100%; padding: 12px; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 1rem; transition: all 0.3s; }
-        input:focus, textarea:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+        label { display: block; margin-bottom: 5px; color: #00ffff; font-size: 0.8rem; text-transform: uppercase; }
+        input, textarea, select { width: 100%; padding: 12px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.9rem; }
+        input:focus, textarea:focus { border-color: #ff00ff; outline: none; }
         textarea { resize: vertical; min-height: 80px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
-        .btn-guardar { width: 100%; padding: 15px; margin-top: 20px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; }
-        .btn-guardar:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-volver { display: inline-block; margin-bottom: 15px; color: #00ffff; text-decoration: none; padding: 8px 16px; border: 1px solid #00ffff; border-radius: 8px; }
-        .btn-volver:hover { background: rgba(0,255,255,0.1); }
-        .imagen-actual { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #ff00ff; margin: 5px; display: inline-block; }
+        .btn-guardar { width: 100%; padding: 15px; margin-top: 20px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; text-transform: uppercase; }
+        .btn-guardar:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); }
+        .btn-volver { display: inline-block; margin-bottom: 15px; color: #00ffff; text-decoration: none; padding: 8px 16px; border: 1px solid #00ffff; border-radius: 25px; font-size: 0.85rem; }
+        .imagen-actual { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); margin: 5px; }
         .section-title { color: #ff00ff; margin: 20px 0 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
 </head>
 <body>
-<div class="bg-grid"></div>
 <div class="container">
-    <a th:href="@{/admin/panel(key=${key})}" class="btn-volver">← Volver al panel</a>
-
+    <a th:href="@{/admin/panel(key=${key})}" class="btn-volver">← Volver</a>
     <div class="form-container">
-        <h1 th:text="${producto.id != null ? '✏️ Editar Producto' : '➕ Nuevo Producto'}">Formulario</h1>
-
+        <h1 th:text="${producto.id != null ? 'Editar Producto' : 'Nuevo Producto'}">Formulario</h1>
         <form th:action="@{/admin/guardar}" method="post" enctype="multipart/form-data">
             <input type="hidden" name="key" th:value="${key}">
             <input type="hidden" name="id" th:value="${producto.id}">
-
-            <div class="form-group">
-                <label>Nombre del Producto *</label>
-                <input type="text" name="nombre" th:value="${producto.nombre}" required>
-            </div>
-
+            <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
             <div class="form-row">
-                <div class="form-group">
-                    <label>Precio (COP) *</label>
-                    <input type="number" name="precio" th:value="${producto.precio}" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label>SKU</label>
-                    <input type="text" name="sku" th:value="${producto.sku}">
-                </div>
+                <div class="form-group"><label>Precio (COP) *</label><input type="number" name="precio" th:value="${producto.precio}" step="0.01" required></div>
+                <div class="form-group"><label>SKU</label><input type="text" name="sku" th:value="${producto.sku}"></div>
             </div>
-
             <div class="form-row">
-                <div class="form-group">
-                    <label>Categoría</label>
-                    <select name="categoria">
-                        <option value="">Seleccionar...</option>
-                        <option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option>
-                        <option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option>
-                        <option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option>
-                        <option value="Accesorios" th:selected="${producto.categoria == 'Accesorios'}">Accesorios</option>
-                        <option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Descripción corta (tienda)</label>
-                    <textarea name="descripcion" th:text="${producto.descripcion}" placeholder="Texto breve para la tarjeta del producto"></textarea>
-                </div>
+                <div class="form-group"><label>Categoría</label><select name="categoria"><option value="">Seleccionar...</option><option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option><option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option><option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option><option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option><option value="Calzado" th:selected="${producto.categoria == 'Calzado'}">Calzado</option></select></div>
+                <div class="form-group"><label>Descripción corta</label><textarea name="descripcion" th:text="${producto.descripcion}"></textarea></div>
+            </div>
+            <div class="form-group"><label>Descripción larga</label><textarea name="descripcionLarga" th:text="${producto.descripcionLarga}" style="min-height:120px;"></textarea></div>
+
+            <!-- Variaciones -->
+            <div class="form-group" style="margin-top:20px;">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" id="tieneVariacionesChk" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" onchange="toggleVariaciones()" style="width:auto;">
+                    ¿Este producto tiene variaciones? (Talla, Color)
+                </label>
+            </div>
+            <div id="variacionesSection" style="display:none; background:rgba(255,0,255,0.05); padding:15px; border-radius:10px; margin-bottom:15px;">
+                <h3 style="color:#ff00ff; margin-bottom:10px;">🎨 Variaciones</h3>
+                <div class="form-group"><label>Colores (separados por coma)</label><input type="text" id="coloresInput" placeholder="Rojo, Azul, Negro"></div>
+                <div class="form-group"><label>Tallas (separadas por coma)</label><input type="text" id="tallasInput" placeholder="38, 40, 42, 44"></div>
+                <input type="hidden" name="variacionesDisponibles" id="variacionesDisponibles" th:value="${producto.variacionesDisponibles}">
             </div>
 
-            <div class="form-group">
-                <label>Descripción larga (detalle del producto)</label>
-                <textarea name="descripcionLarga" th:text="${producto.descripcionLarga}" placeholder="Descripción completa con todos los detalles, medidas, características..." style="min-height:120px;"></textarea>
-            </div>
-
-            <h3 class="section-title">🖼️ Imágenes del Producto</h3>
+            <h3 class="section-title">Imágenes</h3>
             <div class="form-row">
-                <div class="form-group">
-                    <label>Imagen 1</label>
-                    <input type="file" name="imagen1File" accept="image/*" onchange="previewImage(this, 'preview1')">
-                    <img id="preview1" class="imagen-actual" th:if="${producto.imagen1 != null}" th:src="${producto.imagen1}" style="display:block;">
-                </div>
-                <div class="form-group">
-                    <label>Imagen 2</label>
-                    <input type="file" name="imagen2File" accept="image/*" onchange="previewImage(this, 'preview2')">
-                    <img id="preview2" class="imagen-actual" th:if="${producto.imagen2 != null}" th:src="${producto.imagen2}" style="display:block;">
-                </div>
+                <div class="form-group"><label>Imagen 1</label><input type="file" name="imagen1File" accept="image/*"><img th:if="${producto.imagen1 != null}" class="imagen-actual" th:src="${producto.imagen1}"></div>
+                <div class="form-group"><label>Imagen 2</label><input type="file" name="imagen2File" accept="image/*"><img th:if="${producto.imagen2 != null}" class="imagen-actual" th:src="${producto.imagen2}"></div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Imagen 3</label>
-                    <input type="file" name="imagen3File" accept="image/*" onchange="previewImage(this, 'preview3')">
-                    <img id="preview3" class="imagen-actual" th:if="${producto.imagen3 != null}" th:src="${producto.imagen3}" style="display:block;">
-                </div>
-                <div class="form-group">
-                    <label>Imagen 4</label>
-                    <input type="file" name="imagen4File" accept="image/*" onchange="previewImage(this, 'preview4')">
-                    <img id="preview4" class="imagen-actual" th:if="${producto.imagen4 != null}" th:src="${producto.imagen4}" style="display:block;">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Imagen 5</label>
-                    <input type="file" name="imagen5File" accept="image/*" onchange="previewImage(this, 'preview5')">
-                    <img id="preview5" class="imagen-actual" th:if="${producto.imagen5 != null}" th:src="${producto.imagen5}" style="display:block;">
-                </div>
-                <div class="form-group">
-                    <label>Imagen 6</label>
-                    <input type="file" name="imagen6File" accept="image/*" onchange="previewImage(this, 'preview6')">
-                    <img id="preview6" class="imagen-actual" th:if="${producto.imagen6 != null}" th:src="${producto.imagen6}" style="display:block;">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Imagen 7</label>
-                    <input type="file" name="imagen7File" accept="image/*" onchange="previewImage(this, 'preview7')">
-                    <img id="preview7" class="imagen-actual" th:if="${producto.imagen7 != null}" th:src="${producto.imagen7}" style="display:block;">
-                </div>
-                <div class="form-group">
-                    <label>Imagen 8</label>
-                    <input type="file" name="imagen8File" accept="image/*" onchange="previewImage(this, 'preview8')">
-                    <img id="preview8" class="imagen-actual" th:if="${producto.imagen8 != null}" th:src="${producto.imagen8}" style="display:block;">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Imagen 9</label>
-                    <input type="file" name="imagen9File" accept="image/*" onchange="previewImage(this, 'preview9')">
-                    <img id="preview9" class="imagen-actual" th:if="${producto.imagen9 != null}" th:src="${producto.imagen9}" style="display:block;">
-                </div>
-                <div class="form-group">
-                    <label>Imagen 10</label>
-                    <input type="file" name="imagen10File" accept="image/*" onchange="previewImage(this, 'preview10')">
-                    <img id="preview10" class="imagen-actual" th:if="${producto.imagen10 != null}" th:src="${producto.imagen10}" style="display:block;">
-                </div>
-            </div>
-
-            <h3 class="section-title">📏 Medidas</h3>
+            <h3 class="section-title">Medidas</h3>
             <div class="form-row-4">
-                <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}" placeholder="ej: 18 cm"></div>
-                <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}" placeholder="ej: 10 cm"></div>
-                <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}" placeholder="ej: 18 cm"></div>
-                <div class="form-group"><label>Peso</label><input type="text" name="peso" th:value="${producto.peso}" placeholder="ej: 246.5 g"></div>
+                <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}"></div>
+                <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}"></div>
+                <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}"></div>
+                <div class="form-group"><label>Peso</label><input type="text" name="peso" th:value="${producto.peso}"></div>
             </div>
-
             <button type="submit" class="btn-guardar">💾 Guardar Producto</button>
         </form>
     </div>
 </div>
-
 <script>
-    function previewImage(input, previewId) {
-        const preview = document.getElementById(previewId);
-        if (!preview) return;
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
+    function toggleVariaciones() {
+        document.getElementById('variacionesSection').style.display = document.getElementById('tieneVariacionesChk').checked ? 'block' : 'none';
     }
+    window.addEventListener('load', function() {
+        toggleVariaciones();
+        var v = document.getElementById('variacionesDisponibles').value;
+        if (v && v.includes('|')) { var p = v.split('|'); document.getElementById('coloresInput').value = p[0]||''; document.getElementById('tallasInput').value = p[1]||''; }
+    });
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('variacionesDisponibles').value = document.getElementById('coloresInput').value + '|' + document.getElementById('tallasInput').value;
+    });
 </script>
 </body>
 </html>

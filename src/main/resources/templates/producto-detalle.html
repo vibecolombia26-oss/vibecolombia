@@ -13,42 +13,37 @@
         @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
         .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
-        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
-        .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
         .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); }
         .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); }
-        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; filter: brightness(0.9); }
-        .imagen-secundaria:hover { border-color: #ffd700; filter: brightness(1); box-shadow: 0 0 15px rgba(255,215,0,0.4); }
+        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; }
         .info-section { padding: 30px; }
-        .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 10px; }
+        .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; }
         .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); margin-bottom: 10px; }
-        .meta { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
-        .sku { color: #ff00ff; font-size: 0.85rem; }
-        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; border: 1px solid #ff00ff; text-transform: uppercase; }
+        .meta { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .sku { color: #ff00ff; }
+        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.75rem; text-transform: uppercase; }
         .colombia-badge { display: inline-block; margin: 10px 0; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
         .especificaciones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 10px; text-align: center; }
-        .esp-item .esp-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
-        .esp-item .esp-value { color: #fff; font-size: 0.95rem; font-weight: 500; }
+        .esp-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
+        .esp-value { color: #fff; font-size: 0.95rem; }
         .descripcion { color: #aaa; line-height: 1.8; font-size: 0.9rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
+        .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
+        .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .variacion-group { flex: 1; min-width: 120px; }
+        .variacion-group label { color: #00ffff; font-size: 0.8rem; display: block; margin-bottom: 5px; }
+        .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; }
         .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); }
-        .cantidad-row label { color: #00ffff; font-size: 0.8rem; text-transform: uppercase; }
-        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
-        .qty-btn:hover { background: #ff00ff; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.6); }
-        .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 0.95rem; }
-        .subtotal-display { color: #00ffff; font-weight: 700; font-size: 1.1rem; }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+        .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; }
+        .subtotal-display { color: #00ffff; font-weight: 700; }
         .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
-        .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); }
-        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; font-size: 0.95rem; font-weight: 700; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
-        .btn-contraentrega:hover { background: #00ffff; color: #000; box-shadow: 0 0 20px rgba(0,255,255,0.5); }
-        .acciones-hint { text-align: center; color: #666; font-size: 0.7rem; margin-top: 5px; }
+        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
+        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
         .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
-        .banner-pago .icono { font-size: 1.5rem; }
-        .banner-pago h3 { color: #ff00ff; font-size: 0.9rem; margin: 5px 0; }
-        .banner-pago p { color: #888; font-size: 0.8rem; }
-        .banner-pago .destacado { color: #fff; font-weight: 600; }
-        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
+        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; }
         @media (max-width: 500px) { .especificaciones { grid-template-columns: repeat(2, 1fr); } .info-section { padding: 20px; } }
     </style>
 </head>
@@ -70,12 +65,38 @@
             <div class="meta"><span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span><span class="categoria" th:text="${producto.categoria}">Categoría</span></div>
             <div class="colombia-badge">🇨🇴 Envío GRATIS a todo Colombia</div>
             <div class="especificaciones" th:if="${producto.largo != null}">
-                <div class="esp-item"><div class="esp-label">Largo</div><div class="esp-value" th:text="${producto.largo}">-</div></div>
-                <div class="esp-item"><div class="esp-label">Ancho</div><div class="esp-value" th:text="${producto.ancho}">-</div></div>
-                <div class="esp-item"><div class="esp-label">Alto</div><div class="esp-value" th:text="${producto.alto}">-</div></div>
-                <div class="esp-item"><div class="esp-label">Peso</div><div class="esp-value" th:text="${producto.peso}">-</div></div>
+                <div><div class="esp-label">Largo</div><div class="esp-value" th:text="${producto.largo}">-</div></div>
+                <div><div class="esp-label">Ancho</div><div class="esp-value" th:text="${producto.ancho}">-</div></div>
+                <div><div class="esp-label">Alto</div><div class="esp-value" th:text="${producto.alto}">-</div></div>
+                <div><div class="esp-label">Peso</div><div class="esp-value" th:text="${producto.peso}">-</div></div>
             </div>
             <div class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</div>
+
+            <!-- VARIACIONES -->
+            <div class="variaciones" th:if="${producto.tieneVariaciones}">
+                <h3>🎨 Personaliza tu producto</h3>
+                <div class="variacion-row">
+                    <div class="variacion-group">
+                        <label>Color</label>
+                        <select id="colorSelect">
+                            <option value="">Seleccionar</option>
+                            <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
+                                <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="variacion-group">
+                        <label>Talla</label>
+                        <select id="tallaSelect">
+                            <option value="">Seleccionar</option>
+                            <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
+                                <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="cantidad-row">
                 <label>Cantidad</label><button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
                 <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
@@ -85,9 +106,8 @@
             <div class="acciones">
                 <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
                 <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
-                <p class="acciones-hint">Carrito para pago electrónico · Contra entrega para pagar al recibir</p>
             </div>
-            <div class="banner-pago"><div class="icono">💜</div><h3>Pago contra entrega</h3><p>Recibe tu producto y <span class="destacado">pagas al recibirlo</span>. Envío <span class="destacado">GRATIS</span></p></div>
+            <div class="banner-pago"><div class="icono">💜</div><h3>Pago contra entrega</h3><p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p></div>
         </div>
     </div>
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
@@ -95,18 +115,37 @@
 
 <script>
     var precioBase = 0;
-    window.onload = function() { var precioTexto = document.querySelector('.precio').textContent; precioTexto = precioTexto.replace('$', '').replace(/\./g, '').replace(/,/g, '').trim(); precioBase = parseInt(precioTexto) || 0; };
-    function cambiarCantidad(delta) { const input = document.getElementById('cantidad'); let val = parseInt(input.value) || 1; val = Math.max(1, val + delta); input.value = val; actualizarSubtotal(); }
-    function actualizarSubtotal() { const cantidad = parseInt(document.getElementById('cantidad').value) || 1; const subtotal = precioBase * cantidad; document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO'); }
-    function agregarAlCarrito() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '' }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); const btn = document.querySelector('.btn-carrito'); btn.textContent = '✓ Agregado'; setTimeout(() => { if (confirm('¿Ver carrito?')) window.location.href = '/carrito'; else btn.textContent = '🛒 Agregar al carrito'; }, 500); }
-    function comprarContraEntrega() { const nombre = document.querySelector('.nombre').textContent.trim(); const imagen = document.getElementById('imgPrincipal')?.src || ''; const cantidad = parseInt(document.getElementById('cantidad').value) || 1; let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || []; carrito.push({ nombre, precio: precioBase, imagen, cantidad, color: '', talla: '', contraentrega: true }); localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); window.location.href = '/carrito'; }
+    window.onload = function() { var t = document.querySelector('.precio').textContent; precioBase = parseInt(t.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0; };
+    function cambiarCantidad(d) { var i = document.getElementById('cantidad'); var v = Math.max(1, (parseInt(i.value)||1) + d); i.value = v; actualizarSubtotal(); }
+    function actualizarSubtotal() { var c = parseInt(document.getElementById('cantidad').value)||1; document.getElementById('subtotalDisplay').innerHTML = '= $' + (precioBase*c).toLocaleString('es-CO'); }
+    function agregarAlCarrito() {
+        var nombre = document.querySelector('.nombre').textContent.trim();
+        var imagen = document.getElementById('imgPrincipal')?.src || '';
+        var cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        var color = document.getElementById('colorSelect')?.value || '';
+        var talla = document.getElementById('tallaSelect')?.value || '';
+        var carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
+        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
+        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
+        var btn = document.querySelector('.btn-carrito'); btn.textContent = '✓ Agregado';
+        setTimeout(() => { if (confirm('¿Ver carrito?')) window.location.href = '/carrito'; else btn.textContent = '🛒 Agregar al carrito'; }, 500);
+    }
+    function comprarContraEntrega() {
+        var nombre = document.querySelector('.nombre').textContent.trim();
+        var imagen = document.getElementById('imgPrincipal')?.src || '';
+        var cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        var color = document.getElementById('colorSelect')?.value || '';
+        var talla = document.getElementById('tallaSelect')?.value || '';
+        var carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
+        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
+        localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito));
+        window.location.href = '/carrito';
+    }
     actualizarSubtotal();
-
-    const bg = document.getElementById('bgAnimado');
-    const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*3+1; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;'; bg.appendChild(el); }
-    const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
-    for (let i=0;i<10;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; bg.appendChild(el); }
+    var bg = document.getElementById('bgAnimado'), colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (var i=0;i<15;i++) { var el=document.createElement('div'); el.className='particula'; var t=Math.random()*3+1; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;'; bg.appendChild(el); }
+    var emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+    for (var i=0;i<8;i++) { var el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;'; bg.appendChild(el); }
 </script>
 </body>
 </html>

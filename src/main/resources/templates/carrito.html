@@ -135,7 +135,10 @@
         const departamento = document.getElementById('departamento').value, ciudad = document.getElementById('ciudad').value, direccion = document.getElementById('direccion').value, notas = document.getElementById('notas').value;
         if (!nombre || !telefono || !departamento || !ciudad || !direccion) { alert('Completa todos los campos requeridos (*)'); return; }
         let productosTexto = '', total = 0;
-        carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; productosTexto += '• ' + item.nombre + ' x' + cantidad + ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
+        carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; productosTexto += '• ' + item.nombre + ' x' + cantidad;
+            if (item.color) productosTexto += ' | Color: ' + item.color;
+            if (item.talla) productosTexto += ' | Talla: ' + item.talla;
+            productosTexto += ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
         const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'VIBE COLOMBIA 26', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
         fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido) })
             .then(r => r.json()).then(data => { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); document.getElementById('modalCodigo').textContent = data.codigo; document.getElementById('modalOverlay').style.display = 'flex'; })
