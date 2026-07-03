@@ -22,11 +22,12 @@
         .pedido-body { display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:0.9rem; }
         .label { color:#888; } .value { color:#fff; }
         .pedido-productos { grid-column:1/-1; background:#111; padding:15px; border-radius:8px; white-space:pre-line; }
-        .acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
-        .btn-accion { padding:8px 16px; border-radius:20px; font-size:0.75rem; text-decoration:none; font-weight:600; border:none; cursor:pointer; text-transform:uppercase; }
+        .acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; align-items:center; }
+        .btn-accion { padding:8px 16px; border-radius:20px; font-size:0.75rem; text-decoration:none; font-weight:600; cursor:pointer; border:none; text-transform:uppercase; display:inline-block; }
         .btn-procesar { background:#2196F3; color:#fff; }
         .btn-enviar { background:#00ffff; color:#000; }
         .btn-entregar { background:#ff00ff; color:#fff; }
+        .btn-eliminar { background:#ff0044; color:#fff; }
         .guia-info { background:rgba(0,255,255,0.05); border:1px solid #00ffff; border-radius:8px; padding:10px; margin-top:10px; }
         .envio-form { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
         .envio-form input, .envio-form select { padding:8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; }
@@ -62,11 +63,7 @@
                 🚚 <strong th:text="${pedido.transportadora}"></strong> | 📋 <span th:text="${pedido.numeroGuia}"></span>
             </div>
             <div class="acciones">
-                <form th:if="${pedido.estado=='Pendiente'}" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
-                    <input type="hidden" name="key" th:value="${key}">
-                    <input type="hidden" name="estado" value="Procesando">
-                    <button type="submit" class="btn-accion btn-procesar">🔄 Procesar</button>
-                </form>
+                <a th:if="${pedido.estado=='Pendiente'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Procesando')}" class="btn-accion btn-procesar">🔄 Procesar</a>
                 <div th:if="${pedido.estado=='Procesando'}">
                     <form class="envio-form" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post">
                         <input type="hidden" name="key" th:value="${key}"><input type="hidden" name="estado" value="Enviado">
@@ -75,11 +72,8 @@
                         <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
                     </form>
                 </div>
-                <form th:if="${pedido.estado=='Enviado'}" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
-                    <input type="hidden" name="key" th:value="${key}">
-                    <input type="hidden" name="estado" value="Entregado">
-                    <button type="submit" class="btn-accion btn-entregar">✅ Entregado</button>
-                </form>
+                <a th:if="${pedido.estado=='Enviado'}" th:href="@{/admin/cambiar-estado/{id}(id=${pedido.id},key=${key},estado='Entregado')}" class="btn-accion btn-entregar">✅ Entregado</a>
+                <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedido.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido definitivamente?')">🗑️ Eliminar</a>
             </div>
         </div>
     </div>

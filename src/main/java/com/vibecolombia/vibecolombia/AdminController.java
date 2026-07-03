@@ -142,4 +142,11 @@ public class AdminController {
         redirect.addFlashAttribute("mensaje", "🗑️ Producto eliminado!");
         return "redirect:/admin/panel?key=" + key;
     }
+    @GetMapping("/eliminar-pedido/{id}")
+    public String eliminarPedido(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
+        if (!adminPassword.equals(key)) return "redirect:/admin/login";
+        pedidoRepository.deleteById(id);
+        redirect.addFlashAttribute("mensaje", "🗑️ Pedido eliminado!");
+        return "redirect:/admin/pedidos?key=" + key;
+    }
 }
