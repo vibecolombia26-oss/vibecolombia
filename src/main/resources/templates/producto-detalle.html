@@ -16,7 +16,7 @@
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
         .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); }
-        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); }
+        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
         .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; }
         .info-section { padding: 30px; }
         .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; }
@@ -53,11 +53,13 @@
     <a href="/" class="back-btn">← Volver</a>
     <div class="producto-card">
         <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
-        <div class="imagenes-secundarias" th:if="${producto.imagen2 != null or producto.imagen3 != null or producto.imagen4 != null}">
+        <div class="imagenes-secundarias">
             <img class="imagen-secundaria" th:src="${producto.imagen1}" onclick="document.getElementById('imgPrincipal').src=this.src">
             <img class="imagen-secundaria" th:if="${producto.imagen2 != null}" th:src="${producto.imagen2}" onclick="document.getElementById('imgPrincipal').src=this.src">
             <img class="imagen-secundaria" th:if="${producto.imagen3 != null}" th:src="${producto.imagen3}" onclick="document.getElementById('imgPrincipal').src=this.src">
             <img class="imagen-secundaria" th:if="${producto.imagen4 != null}" th:src="${producto.imagen4}" onclick="document.getElementById('imgPrincipal').src=this.src">
+            <img class="imagen-secundaria" th:if="${producto.imagen5 != null}" th:src="${producto.imagen5}" onclick="document.getElementById('imgPrincipal').src=this.src">
+            <img class="imagen-secundaria" th:if="${producto.imagen6 != null}" th:src="${producto.imagen6}" onclick="document.getElementById('imgPrincipal').src=this.src">
         </div>
         <div class="info-section">
             <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
@@ -72,28 +74,11 @@
             </div>
             <div class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</div>
 
-            <!-- VARIACIONES -->
             <div class="variaciones" th:if="${producto.tieneVariaciones}">
                 <h3>🎨 Personaliza tu producto</h3>
                 <div class="variacion-row">
-                    <div class="variacion-group">
-                        <label>Color</label>
-                        <select id="colorSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                    <div class="variacion-group">
-                        <label>Talla</label>
-                        <select id="tallaSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
+                    <div class="variacion-group"><label>Color</label><select id="colorSelect"><option value="">Seleccionar</option><th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}"><option th:value="${color.trim()}" th:text="${color.trim()}"></option></th:block></select></div>
+                    <div class="variacion-group"><label>Talla</label><select id="tallaSelect"><option value="">Seleccionar</option><th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}"><option th:value="${talla.trim()}" th:text="${talla.trim()}"></option></th:block></select></div>
                 </div>
             </div>
 
