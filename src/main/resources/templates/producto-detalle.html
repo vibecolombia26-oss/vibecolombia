@@ -15,7 +15,7 @@
         .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
-        .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); }
+        .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); touch-action: pan-y; cursor: grab; }
         .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
         .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; }
         .info-section { padding: 30px; }
@@ -127,6 +127,21 @@
         window.location.href = '/carrito';
     }
     actualizarSubtotal();
+
+    // Swipe para cambiar imágenes en celular
+    var touchStartX = 0;
+    var touchEndX = 0;
+    document.getElementById('imgPrincipal').addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
+    document.getElementById('imgPrincipal').addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        var currentSrc = document.getElementById('imgPrincipal').src;
+        var images = [];
+        document.querySelectorAll('.imagen-secundaria').forEach(function(img) { if (img.offsetParent !== null) images.push(img.src); });
+        var currentIndex = images.indexOf(currentSrc);
+        if (touchEndX < touchStartX - 50) { var next = (currentIndex + 1) % images.length; document.getElementById('imgPrincipal').src = images[next]; }
+        if (touchEndX > touchStartX + 50) { var prev = (currentIndex - 1 + images.length) % images.length; document.getElementById('imgPrincipal').src = images[prev]; }
+    });
+
     var bg = document.getElementById('bgAnimado'), colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
     for (var i=0;i<15;i++) { var el=document.createElement('div'); el.className='particula'; var t=Math.random()*3+1; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;'; bg.appendChild(el); }
     var emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
