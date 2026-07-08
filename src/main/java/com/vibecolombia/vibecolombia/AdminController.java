@@ -113,20 +113,38 @@ public class AdminController {
     public String guardarProducto(@ModelAttribute Producto producto, @RequestParam String key,
                                   @RequestParam(required = false) MultipartFile imagen1File,
                                   @RequestParam(required = false) MultipartFile imagen2File,
+                                  @RequestParam(required = false) MultipartFile imagen3File,
+                                  @RequestParam(required = false) MultipartFile imagen4File,
+                                  @RequestParam(required = false) MultipartFile imagen5File,
+                                  @RequestParam(required = false) MultipartFile imagen6File,
                                   RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
         try {
+            // Mantener imágenes existentes si no se suben nuevas
             if (producto.getId() != null) {
                 Producto existente = productoRepository.findById(producto.getId()).orElse(null);
                 if (existente != null) {
                     if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
                     if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
+                    if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
+                    if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
+                    if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
+                    if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
                 }
             }
+            // Procesar imágenes nuevas
             if (imagen1File != null && !imagen1File.isEmpty())
                 producto.setImagen1("data:" + imagen1File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen1File.getBytes()));
             if (imagen2File != null && !imagen2File.isEmpty())
                 producto.setImagen2("data:" + imagen2File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen2File.getBytes()));
+            if (imagen3File != null && !imagen3File.isEmpty())
+                producto.setImagen3("data:" + imagen3File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen3File.getBytes()));
+            if (imagen4File != null && !imagen4File.isEmpty())
+                producto.setImagen4("data:" + imagen4File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen4File.getBytes()));
+            if (imagen5File != null && !imagen5File.isEmpty())
+                producto.setImagen5("data:" + imagen5File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen5File.getBytes()));
+            if (imagen6File != null && !imagen6File.isEmpty())
+                producto.setImagen6("data:" + imagen6File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen6File.getBytes()));
             productoRepository.save(producto);
             redirect.addFlashAttribute("mensaje", "✅ Producto guardado!");
         } catch (Exception e) {
