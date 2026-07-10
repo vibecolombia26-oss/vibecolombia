@@ -38,7 +38,18 @@
                 <div class="form-group"><label>SKU</label><input type="text" name="sku" th:value="${producto.sku}"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Categoría</label><select name="categoria"><option value="">Seleccionar...</option><option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option><option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option><option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option><option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option><option value="Calzado" th:selected="${producto.categoria == 'Calzado'}">Calzado</option></select></div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select name="categoria">
+                        <option value="">Seleccionar...</option>
+                        <option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option>
+                        <option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option>
+                        <option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option>
+                        <option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option>
+                        <option value="Calzado" th:selected="${producto.categoria == 'Calzado'}">Calzado</option>
+                        <option value="Cuidado Personal" th:selected="${producto.categoria == 'Cuidado Personal'}">🧴 Cuidado Personal</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Descripción corta</label><textarea name="descripcion" th:text="${producto.descripcion}"></textarea></div>
             </div>
             <div class="form-group"><label>Descripción larga</label><textarea name="descripcionLarga" th:text="${producto.descripcionLarga}" style="min-height:120px;"></textarea></div>
@@ -68,6 +79,14 @@
             <div class="form-row">
                 <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen5 != null}" class="imagen-actual" th:src="${producto.imagen5}"></div>
                 <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen6 != null}" class="imagen-actual" th:src="${producto.imagen6}"></div>
+            </div>
+
+            <h3 class="section-title">Medidas</h3>
+            <div class="form-row-4">
+                <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}"></div>
+                <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}"></div>
+                <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}"></div>
+                <div class="form-group"><label>Peso</label><input type="text" name="peso" th:value="${producto.peso}"></div>
             </div>
 
             <button type="submit" class="btn-guardar">💾 Guardar Producto</button>
