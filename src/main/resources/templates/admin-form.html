@@ -29,7 +29,7 @@
     <a th:href="@{/admin/panel(key=${key})}" class="btn-volver">← Volver</a>
     <div class="form-container">
         <h1 th:text="${producto.id != null ? 'Editar Producto' : 'Nuevo Producto'}">Formulario</h1>
-        <form th:action="@{/admin/guardar}" method="post" enctype="multipart/form-data">
+        <form th:action="@{/admin/guardar}" method="post">
             <input type="hidden" name="key" th:value="${key}">
             <input type="hidden" name="id" th:value="${producto.id}">
             <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
@@ -43,7 +43,6 @@
             </div>
             <div class="form-group"><label>Descripción larga</label><textarea name="descripcionLarga" th:text="${producto.descripcionLarga}" style="min-height:120px;"></textarea></div>
 
-            <!-- Variaciones -->
             <div class="form-group" style="margin-top:20px;">
                 <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
                     <input type="checkbox" id="tieneVariacionesChk" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" onchange="toggleVariaciones()" style="width:auto;">
@@ -57,19 +56,20 @@
                 <input type="hidden" name="variacionesDisponibles" id="variacionesDisponibles" th:value="${producto.variacionesDisponibles}">
             </div>
 
-            <h3 class="section-title">Imágenes</h3>
+            <h3 class="section-title">Imágenes (pega la URL de Cloudinary)</h3>
             <div class="form-row">
-                <div class="form-group"><label>Imagen 1</label><<input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen1 != null}" class="imagen-actual" th:src="${producto.imagen1}"></div>
-                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen2 != null}" class="imagen-actual" th:src="${producto.imagen2}"></div>
+                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen1 != null}" class="imagen-actual" th:src="${producto.imagen1}"></div>
+                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen2 != null}" class="imagen-actual" th:src="${producto.imagen2}"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen3 != null}" class="imagen-actual" th:src="${producto.imagen3}"></div>
-                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen4 != null}" class="imagen-actual" th:src="${producto.imagen4}"></div>
+                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen3 != null}" class="imagen-actual" th:src="${producto.imagen3}"></div>
+                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen4 != null}" class="imagen-actual" th:src="${producto.imagen4}"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen5 != null}" class="imagen-actual" th:src="${producto.imagen5}"></div>
-                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen1File" placeholder="/images/nombre-imagen.jpg"><img th:if="${producto.imagen6 != null}" class="imagen-actual" th:src="${producto.imagen6}"></div>
+                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen5 != null}" class="imagen-actual" th:src="${producto.imagen5}"></div>
+                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen6 != null}" class="imagen-actual" th:src="${producto.imagen6}"></div>
             </div>
+
             <button type="submit" class="btn-guardar">💾 Guardar Producto</button>
         </form>
     </div>

@@ -3,7 +3,6 @@ package com.vibecolombia.vibecolombia;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
@@ -111,45 +110,36 @@ public class AdminController {
 
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto, @RequestParam String key,
-                                  @RequestParam(required = false) MultipartFile imagen1File,
-                                  @RequestParam(required = false) MultipartFile imagen2File,
-                                  @RequestParam(required = false) MultipartFile imagen3File,
-                                  @RequestParam(required = false) MultipartFile imagen4File,
-                                  @RequestParam(required = false) MultipartFile imagen5File,
-                                  @RequestParam(required = false) MultipartFile imagen6File,
+                                  @RequestParam(required = false) String imagen1File,
+                                  @RequestParam(required = false) String imagen2File,
+                                  @RequestParam(required = false) String imagen3File,
+                                  @RequestParam(required = false) String imagen4File,
+                                  @RequestParam(required = false) String imagen5File,
+                                  @RequestParam(required = false) String imagen6File,
                                   RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        try {
-            // Mantener imágenes existentes si no se suben nuevas
-            if (producto.getId() != null) {
-                Producto existente = productoRepository.findById(producto.getId()).orElse(null);
-                if (existente != null) {
-                    if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
-                    if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
-                    if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
-                    if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
-                    if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
-                    if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
-                }
+        // Guardar URLs directamente
+        if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
+        if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
+        if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
+        if (imagen4File != null && !imagen4File.isEmpty()) producto.setImagen4(imagen4File);
+        if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
+        if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
+
+        // Mantener imágenes existentes si no se cambian
+        if (producto.getId() != null) {
+            Producto existente = productoRepository.findById(producto.getId()).orElse(null);
+            if (existente != null) {
+                if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
+                if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
+                if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
+                if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
+                if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
+                if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
             }
-            // Procesar imágenes nuevas
-            if (imagen1File != null && !imagen1File.isEmpty())
-                producto.setImagen1("data:" + imagen1File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen1File.getBytes()));
-            if (imagen2File != null && !imagen2File.isEmpty())
-                producto.setImagen2("data:" + imagen2File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen2File.getBytes()));
-            if (imagen3File != null && !imagen3File.isEmpty())
-                producto.setImagen3("data:" + imagen3File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen3File.getBytes()));
-            if (imagen4File != null && !imagen4File.isEmpty())
-                producto.setImagen4("data:" + imagen4File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen4File.getBytes()));
-            if (imagen5File != null && !imagen5File.isEmpty())
-                producto.setImagen5("data:" + imagen5File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen5File.getBytes()));
-            if (imagen6File != null && !imagen6File.isEmpty())
-                producto.setImagen6("data:" + imagen6File.getContentType() + ";base64," + Base64.getEncoder().encodeToString(imagen6File.getBytes()));
-            productoRepository.save(producto);
-            redirect.addFlashAttribute("mensaje", "✅ Producto guardado!");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("error", "❌ Error: " + e.getMessage());
         }
+        productoRepository.save(producto);
+        redirect.addFlashAttribute("mensaje", "✅ Producto guardado!");
         return "redirect:/admin/panel?key=" + key;
     }
 
@@ -160,6 +150,7 @@ public class AdminController {
         redirect.addFlashAttribute("mensaje", "🗑️ Producto eliminado!");
         return "redirect:/admin/panel?key=" + key;
     }
+
     @GetMapping("/eliminar-pedido/{id}")
     public String eliminarPedido(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
