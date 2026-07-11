@@ -13,11 +13,13 @@
         @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
         .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
-        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; transition: all 0.3s; }
+        .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
         .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); touch-action: pan-y; cursor: grab; }
         .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
-        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; }
+        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; }
+        .imagen-secundaria:hover { border-color: #ffd700; transform: scale(1.05); }
         .info-section { padding: 30px; }
         .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; }
         .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); margin-bottom: 10px; }
@@ -35,15 +37,21 @@
         .variacion-group { flex: 1; min-width: 120px; }
         .variacion-group label { color: #00ffff; font-size: 0.8rem; display: block; margin-bottom: 5px; }
         .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; }
-        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); }
-        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
+        .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
         .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; }
         .subtotal-display { color: #00ffff; font-weight: 700; }
         .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
-        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
+        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
+        .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
+        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
+        .btn-contraentrega:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 30px rgba(0,255,255,0.3); transform: scale(1.02); }
         .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
-        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; }
+        .banner-pago .icono { font-size: 2.5rem; }
+        .banner-pago h3 { color: #ffd700; }
+        .banner-pago p { color: #aaa; }
+        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
 
         /* ANIMACIÓN PULSO PARA EL BOTÓN DE WHATSAPP - ESTILO COLOMBIANO */
         @keyframes pulseColombia {
@@ -77,7 +85,13 @@
             fill: white;
         }
 
-        @media (max-width: 500px) { .especificaciones { grid-template-columns: repeat(2, 1fr); } .info-section { padding: 20px; } }
+        @media (max-width: 500px) {
+            .especificaciones { grid-template-columns: repeat(2, 1fr); }
+            .info-section { padding: 20px; }
+            .nombre { font-size: 1.3rem; }
+            .precio { font-size: 1.8rem; }
+            .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -116,7 +130,8 @@
             </div>
 
             <div class="cantidad-row">
-                <label>Cantidad</label><button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
+                <label>Cantidad</label>
+                <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
                 <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
                 <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
                 <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
@@ -125,7 +140,11 @@
                 <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
                 <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
             </div>
-            <div class="banner-pago"><div class="icono">🇨🇴</div><h3>Pago contra entrega</h3><p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p></div>
+            <div class="banner-pago">
+                <div class="icono">🇨🇴</div>
+                <h3>Pago contra entrega</h3>
+                <p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p>
+            </div>
         </div>
     </div>
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
@@ -143,9 +162,23 @@
 
 <script>
     var precioBase = 0;
-    window.onload = function() { var t = document.querySelector('.precio').textContent; precioBase = parseInt(t.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0; };
-    function cambiarCantidad(d) { var i = document.getElementById('cantidad'); var v = Math.max(1, (parseInt(i.value)||1) + d); i.value = v; actualizarSubtotal(); }
-    function actualizarSubtotal() { var c = parseInt(document.getElementById('cantidad').value)||1; document.getElementById('subtotalDisplay').innerHTML = '= $' + (precioBase*c).toLocaleString('es-CO'); }
+    window.onload = function() {
+        var t = document.querySelector('.precio').textContent;
+        precioBase = parseInt(t.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+    };
+
+    function cambiarCantidad(d) {
+        var i = document.getElementById('cantidad');
+        var v = Math.max(1, (parseInt(i.value)||1) + d);
+        i.value = v;
+        actualizarSubtotal();
+    }
+
+    function actualizarSubtotal() {
+        var c = parseInt(document.getElementById('cantidad').value)||1;
+        document.getElementById('subtotalDisplay').innerHTML = '= $' + (precioBase*c).toLocaleString('es-CO');
+    }
+
     function agregarAlCarrito() {
         var nombre = document.querySelector('.nombre').textContent.trim();
         var imagen = document.getElementById('imgPrincipal')?.src || '';
@@ -153,11 +186,29 @@
         var color = document.getElementById('colorSelect')?.value || '';
         var talla = document.getElementById('tallaSelect')?.value || '';
         var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
+
+        // Verificar si el producto ya está en el carrito
+        var existe = false;
+        for (var i = 0; i < carrito.length; i++) {
+            if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
+                carrito[i].cantidad += cantidad;
+                existe = true;
+                break;
+            }
+        }
+        if (!existe) {
+            carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla });
+        }
+
         localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        var btn = document.querySelector('.btn-carrito'); btn.textContent = '✓ Agregado';
-        setTimeout(() => { if (confirm('¿Ver carrito?')) window.location.href = '/carrito'; else btn.textContent = '🛒 Agregar al carrito'; }, 500);
+        var btn = document.querySelector('.btn-carrito');
+        btn.textContent = '✓ Agregado';
+        setTimeout(() => {
+            if (confirm('¿Ver carrito?')) window.location.href = '/carrito';
+            else btn.textContent = '🛒 Agregar al carrito';
+        }, 500);
     }
+
     function comprarContraEntrega() {
         var nombre = document.querySelector('.nombre').textContent.trim();
         var imagen = document.getElementById('imgPrincipal')?.src || '';
@@ -165,30 +216,72 @@
         var color = document.getElementById('colorSelect')?.value || '';
         var talla = document.getElementById('tallaSelect')?.value || '';
         var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
+
+        // Verificar si el producto ya está en el carrito
+        var existe = false;
+        for (var i = 0; i < carrito.length; i++) {
+            if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
+                carrito[i].cantidad += cantidad;
+                existe = true;
+                break;
+            }
+        }
+        if (!existe) {
+            carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true });
+        }
+
         localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        window.location.href = '/carrito';
+        // Redirigir al carrito con el formulario visible
+        window.location.href = '/carrito?contraentrega=true';
     }
+
     actualizarSubtotal();
 
     // Swipe para cambiar imágenes en celular
     var touchStartX = 0;
     var touchEndX = 0;
-    document.getElementById('imgPrincipal').addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
-    document.getElementById('imgPrincipal').addEventListener('touchend', function(e) {
+    var imgPrincipal = document.getElementById('imgPrincipal');
+
+    imgPrincipal.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    imgPrincipal.addEventListener('touchend', function(e) {
         touchEndX = e.changedTouches[0].screenX;
         var currentSrc = document.getElementById('imgPrincipal').src;
         var images = [];
-        document.querySelectorAll('.imagen-secundaria').forEach(function(img) { if (img.offsetParent !== null) images.push(img.src); });
+        document.querySelectorAll('.imagen-secundaria').forEach(function(img) {
+            if (img.offsetParent !== null) images.push(img.src);
+        });
         var currentIndex = images.indexOf(currentSrc);
-        if (touchEndX < touchStartX - 50) { var next = (currentIndex + 1) % images.length; document.getElementById('imgPrincipal').src = images[next]; }
-        if (touchEndX > touchStartX + 50) { var prev = (currentIndex - 1 + images.length) % images.length; document.getElementById('imgPrincipal').src = images[prev]; }
+        if (touchEndX < touchStartX - 50) {
+            var next = (currentIndex + 1) % images.length;
+            document.getElementById('imgPrincipal').src = images[next];
+        }
+        if (touchEndX > touchStartX + 50) {
+            var prev = (currentIndex - 1 + images.length) % images.length;
+            document.getElementById('imgPrincipal').src = images[prev];
+        }
     });
 
-    var bg = document.getElementById('bgAnimado'), colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (var i=0;i<15;i++) { var el=document.createElement('div'); el.className='particula'; var t=Math.random()*3+1; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;'; bg.appendChild(el); }
+    // Fondo animado
+    var bg = document.getElementById('bgAnimado'),
+        colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (var i=0;i<15;i++) {
+        var el=document.createElement('div');
+        el.className='particula';
+        var t=Math.random()*3+1;
+        el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;';
+        bg.appendChild(el);
+    }
     var emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
-    for (var i=0;i<8;i++) { var el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;'; bg.appendChild(el); }
+    for (var i=0;i<8;i++) {
+        var el=document.createElement('div');
+        el.className='particula-emoji';
+        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
+        bg.appendChild(el);
+    }
 </script>
 </body>
 </html>
