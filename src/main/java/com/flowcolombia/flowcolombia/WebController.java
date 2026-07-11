@@ -31,4 +31,14 @@ public class WebController {
 
     @GetMapping("/seguimiento")
     public String seguimiento() { return "seguimiento"; }
+
+    @GetMapping("/privacidad")
+    public String privacidad() { return "privacidad"; }
+
+    @GetMapping("/terminos")
+    public String terminos() { return "terminos"; }
+
+    @GetMapping("/contacto")
+    public String contacto() { return "contacto"; }
+
 }
