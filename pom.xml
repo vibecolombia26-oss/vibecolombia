@@ -8,11 +8,11 @@
 		<version>3.5.14</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.vibecolombia</groupId>
-	<artifactId>vibecolombia</artifactId>
+	<groupId>com.flowcolombia</groupId>
+	<artifactId>flowcolombia</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>vibecolombia</name>
-	<description>VIBE COLOMBIA 26</description>
+	<name>FlowColombia</name>
+	<description>FLOW COLOMBIA - Tienda Online</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -47,11 +47,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sendgrid</groupId>
-			<artifactId>sendgrid-java</artifactId>
-			<version>4.10.1</version>
 		</dependency>
 	</dependencies>
 	<build>

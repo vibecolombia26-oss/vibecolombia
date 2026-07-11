@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;
+package com.flowcolombia.flowcolombia;
 
 import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;

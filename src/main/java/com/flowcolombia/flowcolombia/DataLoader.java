@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;
+package com.flowcolombia.flowcolombia;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

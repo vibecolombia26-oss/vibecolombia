@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;
+package com.flowcolombia.flowcolombia;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

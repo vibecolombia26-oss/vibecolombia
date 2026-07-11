@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - VIBE COLOMBIA 26</title>
+    <title>Carrito - FLOW COLOMBIA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
@@ -55,7 +55,7 @@
 <div class="container">
     <a href="/" class="back-btn">← Volver a la tienda</a>
     <h1>🛒 Tu Carrito</h1>
-    <p class="subtitle">✦ VIBE COLOMBIA 26 ✦</p>
+    <p class="subtitle">✦ FLOW COLOMBIA ✦</p>
     <div class="colombia-badge"><span>🇨🇴 Envío GRATIS a todo Colombia</span></div>
     <div id="cartItems"></div>
     <div id="cartTotal" class="cart-total"></div>
@@ -86,7 +86,7 @@
             <div class="form-group"><label>Ciudad *</label><select id="ciudad" required><option value="">Primero selecciona un departamento</option></select></div>
         </div>
         <div class="form-row"><div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" placeholder="Calle, carrera, número, barrio" required></div></div>
-        <div class="form-row"><div class="form-group"><label>Tienda</label><select id="tienda"><option>VIBE COLOMBIA 26</option></select></div><div class="form-group"><label>Notas (opcional)</label><input type="text" id="notas" placeholder="Instrucciones especiales..."></div></div>
+        <div class="form-row"><div class="form-group"><label>Tienda</label><select id="tienda"><option>FLOW COLOMBIA</option></select></div><div class="form-group"><label>Notas (opcional)</label><input type="text" id="notas" placeholder="Instrucciones especiales..."></div></div>
         <h2>🚚 Envío</h2>
         <div style="background:rgba(255,215,0,0.05);border:2px solid #ffd700;border-radius:12px;padding:25px;text-align:center;margin:15px 0;">
             <div style="font-size:2.5rem;">🇨🇴</div>
@@ -139,7 +139,7 @@
             if (item.color) productosTexto += ' | Color: ' + item.color;
             if (item.talla) productosTexto += ' | Talla: ' + item.talla;
             productosTexto += ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
-        const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'VIBE COLOMBIA 26', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
+        const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'FLOW COLOMBIA', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
         fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido) })
             .then(r => r.json()).then(data => { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); document.getElementById('modalCodigo').textContent = data.codigo; document.getElementById('modalOverlay').style.display = 'flex'; })
             .catch(() => { alert('Error al procesar'); });
