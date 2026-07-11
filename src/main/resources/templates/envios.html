@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envíos - FLOW COLOMBIA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
+        .particula { position: absolute; border-radius: 50%; animation: flotar linear infinite; opacity: 0.5; }
+        .particula-emoji { position: absolute; animation: flotarEmoji linear infinite; opacity: 0.4; font-size: 1.5rem; }
+        @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+        @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+        .container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin-bottom: 20px; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; }
+        .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+        h1 { text-align: center; font-size: 2.5rem; font-weight: 900; letter-spacing: 4px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; }
+        @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .subtitle { text-align: center; color: #00ffff; margin-bottom: 30px; font-size: 1rem; letter-spacing: 3px; }
+        .colombia-badge { text-align: center; margin: 10px 0 30px; }
+        .colombia-badge span { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
+        .section-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; margin-bottom: 20px; }
+        .section-card h2 { color: #ffd700; margin-bottom: 15px; font-size: 1.5rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .section-card p, .section-card li { color: #ccc; line-height: 1.8; font-size: 1rem; }
+        .section-card ul { list-style: none; padding: 0; }
+        .section-card ul li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .section-card ul li::before { content: "✦ "; color: #ff00ff; }
+        .highlight { color: #00ffff; font-weight: 700; }
+        .highlight-gold { color: #ffd700; font-weight: 700; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .tiempo-card { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; }
+        .tiempo-card .icono { font-size: 2.5rem; }
+        .tiempo-card .dias { font-size: 1.8rem; font-weight: 900; color: #ffd700; }
+        .tiempo-card .label { color: #aaa; font-size: 0.85rem; }
+        .btn-whatsapp { display: inline-block; padding: 12px 30px; background: #25D366; color: #fff; border-radius: 25px; text-decoration: none; font-weight: 700; transition: all 0.3s; margin-top: 10px; }
+        .btn-whatsapp:hover { box-shadow: 0 0 30px rgba(37,211,102,0.4); transform: scale(1.05); }
+        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } h1 { font-size: 1.8rem; } .section-card { padding: 20px; } }
+    </style>
+</head>
+<body>
+<div class="bg-grid" id="bgAnimado"></div>
+<div class="container">
+    <a href="/" class="back-btn">← Volver a la tienda</a>
+    <h1>📦 Envíos</h1>
+    <p class="subtitle">✦ FLOW COLOMBIA ✦</p>
+    <div class="colombia-badge"><span>🇨🇴 Envío GRATIS a todo Colombia 🇨🇴</span></div>
+
+    <!-- Envío gratis -->
+    <div class="section-card">
+        <h2>🚚 Envío GRATIS</h2>
+        <p style="font-size:1.2rem; color:#ffd700;">¡Todos nuestros envíos son <span class="highlight-gold">GRATIS</span> sin importar el valor del pedido!</p>
+        <p style="color:#aaa; margin-top:10px;">No importa si compras un producto o varios, el envío corre por nuestra cuenta. 🇨🇴</p>
+    </div>
+
+    <!-- Tiempos de entrega -->
+    <div class="section-card">
+        <h2>⏰ Tiempos de entrega</h2>
+        <div class="grid-2">
+            <div class="tiempo-card">
+                <div class="icono">🏙️</div>
+                <div class="dias">2 - 4</div>
+                <div class="label">Días hábiles</div>
+                <p style="color:#00ffff; font-size:0.8rem;">Bogotá y principales ciudades</p>
+            </div>
+            <div class="tiempo-card">
+                <div class="icono">🌄</div>
+                <div class="dias">4 - 7</div>
+                <div class="label">Días hábiles</div>
+                <p style="color:#00ffff; font-size:0.8rem;">Otras ciudades y municipios</p>
+            </div>
+            <div class="tiempo-card" style="grid-column: span 2;">
+                <div class="icono">🌿</div>
+                <div class="dias">7 - 10</div>
+                <div class="label">Días hábiles</div>
+                <p style="color:#00ffff; font-size:0.8rem;">Zonas rurales y de difícil acceso</p>
+            </div>
+        </div>
+        <p style="color:#888; font-size:0.85rem; text-align:center; margin-top:15px;">⏱️ Los tiempos comienzan a contar después de la confirmación del pedido</p>
+    </div>
+
+    <!-- Proceso de envío -->
+    <div class="section-card">
+        <h2>📋 Proceso de envío</h2>
+        <ul>
+            <li><span class="highlight">Confirmación de pedido</span> → Recibirás un correo o mensaje con tu código de seguimiento</li>
+            <li><span class="highlight">Preparación del pedido</span> → 1 a 2 días hábiles (¡lo alistamos con amor!)</li>
+            <li><span class="highlight">Envío</span> → Se envía a través de nuestra transportadora aliada Interrapidisimo</li>
+            <li><span class="highlight">Seguimiento</span> → Puedes rastrear tu pedido en nuestra página con tu código</li>
+        </ul>
+    </div>
+
+    <!-- Seguimiento -->
+    <div class="section-card">
+        <h2>📱 Seguimiento de tu pedido</h2>
+        <p>Ingresa a nuestra página de <a href="/seguimiento" style="color:#ff00ff;">seguimiento</a> y escribe tu código para ver el estado de tu pedido.</p>
+        <p style="margin-top:10px; color:#888; font-size:0.9rem;">🔍 <span class="highlight">Ejemplo:</span> FLOW-XXXXX-2026</p>
+    </div>
+
+    <!-- Contacto -->
+    <div class="section-card" style="border-color: #ffd700; text-align:center;">
+        <h2 style="color:#ffd700;">📞 ¿Tienes dudas?</h2>
+        <p style="color:#aaa;">Escríbenos por WhatsApp y te responderemos rápido</p>
+        <a href="https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Tengo%20una%20duda%20sobre%20los%20envíos%20🇨🇴" target="_blank" class="btn-whatsapp">💬 Preguntar por WhatsApp</a>
+    </div>
+
+    <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
+</div>
+
+<script>
+    // Fondo animado
+    const bg = document.getElementById('bgAnimado');
+    const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+    for (let i=0;i<15;i++) {
+        const el=document.createElement('div');
+        el.className='particula';
+        const t=Math.random()*3+1;
+        const co=colores[Math.floor(Math.random()*colores.length)];
+        el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;';
+        bg.appendChild(el);
+    }
+    const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+    for (let i=0;i<10;i++) {
+        const el=document.createElement('div');
+        el.className='particula-emoji';
+        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;';
+        bg.appendChild(el);
+    }
+</script>
+</body>
+</html>
