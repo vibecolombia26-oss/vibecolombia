@@ -14,6 +14,6 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        System.out.println("✅ VIBE COLOMBIA 26 iniciado!");
+        System.out.println("✅ FLOW COLOMBIA iniciado!");
     }
 }
