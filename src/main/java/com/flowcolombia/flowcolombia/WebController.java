@@ -29,6 +29,11 @@ public class WebController {
     @GetMapping("/carrito")
     public String carrito() { return "carrito"; }
 
+    @GetMapping("/envios")
+    public String envios() {
+        return "envios";
+    }
+
     @GetMapping("/seguimiento")
     public String seguimiento() { return "seguimiento"; }
 
