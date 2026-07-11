@@ -65,6 +65,8 @@
             padding: 30px;
             gap: 30px;
         }
+
+        /* ====== CARRUSEL ====== */
         .banner-imagenes {
             flex: 1 1 300px;
             position: relative;
@@ -73,12 +75,13 @@
             box-shadow: 0 0 30px rgba(255,215,0,0.2);
             aspect-ratio: 1/1;
             max-height: 400px;
+            background: rgba(0,0,0,0.3);
         }
         .banner-slider {
             display: flex;
             width: 100%;
             height: 100%;
-            transition: transform 0.8s ease;
+            transition: transform 0.8s ease-in-out;
         }
         .banner-slide {
             min-width: 100%;
@@ -86,7 +89,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
         }
         .banner-slide img {
             width: 100%;
@@ -118,6 +121,7 @@
             box-shadow: 0 0 15px rgba(255,215,0,0.5);
             transform: scale(1.2);
         }
+
         .banner-info {
             flex: 1 1 350px;
             padding: 10px;
@@ -368,10 +372,10 @@
         <div class="colombia-badge">🇨🇴 ENVÍOS GRATIS A TODO COLOMBIA 🇨🇴</div>
     </header>
 
-    <!-- ============ BANNER PROMOCIONAL ============ -->
+    <!-- ============ BANNER PROMOCIONAL CON CARRUSEL ============ -->
     <div class="banner-oferta">
         <div class="banner-content">
-            <!-- Carrusel de imágenes con Cloudinary -->
+            <!-- Carrusel de imágenes -->
             <div class="banner-imagenes" id="bannerSlider">
                 <div class="banner-slider" id="bannerSliderInner">
                     <div class="banner-slide">
@@ -482,57 +486,63 @@
     const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵','🫘','🌮'];
     for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; p.appendChild(el); }
 
-    // ============ CARRUSEL DE IMÁGENES ============
-    let slideIndex = 0;
-    const slides = document.querySelectorAll('.banner-slide');
-    const dots = document.querySelectorAll('.banner-dot');
-    const sliderInner = document.getElementById('bannerSliderInner');
-    let intervaloSlider;
+    // ============ CARRUSEL DE IMÁGENES - CORREGIDO ============
+    document.addEventListener('DOMContentLoaded', function() {
+        const sliderInner = document.getElementById('bannerSliderInner');
+        const slides = sliderInner.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('.banner-dot');
+        let slideIndex = 0;
+        let intervaloSlider;
 
-    function irASlide(index) {
-        if (index >= slides.length) index = 0;
-        if (index < 0) index = slides.length - 1;
-        slideIndex = index;
-        sliderInner.style.transform = 'translateX(' + (-slideIndex * 100) + '%)';
-        dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === slideIndex);
+        function irASlide(index) {
+            if (index >= slides.length) index = 0;
+            if (index < 0) index = slides.length - 1;
+            slideIndex = index;
+            sliderInner.style.transform = 'translateX(' + (-slideIndex * 100) + '%)';
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === slideIndex);
+            });
+        }
+
+        function siguienteSlide() {
+            irASlide(slideIndex + 1);
+        }
+
+        function iniciarSlider() {
+            if (intervaloSlider) clearInterval(intervaloSlider);
+            intervaloSlider = setInterval(siguienteSlide, 4000);
+        }
+
+        function detenerSlider() {
+            clearInterval(intervaloSlider);
+            intervaloSlider = null;
+        }
+
+        // Eventos para los dots
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', function() {
+                detenerSlider();
+                irASlide(index);
+                iniciarSlider();
+            });
         });
-    }
 
-    function siguienteSlide() {
-        irASlide(slideIndex + 1);
-    }
+        // Pausa al pasar el mouse
+        const banner = document.querySelector('.banner-oferta');
+        if (banner) {
+            banner.addEventListener('mouseenter', detenerSlider);
+            banner.addEventListener('mouseleave', iniciarSlider);
+        }
 
-    function iniciarSlider() {
-        intervaloSlider = setInterval(siguienteSlide, 4000);
-    }
-
-    function detenerSlider() {
-        clearInterval(intervaloSlider);
-    }
-
-    // Eventos para los dots
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', function() {
-            detenerSlider();
-            irASlide(index);
-            iniciarSlider();
-        });
+        // Iniciar el slider
+        irASlide(0);
+        iniciarSlider();
     });
-
-    // Pausa al pasar el mouse
-    const banner = document.querySelector('.banner-oferta');
-    banner.addEventListener('mouseenter', detenerSlider);
-    banner.addEventListener('mouseleave', iniciarSlider);
-
-    // Iniciar el slider
-    irASlide(0);
-    iniciarSlider();
 
     // ============ TEMPORIZADOR ============
     function actualizarTemporizador() {
         const ahora = new Date();
-        const fin = new Date(2026, 6, 31, 23, 59, 59); // 31 de julio de 2026
+        const fin = new Date(2026, 6, 31, 23, 59, 59);
         const diferencia = fin - ahora;
 
         if (diferencia <= 0) {
