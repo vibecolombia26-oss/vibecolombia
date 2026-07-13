@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.vibecolombia</groupId>
-	<artifactId>vibecolombia</artifactId>
+	<artifactId>flowcolombia</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>vibecolombia</name>
 	<description>VIBE COLOMBIA 26</description>
