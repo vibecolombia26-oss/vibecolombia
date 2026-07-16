@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - VIBE COLOMBIA 26</title>
+    <title>Carrito - FLOW COLOMBIA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
@@ -15,7 +15,7 @@
         .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px; }
         h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 4px; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; }
         @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .subtitle { text-align: center; color: #00ffff; margin-bottom: 30px; font-size: 1rem; }
+        .subtitle { text-align: center; color: #00ffff; margin-bottom: 30px; font-size: 1rem; letter-spacing: 3px; }
         .colombia-badge { text-align: center; margin: 10px 0 20px; }
         .colombia-badge span { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin-bottom: 20px; border: 1px solid #00ffff; border-radius: 25px; transition: all 0.3s; }
@@ -23,15 +23,19 @@
         .cart-item { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         .cart-item img { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid #ff00ff; }
         .cart-item-info { flex: 1; min-width: 200px; }
-        .cart-item-name { font-size: 1.1rem; font-weight: 700; }
+        .cart-item-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .cart-item-variante { font-size: 0.8rem; color: #ff00ff; }
         .cart-item-price { color: #00ffff; font-size: 1.3rem; font-weight: 900; margin: 5px 0; }
-        .quantity-control { display: flex; align-items: center; gap: 10px; }
-        .qty-btn { background: #ff00ff; color: #fff; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-        .qty-btn:hover { box-shadow: 0 0 15px rgba(255,0,255,0.6); }
+        .quantity-control { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .qty-btn { background: #ff00ff; color: #fff; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: all 0.3s; }
+        .qty-btn:hover { box-shadow: 0 0 15px rgba(255,0,255,0.6); transform: scale(1.05); }
         .qty-input { width: 50px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 8px; }
-        .remove-btn { background: #ff0044; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        .remove-btn:hover { box-shadow: 0 0 15px rgba(255,0,68,0.6); }
+        .remove-btn { background: #ff0044; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .remove-btn:hover { box-shadow: 0 0 15px rgba(255,0,68,0.6); transform: scale(1.05); }
         .cart-empty { text-align: center; padding: 60px 20px; color: #666; }
+        .cart-empty p { font-size: 1.2rem; }
+        .cart-empty a { color: #ff00ff; text-decoration: none; border: 1px solid #ff00ff; padding: 10px 30px; border-radius: 25px; display: inline-block; margin-top: 15px; transition: all 0.3s; }
+        .cart-empty a:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 20px rgba(255,0,255,0.3); }
         .cart-total { text-align: right; font-size: 1.5rem; padding: 20px; background: rgba(20,20,20,0.85); border: 2px solid #00ffff; border-radius: 16px; margin: 20px 0; }
         .cart-total span { color: #00ffff; font-weight: 900; font-size: 2rem; }
         .form-section { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; margin: 30px 0; }
@@ -40,14 +44,85 @@
         .form-group { margin-bottom: 15px; }
         .form-group.full { grid-column: 1 / -1; }
         .form-group label { display: block; margin-bottom: 5px; color: #00ffff; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 1rem; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 1rem; transition: all 0.3s; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
         .btn-submit { display: block; width: 100%; padding: 18px; text-align: center; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 1.2rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; }
         .btn-submit:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-cancel { display: block; width: 100%; padding: 14px; text-align: center; background: transparent; color: #ff0044; font-size: 1rem; border: 1px solid #ff0044; border-radius: 25px; cursor: pointer; margin-top: 10px; }
+        .btn-cancel { display: block; width: 100%; padding: 14px; text-align: center; background: transparent; color: #ff0044; font-size: 1rem; border: 1px solid #ff0044; border-radius: 25px; cursor: pointer; margin-top: 10px; transition: all 0.3s; }
         .btn-cancel:hover { background: rgba(255,0,68,0.1); }
         .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
-        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .cart-item { flex-direction: column; text-align: center; } }
+
+        /* ===== MODAL DE CONFIRMACIÓN ===== */
+        #modalOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        #modalOverlay .modal-box {
+            background: #1a1a1a;
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(255,215,0,0.3);
+            animation: modalEntrada 0.5s ease;
+        }
+        @keyframes modalEntrada {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #modalOverlay .modal-box .emoji { font-size: 4rem; margin-bottom: 15px; }
+        #modalOverlay .modal-box h2 { color: #fff; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
+        #modalOverlay .modal-box .codigo {
+            background: #111;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.8rem;
+            color: #ffd700;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+        #modalOverlay .modal-box .btn-modal {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ffd700, #f0a500);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        #modalOverlay .modal-box .btn-modal:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255,215,0,0.4);
+        }
+        #modalOverlay .modal-box p { color: #888; font-size: 0.85rem; margin: 10px 0; }
+
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .cart-item { flex-direction: column; text-align: center; }
+            .cart-item img { width: 80px; height: 80px; }
+            .quantity-control { justify-content: center; }
+            .cart-total { text-align: center; }
+            h1 { font-size: 1.5rem; }
+            #modalOverlay .modal-box { padding: 25px; }
+            #modalOverlay .modal-box .codigo { font-size: 1.2rem; }
+        }
     </style>
 </head>
 <body>
@@ -55,11 +130,17 @@
 <div class="container">
     <a href="/" class="back-btn">← Volver a la tienda</a>
     <h1>🛒 Tu Carrito</h1>
-    <p class="subtitle">✦ VIBE COLOMBIA 26 ✦</p>
+    <p class="subtitle">✦ FLOW COLOMBIA ✦</p>
     <div class="colombia-badge"><span>🇨🇴 Envío GRATIS a todo Colombia</span></div>
+
     <div id="cartItems"></div>
     <div id="cartTotal" class="cart-total"></div>
-    <div id="cartEmpty" class="cart-empty" style="display:none;"><p>🛍️ Tu carrito está vacío</p><a href="/" style="color:#ff00ff;">Ver productos</a></div>
+    <div id="cartEmpty" class="cart-empty" style="display:none;">
+        <p>🛍️ Tu carrito está vacío</p>
+        <a href="/">Ver productos</a>
+    </div>
+
+    <!-- ===== FORMULARIO DE ENVÍO ===== -->
     <div id="checkoutForm" class="form-section" style="display:none;">
         <h2>📋 Información de envío</h2>
         <div class="form-row">
@@ -86,12 +167,15 @@
             <div class="form-group"><label>Ciudad *</label><select id="ciudad" required><option value="">Primero selecciona un departamento</option></select></div>
         </div>
         <div class="form-row"><div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" placeholder="Calle, carrera, número, barrio" required></div></div>
-        <div class="form-row"><div class="form-group"><label>Tienda</label><select id="tienda"><option>VIBE COLOMBIA 26</option></select></div><div class="form-group"><label>Notas (opcional)</label><input type="text" id="notas" placeholder="Instrucciones especiales..."></div></div>
+        <div class="form-row"><div class="form-group"><label>Tienda</label><select id="tienda"><option>FLOW COLOMBIA</option></select></div><div class="form-group"><label>Notas (opcional)</label><input type="text" id="notas" placeholder="Instrucciones especiales..."></div></div>
+
         <h2>🚚 Envío</h2>
         <div style="background:rgba(255,215,0,0.05);border:2px solid #ffd700;border-radius:12px;padding:25px;text-align:center;margin:15px 0;">
             <div style="font-size:2.5rem;">🇨🇴</div>
-            <h3 style="color:#ffd700;">¡ENVÍO GRATIS!</h3><p style="color:#aaa;">A cualquier parte de Colombia</p>
+            <h3 style="color:#ffd700;">¡ENVÍO GRATIS!</h3>
+            <p style="color:#aaa;">A cualquier parte de Colombia</p>
         </div>
+
         <h2>💰 Resumen</h2>
         <div id="orderSummary" style="background:#111;padding:20px;border-radius:12px;margin-top:10px;"></div>
         <button class="btn-submit" onclick="completarOrden()">✅ COMPLETAR ORDEN</button>
@@ -101,59 +185,280 @@
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </div>
 
-<!-- POP-UP DE CONFIRMACIÓN -->
-<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#1a1a1a; border:2px solid #ffd700; border-radius:20px; padding:40px; text-align:center; max-width:450px; width:90%; box-shadow:0 0 40px rgba(255,215,0,0.3);">
-        <div style="font-size:4rem; margin-bottom:15px;">🎉</div>
-        <h2 style="color:#fff; font-weight:700; letter-spacing:2px; margin-bottom:10px;">¡Pedido Confirmado!</h2>
-        <div style="color:#ffd700; margin-bottom:5px;">🇨🇴 ¡Gracias por apoyar el emprendimiento colombiano! 🇨🇴</div>
-        <p style="color:#aaa; margin-bottom:20px;">Tu código de seguimiento es:</p>
-        <div style="background:#111; border:2px solid #ffd700; border-radius:10px; padding:15px; font-size:1.8rem; color:#ffd700; font-weight:900; letter-spacing:3px; margin-bottom:20px; box-shadow:0 0 20px rgba(255,215,0,0.3);" id="modalCodigo">------</div>
-        <p style="color:#888; font-size:0.85rem; margin-bottom:10px;">📧 Recibirás un correo de confirmación</p>
-        <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">Guarda este código para hacer seguimiento</p>
-        <button onclick="document.getElementById('modalOverlay').style.display='none'; window.location.href='/';">🏪 Volver a la tienda</button>
+<!-- ===== MODAL DE CONFIRMACIÓN ===== -->
+<div id="modalOverlay">
+    <div class="modal-box">
+        <div class="emoji">🎉</div>
+        <h2>¡Pedido Confirmado!</h2>
+        <p style="color:#ffd700;">🇨🇴 ¡Gracias por apoyar el emprendimiento colombiano! 🇨🇴</p>
+        <p style="color:#aaa;">Tu código de seguimiento es:</p>
+        <div class="codigo" id="modalCodigo">------</div>
+        <p>📧 Recibirás un correo de confirmación</p>
+        <p style="color:#666;font-size:0.8rem;">Guarda este código para hacer seguimiento</p>
+        <button class="btn-modal" onclick="cerrarModal()">🏪 Volver a la tienda</button>
     </div>
 </div>
 
 <script>
-    let carrito = JSON.parse(localStorage.getItem('carritoVibeColombia')) || [];
-    function guardarCarrito() { localStorage.setItem('carritoVibeColombia', JSON.stringify(carrito)); }
-    function renderCarrito() {
-        const container = document.getElementById('cartItems'), totalDiv = document.getElementById('cartTotal'), emptyDiv = document.getElementById('cartEmpty'), checkoutForm = document.getElementById('checkoutForm');
-        if (carrito.length === 0) { container.innerHTML = ''; totalDiv.innerHTML = ''; emptyDiv.style.display = 'block'; checkoutForm.style.display = 'none'; return; }
-        emptyDiv.style.display = 'none'; checkoutForm.style.display = 'block';
-        let html = '', total = 0;
-        carrito.forEach((item, index) => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal;
-            html += '<div class="cart-item"><img src="' + (item.imagen || '') + '" alt="' + item.nombre + '" onerror="this.style.display=\'none\'"><div class="cart-item-info"><div class="cart-item-name">' + item.nombre + '</div><div class="cart-item-price">$' + precio.toLocaleString('es-CO') + '</div><div class="quantity-control"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',-1)">−</button><input class="qty-input" type="number" value="' + cantidad + '" min="1" onchange="cambiarCantidad(' + index + ',0,this.value)"><button class="qty-btn" onclick="cambiarCantidad(' + index + ',1)">+</button><span style="margin-left:10px;">Subtotal: $' + subtotal.toLocaleString('es-CO') + '</span></div></div><button class="remove-btn" onclick="eliminarItem(' + index + ')">🗑️</button></div>'; });
-        container.innerHTML = html; totalDiv.innerHTML = '<strong>Total:</strong> <span>$' + total.toLocaleString('es-CO') + '</span>'; renderOrderSummary();
+    // ============================================================
+    // VARIABLE PRINCIPAL: carritoFlowColombia (NUEVO NOMBRE)
+    // ============================================================
+    let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+
+    function guardarCarrito() {
+        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
     }
-    function cambiarCantidad(index, delta, valorDirecto) { if (valorDirecto) carrito[index].cantidad = Math.max(1, parseInt(valorDirecto) || 1); else carrito[index].cantidad = Math.max(1, (Number(carrito[index].cantidad) || 1) + delta); guardarCarrito(); renderCarrito(); }
-    function eliminarItem(index) { carrito.splice(index, 1); guardarCarrito(); renderCarrito(); }
-    function renderOrderSummary() { const summary = document.getElementById('orderSummary'); let total = 0, html = ''; carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;"><span>' + item.nombre + ' x' + cantidad + '</span><span>$' + subtotal.toLocaleString('es-CO') + '</span></div>'; }); html += '<div style="display:flex;justify-content:space-between;padding:10px 0;color:#ffd700;font-weight:700;"><span>Envío</span><span>GRATIS</span></div><div style="display:flex;justify-content:space-between;padding:15px 0;font-size:1.3rem;font-weight:900;border-top:2px solid #ff00ff;margin-top:10px;"><span>Total</span><span style="color:#00ffff;">$' + total.toLocaleString('es-CO') + '</span></div>'; summary.innerHTML = html; }
+
+    // ============================================================
+    // DETECTAR SI VIENE DE "PAGAR CONTRA ENTREGA"
+    // ============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('contraentrega') === 'true') {
+        // Mostrar el formulario automáticamente
+        setTimeout(() => {
+            const form = document.getElementById('checkoutForm');
+            if (form) {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // RENDERIZAR CARRITO
+    // ============================================================
+    function renderCarrito() {
+        const container = document.getElementById('cartItems');
+        const totalDiv = document.getElementById('cartTotal');
+        const emptyDiv = document.getElementById('cartEmpty');
+        const checkoutForm = document.getElementById('checkoutForm');
+
+        if (carrito.length === 0) {
+            container.innerHTML = '';
+            totalDiv.innerHTML = '';
+            emptyDiv.style.display = 'block';
+            checkoutForm.style.display = 'none';
+            return;
+        }
+
+        emptyDiv.style.display = 'none';
+        checkoutForm.style.display = 'block';
+
+        let html = '', total = 0;
+        carrito.forEach((item, index) => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
+            total += subtotal;
+
+            let varianteTexto = '';
+            if (item.color) varianteTexto += 'Color: ' + item.color;
+            if (item.talla) varianteTexto += (varianteTexto ? ' | ' : '') + 'Talla: ' + item.talla;
+
+            html += `
+                <div class="cart-item">
+                    <img src="${item.imagen || ''}" alt="${item.nombre}" onerror="this.style.display='none'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.nombre}</div>
+                        ${varianteTexto ? '<div class="cart-item-variante">' + varianteTexto + '</div>' : ''}
+                        <div class="cart-item-price">$${precio.toLocaleString('es-CO')}</div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="cambiarCantidad(${index},-1)">−</button>
+                            <input class="qty-input" type="number" value="${cantidad}" min="1" onchange="cambiarCantidad(${index},0,this.value)">
+                            <button class="qty-btn" onclick="cambiarCantidad(${index},1)">+</button>
+                            <span style="margin-left:10px;color:#aaa;">Subtotal: $${subtotal.toLocaleString('es-CO')}</span>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="eliminarItem(${index})">🗑️</button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        totalDiv.innerHTML = '<strong>Total:</strong> <span>$' + total.toLocaleString('es-CO') + '</span>';
+        renderOrderSummary();
+    }
+
+    function cambiarCantidad(index, delta, valorDirecto) {
+        if (valorDirecto) carrito[index].cantidad = Math.max(1, parseInt(valorDirecto) || 1);
+        else carrito[index].cantidad = Math.max(1, (Number(carrito[index].cantidad) || 1) + delta);
+        guardarCarrito();
+        renderCarrito();
+    }
+
+    function eliminarItem(index) {
+        carrito.splice(index, 1);
+        guardarCarrito();
+        renderCarrito();
+    }
+
+    function renderOrderSummary() {
+        const summary = document.getElementById('orderSummary');
+        let total = 0, html = '';
+        carrito.forEach(item => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
+            total += subtotal;
+            let variante = '';
+            if (item.color) variante += ' | ' + item.color;
+            if (item.talla) variante += ' | ' + item.talla;
+            html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;"><span>' + item.nombre + variante + ' x' + cantidad + '</span><span>$' + subtotal.toLocaleString('es-CO') + '</span></div>';
+        });
+        html += '<div style="display:flex;justify-content:space-between;padding:10px 0;color:#ffd700;font-weight:700;"><span>Envío</span><span>GRATIS</span></div><div style="display:flex;justify-content:space-between;padding:15px 0;font-size:1.3rem;font-weight:900;border-top:2px solid #ff00ff;margin-top:10px;"><span>Total</span><span style="color:#00ffff;">$' + total.toLocaleString('es-CO') + '</span></div>';
+        summary.innerHTML = html;
+    }
+
+    // ============================================================
+    // COMPLETAR ORDEN
+    // ============================================================
     function completarOrden() {
-        const nombre = document.getElementById('nombreCliente').value, telefono = document.getElementById('telefono').value, email = document.getElementById('email').value;
-        const departamento = document.getElementById('departamento').value, ciudad = document.getElementById('ciudad').value, direccion = document.getElementById('direccion').value, notas = document.getElementById('notas').value;
-        if (!nombre || !telefono || !departamento || !ciudad || !direccion) { alert('Completa todos los campos requeridos (*)'); return; }
+        const nombre = document.getElementById('nombreCliente').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const departamento = document.getElementById('departamento').value;
+        const ciudad = document.getElementById('ciudad').value;
+        const direccion = document.getElementById('direccion').value.trim();
+        const notas = document.getElementById('notas').value.trim();
+
+        if (!nombre || !telefono || !departamento || !ciudad || !direccion) {
+            alert('⚠️ Completa todos los campos requeridos (*)');
+            return;
+        }
+
         let productosTexto = '', total = 0;
-        carrito.forEach(item => { const precio = Number(item.precio) || 0, cantidad = Number(item.cantidad) || 1, subtotal = precio * cantidad; total += subtotal; productosTexto += '• ' + item.nombre + ' x' + cantidad;
+        carrito.forEach(item => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
+            total += subtotal;
+            productosTexto += '• ' + item.nombre;
             if (item.color) productosTexto += ' | Color: ' + item.color;
             if (item.talla) productosTexto += ' | Talla: ' + item.talla;
-            productosTexto += ' · $' + subtotal.toLocaleString('es-CO') + '\n'; });
-        const pedido = { nombreCliente: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion, notas: notas, tienda: 'VIBE COLOMBIA 26', productos: productosTexto, total: total, metodoPago: 'Contra entrega' };
-        fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pedido) })
-            .then(r => r.json()).then(data => { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); document.getElementById('modalCodigo').textContent = data.codigo; document.getElementById('modalOverlay').style.display = 'flex'; })
-            .catch(() => { alert('Error al procesar'); });
-    }
-    function cancelarOrden() { if (confirm('¿Cancelar?')) { localStorage.removeItem('carritoVibeColombia'); carrito = []; renderCarrito(); window.location.href = '/'; } }
-    var municipios = {"Amazonas":["Leticia","Puerto Nariño"],"Antioquia":["Medellín","Bello","Envigado","Rionegro","Apartadó"],"Arauca":["Arauca","Saravena"],"Atlántico":["Barranquilla","Soledad","Malambo"],"Bogotá D.C.":["Bogotá"],"Bolívar":["Cartagena","Magangué"],"Boyacá":["Tunja","Duitama","Sogamoso"],"Caldas":["Manizales","La Dorada"],"Caquetá":["Florencia"],"Casanare":["Yopal"],"Cauca":["Popayán"],"Cesar":["Valledupar","Aguachica"],"Chocó":["Quibdó"],"Córdoba":["Montería","Lorica","Cereté"],"Cundinamarca":["Soacha","Facatativá","Zipaquirá","Girardot","Fusagasugá","Chía"],"Guainía":["Inírida"],"Guaviare":["San José del Guaviare"],"Huila":["Neiva","Pitalito"],"La Guajira":["Riohacha","Maicao"],"Magdalena":["Santa Marta","Ciénaga"],"Meta":["Villavicencio","Acacías"],"Nariño":["Pasto","Tumaco"],"Norte de Santander":["Cúcuta","Ocaña"],"Putumayo":["Mocoa"],"Quindío":["Armenia","Calarcá"],"Risaralda":["Pereira","Dosquebradas"],"San Andrés y Providencia":["San Andrés"],"Santander":["Bucaramanga","Floridablanca","Barrancabermeja","Girón"],"Sucre":["Sincelejo","Corozal"],"Tolima":["Ibagué","Espinal","Melgar"],"Valle del Cauca":["Cali","Palmira","Buenaventura","Tuluá","Cartago"],"Vaupés":["Mitú"],"Vichada":["Puerto Carreño"]};
-    document.getElementById('departamento').addEventListener('change', function() { var depto = this.value, ciudadSelect = document.getElementById('ciudad'); ciudadSelect.innerHTML = '<option value="">Seleccionar municipio...</option>'; if (municipios[depto]) { municipios[depto].forEach(function(m) { ciudadSelect.innerHTML += '<option value="' + m + '">' + m + '</option>'; }); } });
-    renderCarrito();
+            productosTexto += ' x' + cantidad + ' · $' + subtotal.toLocaleString('es-CO') + '\n';
+        });
 
+        const pedido = {
+            nombreCliente: nombre,
+            telefono: telefono,
+            email: email,
+            departamento: departamento,
+            ciudad: ciudad,
+            direccion: direccion,
+            notas: notas,
+            tienda: 'FLOW COLOMBIA',
+            productos: productosTexto,
+            total: total,
+            metodoPago: 'Contra entrega'
+        };
+
+        fetch('/api/pedido', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
+        })
+            .then(r => r.json())
+            .then(data => {
+                localStorage.removeItem('carritoFlowColombia');
+                carrito = [];
+                renderCarrito();
+                document.getElementById('modalCodigo').textContent = data.codigo;
+                document.getElementById('modalOverlay').style.display = 'flex';
+            })
+            .catch(() => {
+                alert('❌ Error al procesar el pedido. Intenta nuevamente.');
+            });
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalOverlay').style.display = 'none';
+        window.location.href = '/';
+    }
+
+    function cancelarOrden() {
+        if (confirm('¿Cancelar la orden?')) {
+            localStorage.removeItem('carritoFlowColombia');
+            carrito = [];
+            renderCarrito();
+            window.location.href = '/';
+        }
+    }
+
+    // ============================================================
+    // MUNICIPIOS POR DEPARTAMENTO
+    // ============================================================
+    var municipios = {
+        "Amazonas":["Leticia","Puerto Nariño"],
+        "Antioquia":["Medellín","Bello","Envigado","Rionegro","Apartadó","Itagüí","Sabaneta","Caldas","La Estrella"],
+        "Arauca":["Arauca","Saravena","Arauquita"],
+        "Atlántico":["Barranquilla","Soledad","Malambo","Puerto Colombia","Sabanagrande"],
+        "Bogotá D.C.":["Bogotá"],
+        "Bolívar":["Cartagena","Magangué","Turbaco","Arjona"],
+        "Boyacá":["Tunja","Duitama","Sogamoso","Paipa","Moniquirá"],
+        "Caldas":["Manizales","La Dorada","Chinchiná","Villamaría"],
+        "Caquetá":["Florencia","San Vicente del Caguán"],
+        "Casanare":["Yopal","Aguazul","Villanueva"],
+        "Cauca":["Popayán","Santander de Quilichao","Puerto Tejada"],
+        "Cesar":["Valledupar","Aguachica","La Jagua de Ibirico","Bosconia"],
+        "Chocó":["Quibdó","Istmina","Tadó"],
+        "Córdoba":["Montería","Lorica","Cereté","Sahagún","Planeta Rica"],
+        "Cundinamarca":["Soacha","Facatativá","Zipaquirá","Girardot","Fusagasugá","Chía","Mosquera","Funza","Cajicá"],
+        "Guainía":["Inírida"],
+        "Guaviare":["San José del Guaviare"],
+        "Huila":["Neiva","Pitalito","Garzón","La Plata"],
+        "La Guajira":["Riohacha","Maicao","Uribia"],
+        "Magdalena":["Santa Marta","Ciénaga","Fundación","El Banco"],
+        "Meta":["Villavicencio","Acacías","Granada","Puerto López"],
+        "Nariño":["Pasto","Tumaco","Ipiales","La Unión"],
+        "Norte de Santander":["Cúcuta","Ocaña","Villa del Rosario","Los Patios"],
+        "Putumayo":["Mocoa","Puerto Asís","Orito"],
+        "Quindío":["Armenia","Calarcá","Montenegro","La Tebaida"],
+        "Risaralda":["Pereira","Dosquebradas","Santa Rosa de Cabal","La Virginia"],
+        "San Andrés y Providencia":["San Andrés"],
+        "Santander":["Bucaramanga","Floridablanca","Barrancabermeja","Girón","Piedecuesta"],
+        "Sucre":["Sincelejo","Corozal","Coveñas","Sampués"],
+        "Tolima":["Ibagué","Espinal","Melgar","Honda","Chaparral"],
+        "Valle del Cauca":["Cali","Palmira","Buenaventura","Tuluá","Cartago","Yumbo","Jamundí"],
+        "Vaupés":["Mitú"],
+        "Vichada":["Puerto Carreño"]
+    };
+
+    document.getElementById('departamento').addEventListener('change', function() {
+        var depto = this.value, ciudadSelect = document.getElementById('ciudad');
+        ciudadSelect.innerHTML = '<option value="">Seleccionar municipio...</option>';
+        if (municipios[depto]) {
+            municipios[depto].forEach(function(m) {
+                ciudadSelect.innerHTML += '<option value="' + m + '">' + m + '</option>';
+            });
+        }
+    });
+
+    // ============================================================
+    // FONDO ANIMADO
+    // ============================================================
     const bg = document.getElementById('bgAnimado');
     const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (let i=0;i<10;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*3+1; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;'; bg.appendChild(el); }
+    for (let i=0;i<10;i++) {
+        const el=document.createElement('div');
+        el.className='particula';
+        const t=Math.random()*3+1;
+        const co=colores[Math.floor(Math.random()*colores.length)];
+        el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+Math.random()*15+'s;';
+        bg.appendChild(el);
+    }
     const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
-    for (let i=0;i<8;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; bg.appendChild(el); }
+    for (let i=0;i<8;i++) {
+        const el=document.createElement('div');
+        el.className='particula-emoji';
+        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;';
+        bg.appendChild(el);
+    }
+
+    // ============================================================
+    // INICIAR
+    // ============================================================
+    renderCarrito();
 </script>
 </body>
 </html>

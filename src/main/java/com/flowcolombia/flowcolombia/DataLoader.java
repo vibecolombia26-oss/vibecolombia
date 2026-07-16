@@ -1,4 +1,4 @@
-package com.vibecolombia.vibecolombia;
+package com.flowcolombia.flowcolombia;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -14,6 +14,6 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        System.out.println("✅ VIBE COLOMBIA 26 iniciado!");
+        System.out.println("✅ FLOW COLOMBIA iniciado!");
     }
 }

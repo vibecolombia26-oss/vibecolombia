@@ -1,13 +1,11 @@
-package com.vibecolombia.vibecolombia;
+package com.flowcolombia.flowcolombia;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class VibecolombiaApplication {
-
+public class FlowColombiaApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(VibecolombiaApplication.class, args);
+		SpringApplication.run(FlowColombiaApplication.class, args);
 	}
-
 }
