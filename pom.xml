@@ -8,11 +8,7 @@
 		<version>3.5.14</version>
 		<relativePath/>
 	</parent>
-<<<<<<< HEAD
-	<groupId>com.vibecolombia</groupId>
-=======
 	<groupId>com.flowcolombia</groupId>
->>>>>>> 43e8deff7fb6c7cd2ebd903ef37635c9abb9c8fa
 	<artifactId>flowcolombia</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FlowColombia</name>
