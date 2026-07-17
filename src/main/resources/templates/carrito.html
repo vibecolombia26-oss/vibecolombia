@@ -201,7 +201,7 @@
 
 <script>
     // ============================================================
-    // VARIABLE PRINCIPAL: carritoFlowColombia (NUEVO NOMBRE)
+    // VARIABLE PRINCIPAL: carritoFlowColombia
     // ============================================================
     let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
@@ -214,7 +214,6 @@
     // ============================================================
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('contraentrega') === 'true') {
-        // Mostrar el formulario automáticamente
         setTimeout(() => {
             const form = document.getElementById('checkoutForm');
             if (form) {
@@ -310,7 +309,7 @@
     }
 
     // ============================================================
-    // COMPLETAR ORDEN
+    // COMPLETAR ORDEN - VERSIÓN CORREGIDA
     // ============================================================
     function completarOrden() {
         const nombre = document.getElementById('nombreCliente').value.trim();
@@ -326,17 +325,24 @@
             return;
         }
 
-        let productosTexto = '', total = 0;
+        let productosTexto = '';
+        let total = 0;
+
         carrito.forEach(item => {
             const precio = Number(item.precio) || 0;
             const cantidad = Number(item.cantidad) || 1;
             const subtotal = precio * cantidad;
             total += subtotal;
+
             productosTexto += '• ' + item.nombre;
             if (item.color) productosTexto += ' | Color: ' + item.color;
             if (item.talla) productosTexto += ' | Talla: ' + item.talla;
             productosTexto += ' x' + cantidad + ' · $' + subtotal.toLocaleString('es-CO') + '\n';
         });
+
+        // 🔍 LOG PARA DEPURAR (se ve en la consola del navegador)
+        console.log('💰 Total calculado:', total);
+        console.log('📋 Productos:', productosTexto);
 
         const pedido = {
             nombreCliente: nombre,
@@ -348,9 +354,12 @@
             notas: notas,
             tienda: 'FLOW COLOMBIA',
             productos: productosTexto,
-            total: total,
+            total: Number(total),  // ← FORZAR QUE SEA NÚMERO
             metodoPago: 'Contra entrega'
         };
+
+        // 🔍 LOG DEL PEDIDO COMPLETO
+        console.log('📦 Pedido a enviar:', pedido);
 
         fetch('/api/pedido', {
             method: 'POST',
@@ -359,13 +368,19 @@
         })
             .then(r => r.json())
             .then(data => {
-                localStorage.removeItem('carritoFlowColombia');
-                carrito = [];
-                renderCarrito();
-                document.getElementById('modalCodigo').textContent = data.codigo;
-                document.getElementById('modalOverlay').style.display = 'flex';
+                console.log('✅ Respuesta del servidor:', data);
+                if (data.status === 'OK') {
+                    localStorage.removeItem('carritoFlowColombia');
+                    carrito = [];
+                    renderCarrito();
+                    document.getElementById('modalCodigo').textContent = data.codigo;
+                    document.getElementById('modalOverlay').style.display = 'flex';
+                } else {
+                    alert('❌ Error: ' + (data.error || 'No se pudo procesar el pedido'));
+                }
             })
-            .catch(() => {
+            .catch(error => {
+                console.error('❌ Error de conexión:', error);
                 alert('❌ Error al procesar el pedido. Intenta nuevamente.');
             });
     }
