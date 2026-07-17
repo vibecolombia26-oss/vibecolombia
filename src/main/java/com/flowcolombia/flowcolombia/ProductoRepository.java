@@ -5,9 +5,9 @@ import java.util.List;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
-    // 🔥 NUEVO: Filtrar productos por categoría
+    // 🔥 FILTRAR PRODUCTOS POR CATEGORÍA (NECESARIO PARA EL FILTRO)
     List<Producto> findByCategoria(String categoria);
 
-    // (Opcional) Si quieres buscar por nombre también
+    // (Opcional) Buscar por nombre (para futuras búsquedas)
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
 }
