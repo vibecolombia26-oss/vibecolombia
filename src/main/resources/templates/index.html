@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -834,10 +834,12 @@
 <!-- ============ NAVBAR ============ -->
 <nav class="navbar">
     <span class="nav-flag">🇨🇴</span>
-    <a href="/" class="nav-link active">✨ Todo</a>
-    <a href="#" class="nav-link">🌱 Cultivo</a>
-    <a href="#" class="nav-link">🏠 Hogar</a>
-    <a href="#" class="nav-link">💻 Tecnología</a>
+    <a href="/?categoria=Todos" class="nav-link" th:classappend="${categoriaActiva == 'Todos' ? 'active' : ''}">✨ Todo</a>
+    <a th:each="cat : ${categorias}"
+       th:href="@{'/?categoria=' + ${cat}}"
+       class="nav-link"
+       th:classappend="${categoriaActiva == cat ? 'active' : ''}"
+       th:text="${cat}">Categoría</a>
     <a href="/seguimiento" class="nav-link">🔍 Seguimiento</a>
     <a href="/carrito" class="nav-link cart-nav-link">🛒 <span id="cartCount">0</span></a>
 
@@ -865,10 +867,9 @@
         <div class="colombia-badge">🇨🇴 ENVÍOS GRATIS A TODO COLOMBIA 🇨🇴</div>
     </header>
 
-    <!-- ============ BANNER PROMOCIONAL CON CARRUSEL ============ -->
+    <!-- ============ BANNER PROMOCIONAL ============ -->
     <div class="banner-oferta">
         <div class="banner-content">
-            <!-- Carrusel de imágenes -->
             <div class="banner-imagenes" id="bannerSlider">
                 <div class="banner-slider" id="bannerSliderInner">
                     <div class="banner-slide">
@@ -891,53 +892,26 @@
                     <span class="banner-dot" data-index="3"></span>
                 </div>
             </div>
-
-            <!-- Información del producto -->
             <div class="banner-info">
                 <div class="banner-etiqueta">🔥 OFERTA DEL MES - JULIO</div>
-                <h2 class="banner-titulo">
-                    <span>Combo Uro O</span>
-                </h2>
+                <h2 class="banner-titulo"><span>Combo Uro O</span></h2>
                 <div class="banner-precios">
                     <span class="precio-original">$105.000</span>
                     <span class="precio-oferta">$96.000</span>
                     <span class="banner-descuento">-8%</span>
                 </div>
-                <p class="banner-descripcion">
-                    Cuidado íntimo completo con espuma limpiadora, sérum hidratante, probióticos,
-                    jabón íntimo y aceite despigmentante. Frescura, equilibrio y salud femenina en un solo combo 💖
-                </p>
+                <p class="banner-descripcion">Cuidado íntimo completo con espuma limpiadora, sérum hidratante, probióticos, jabón íntimo y aceite despigmentante. Frescura, equilibrio y salud femenina en un solo combo 💖</p>
                 <div class="banner-sku">Ref: 2169621</div>
-
-                <!-- Temporizador -->
                 <div class="banner-temporizador" id="temporizador">
-                    <div class="temp-item">
-                        <span class="temp-numero" id="tempDias">00</span>
-                        <span class="temp-label">Días</span>
-                    </div>
-                    <div class="temp-item">
-                        <span class="temp-numero" id="tempHoras">00</span>
-                        <span class="temp-label">Horas</span>
-                    </div>
-                    <div class="temp-item">
-                        <span class="temp-numero" id="tempMinutos">00</span>
-                        <span class="temp-label">Min</span>
-                    </div>
-                    <div class="temp-item">
-                        <span class="temp-numero" id="tempSegundos">00</span>
-                        <span class="temp-label">Seg</span>
-                    </div>
+                    <div class="temp-item"><span class="temp-numero" id="tempDias">00</span><span class="temp-label">Días</span></div>
+                    <div class="temp-item"><span class="temp-numero" id="tempHoras">00</span><span class="temp-label">Horas</span></div>
+                    <div class="temp-item"><span class="temp-numero" id="tempMinutos">00</span><span class="temp-label">Min</span></div>
+                    <div class="temp-item"><span class="temp-numero" id="tempSegundos">00</span><span class="temp-label">Seg</span></div>
                 </div>
-
-                <!-- Botones -->
                 <div class="banner-botones">
                     <a href="/producto/1" class="btn-oferta">🛒 Ver Oferta</a>
                     <a href="/carrito?contraentrega=true" class="btn-contraentrega-oferta">💵 Pagar contra entrega</a>
-                    <a href="https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Quiero%20aprovechar%20la%20oferta%20del%20Combo%20Uro%20O%20(SKU:%202169621)%20🇨🇴"
-                       target="_blank"
-                       class="btn-whatsapp-oferta">
-                        💬 Preguntar por WhatsApp
-                    </a>
+                    <a href="https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Quiero%20aprovechar%20la%20oferta%20del%20Combo%20Uro%20O%20(SKU:%202169621)%20🇨🇴" target="_blank" class="btn-whatsapp-oferta">💬 Preguntar por WhatsApp</a>
                 </div>
             </div>
         </div>
@@ -994,8 +968,6 @@
             <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
         `;
         container.appendChild(toast);
-
-        // Auto-eliminar después de 4 segundos
         setTimeout(() => {
             toast.classList.add('hide');
             setTimeout(() => toast.remove(), 400);
