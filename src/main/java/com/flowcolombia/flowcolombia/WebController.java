@@ -13,14 +13,12 @@ import java.util.stream.Collectors;
 public class WebController {
 
     private final ProductoRepository productoRepository;
-    private final ProductoService productoService; // Asume que tienes un servicio
 
     // ============================================================
     // CONSTRUCTOR
     // ============================================================
-    public WebController(ProductoRepository productoRepository, ProductoService productoService) {
+    public WebController(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
-        this.productoService = productoService;
     }
 
     // ============================================================
