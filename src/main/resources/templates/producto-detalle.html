@@ -30,7 +30,7 @@
         .especificaciones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 10px; text-align: center; }
         .esp-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
         .esp-value { color: #fff; font-size: 0.95rem; }
-        .descripcion { color: #aaa; line-height: 1.8; font-size: 0.9rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .descripcion { color: #ccc; line-height: 1.8; font-size: 0.9rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; transition: color 0.3s; }
         .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
         .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
         .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -53,7 +53,149 @@
         .banner-pago p { color: #aaa; }
         .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
 
-        /* ANIMACIÓN PULSO PARA EL BOTÓN DE WHATSAPP - ESTILO COLOMBIANO */
+        /* ============================================================ */
+        /* CONVERTIDOR DE TALLAS PARA ZAPATOS */
+        /* ============================================================ */
+        .tallas-container {
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+        .tallas-card {
+            background: rgba(20,20,20,0.85);
+            border: 2px solid #ff00ff;
+            border-radius: 16px;
+            padding: 25px;
+        }
+        .tallas-card h3 {
+            color: #ffd700;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+        .tallas-desc {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        .tallas-conversor {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .tallas-input-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .tallas-input-group label {
+            display: block;
+            color: #00ffff;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .tallas-input-group select,
+        .tallas-input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .tallas-input-group select:focus,
+        .tallas-input-group input:focus {
+            outline: none;
+            border-color: #ff00ff;
+        }
+        .tallas-resultado {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255,215,0,0.05);
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .tallas-resultado p {
+            margin: 5px 0;
+        }
+        #tallaColombia {
+            color: #ffd700;
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+        .tallas-recomendacion {
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+        .tallas-tabla {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        .tallas-tabla-titulo {
+            color: #00ffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .tallas-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.8rem;
+        }
+        .tallas-header {
+            display: contents;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        .tallas-row {
+            display: contents;
+        }
+        .tallas-row span {
+            padding: 8px 10px;
+            background: #1a1a1a;
+            text-align: center;
+            border-bottom: 1px solid #222;
+        }
+        .tallas-row span:first-child {
+            background: rgba(255,215,0,0.05);
+        }
+        .tallas-tips {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            border-left: 3px solid #ffd700;
+        }
+        .tallas-tips p {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .tallas-tips ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tallas-tips ul li {
+            color: #aaa;
+            padding: 5px 0;
+            font-size: 0.85rem;
+        }
+        .tallas-tips ul li::before {
+            content: "✓ ";
+            color: #ffd700;
+        }
+
+        /* ============================================================ */
+        /* ANIMACIÓN PULSO PARA EL BOTÓN DE WHATSAPP */
+        /* ============================================================ */
         @keyframes pulseColombia {
             0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); }
             50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); }
@@ -85,12 +227,57 @@
             fill: white;
         }
 
-        @media (max-width: 500px) {
+        /* ============================================================ */
+        /* MODO CLARO */
+        /* ============================================================ */
+        body.light-mode .descripcion {
+            color: #444;
+        }
+        body.light-mode .tallas-card {
+            background: rgba(255,255,255,0.9);
+            border-color: #ff00ff;
+        }
+        body.light-mode .tallas-conversor {
+            background: rgba(0,0,0,0.05);
+        }
+        body.light-mode .tallas-input-group select,
+        body.light-mode .tallas-input-group input {
+            background: #f5f5f5;
+            border-color: #ddd;
+            color: #222;
+        }
+        body.light-mode .tallas-grid {
+            background: #ddd;
+        }
+        body.light-mode .tallas-row span {
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+        body.light-mode .tallas-tips {
+            background: rgba(0,0,0,0.03);
+        }
+        body.light-mode .tallas-tips ul li {
+            color: #555;
+        }
+
+        /* ============================================================ */
+        /* RESPONSIVE */
+        /* ============================================================ */
+        @media (max-width: 600px) {
             .especificaciones { grid-template-columns: repeat(2, 1fr); }
             .info-section { padding: 20px; }
             .nombre { font-size: 1.3rem; }
             .precio { font-size: 1.8rem; }
             .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; }
+            .tallas-conversor { flex-direction: column; }
+            .tallas-input-group { min-width: 100%; }
+            .tallas-resultado { min-width: 100%; }
+            .tallas-grid { font-size: 0.7rem; }
+            .tallas-row span { padding: 6px 5px; }
+        }
+        @media (max-width: 400px) {
+            .tallas-grid { font-size: 0.6rem; }
+            .tallas-row span { padding: 4px 3px; }
         }
     </style>
 </head>
@@ -121,6 +308,9 @@
             </div>
             <div class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</div>
 
+            <!-- ============================================================ -->
+            <!-- VARIACIONES (Color y Talla) -->
+            <!-- ============================================================ -->
             <div class="variaciones" th:if="${producto.tieneVariaciones}">
                 <h3>🎨 Personaliza tu producto</h3>
                 <div class="variacion-row">
@@ -129,6 +319,80 @@
                 </div>
             </div>
 
+            <!-- ============================================================ -->
+            <!-- CONVERTIDOR DE TALLAS PARA ZAPATOS (SOLO CON VARIACIONES) -->
+            <!-- ============================================================ -->
+            <div class="tallas-container" th:if="${producto.tieneVariaciones}">
+                <div class="tallas-card">
+                    <h3>👟 Guía de tallas</h3>
+                    <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
+
+                    <div class="tallas-conversor">
+                        <div class="tallas-input-group">
+                            <label for="tallaSelectSistema">Sistema de talla:</label>
+                            <select id="tallaSelectSistema" onchange="convertirTalla()">
+                                <option value="us">US (EE.UU.)</option>
+                                <option value="eu">EU (Europa)</option>
+                                <option value="cm">Centímetros (cm)</option>
+                            </select>
+                        </div>
+
+                        <div class="tallas-input-group">
+                            <label for="tallaValue">Ingresa tu talla:</label>
+                            <input type="number" id="tallaValue" placeholder="Ej: 7" step="0.5" min="1" max="15" oninput="convertirTalla()">
+                        </div>
+
+                        <div class="tallas-resultado">
+                            <p><strong>Tu talla en Colombia:</strong> <span id="tallaColombia">--</span></p>
+                            <p class="tallas-recomendacion" id="tallaRecomendacion"></p>
+                        </div>
+                    </div>
+
+                    <div class="tallas-tabla">
+                        <p class="tallas-tabla-titulo">📊 Tabla de referencia</p>
+                        <div class="tallas-grid">
+                            <div class="tallas-header">
+                                <span>US</span>
+                                <span>EU</span>
+                                <span>CM</span>
+                                <span>Colombia</span>
+                            </div>
+                            <div class="tallas-row"><span>5</span><span>35</span><span>22.1</span><span>35</span></div>
+                            <div class="tallas-row"><span>5.5</span><span>35.5</span><span>22.5</span><span>35.5</span></div>
+                            <div class="tallas-row"><span>6</span><span>36</span><span>23</span><span>36</span></div>
+                            <div class="tallas-row"><span>6.5</span><span>36.5</span><span>23.5</span><span>36.5</span></div>
+                            <div class="tallas-row"><span>7</span><span>37</span><span>24</span><span>37</span></div>
+                            <div class="tallas-row"><span>7.5</span><span>37.5</span><span>24.5</span><span>37.5</span></div>
+                            <div class="tallas-row"><span>8</span><span>38</span><span>25</span><span>38</span></div>
+                            <div class="tallas-row"><span>8.5</span><span>38.5</span><span>25.5</span><span>38.5</span></div>
+                            <div class="tallas-row"><span>9</span><span>39</span><span>26</span><span>39</span></div>
+                            <div class="tallas-row"><span>9.5</span><span>39.5</span><span>26.5</span><span>39.5</span></div>
+                            <div class="tallas-row"><span>10</span><span>40</span><span>27</span><span>40</span></div>
+                            <div class="tallas-row"><span>10.5</span><span>40.5</span><span>27.5</span><span>40.5</span></div>
+                            <div class="tallas-row"><span>11</span><span>41</span><span>28</span><span>41</span></div>
+                            <div class="tallas-row"><span>11.5</span><span>41.5</span><span>28.5</span><span>41.5</span></div>
+                            <div class="tallas-row"><span>12</span><span>42</span><span>29</span><span>42</span></div>
+                            <div class="tallas-row"><span>13</span><span>43</span><span>30</span><span>43</span></div>
+                            <div class="tallas-row"><span>14</span><span>44</span><span>31</span><span>44</span></div>
+                            <div class="tallas-row"><span>15</span><span>45</span><span>32</span><span>45</span></div>
+                        </div>
+                    </div>
+
+                    <div class="tallas-tips">
+                        <p><strong>💡 Consejos para encontrar tu talla perfecta:</strong></p>
+                        <ul>
+                            <li>📏 Mide tu pie al final del día (está más hinchado)</li>
+                            <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
+                            <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
+                            <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- CANTIDAD Y ACCIONES -->
+            <!-- ============================================================ -->
             <div class="cantidad-row">
                 <label>Cantidad</label>
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
@@ -150,7 +414,9 @@
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </div>
 
-<!-- WHATSAPP FLOTANTE CON MENSAJE PERSONALIZADO POR PRODUCTO -->
+<!-- ============================================================ -->
+<!-- WHATSAPP FLOTANTE CON MENSAJE PERSONALIZADO -->
+<!-- ============================================================ -->
 <a th:href="'https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Quiero%20más%20información%20sobre%20' + ${producto.nombre} + '%20(Ref:%20' + ${producto.sku} + ')%20🇨🇴'"
    target="_blank"
    class="whatsapp-float"
@@ -160,6 +426,9 @@
     </svg>
 </a>
 
+<!-- ============================================================ -->
+<!-- SCRIPTS -->
+<!-- ============================================================ -->
 <script>
     var precioBase = 0;
     window.onload = function() {
@@ -187,7 +456,6 @@
         var talla = document.getElementById('tallaSelect')?.value || '';
         var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
-        // Verificar si el producto ya está en el carrito
         var existe = false;
         for (var i = 0; i < carrito.length; i++) {
             if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
@@ -217,7 +485,6 @@
         var talla = document.getElementById('tallaSelect')?.value || '';
         var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
-        // Verificar si el producto ya está en el carrito
         var existe = false;
         for (var i = 0; i < carrito.length; i++) {
             if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
@@ -231,13 +498,14 @@
         }
 
         localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        // Redirigir al carrito con el formulario visible
         window.location.href = '/carrito?contraentrega=true';
     }
 
     actualizarSubtotal();
 
-    // Swipe para cambiar imágenes en celular
+    // ============================================================
+    // SWIPE PARA CAMBIAR IMÁGENES EN CELULAR
+    // ============================================================
     var touchStartX = 0;
     var touchEndX = 0;
     var imgPrincipal = document.getElementById('imgPrincipal');
@@ -264,7 +532,96 @@
         }
     });
 
-    // Fondo animado
+    // ============================================================
+    // CONVERTIDOR DE TALLAS PARA ZAPATOS
+    // ============================================================
+    function convertirTalla() {
+        const sistema = document.getElementById('tallaSelectSistema').value;
+        const valor = parseFloat(document.getElementById('tallaValue').value);
+        const resultadoSpan = document.getElementById('tallaColombia');
+        const recomendacionSpan = document.getElementById('tallaRecomendacion');
+
+        if (isNaN(valor) || valor <= 0) {
+            resultadoSpan.textContent = '--';
+            recomendacionSpan.textContent = '';
+            return;
+        }
+
+        // Tabla de conversión: [US, EU, CM, Colombia]
+        const tabla = [
+            { us: 5, eu: 35, cm: 22.1, col: 35 },
+            { us: 5.5, eu: 35.5, cm: 22.5, col: 35.5 },
+            { us: 6, eu: 36, cm: 23, col: 36 },
+            { us: 6.5, eu: 36.5, cm: 23.5, col: 36.5 },
+            { us: 7, eu: 37, cm: 24, col: 37 },
+            { us: 7.5, eu: 37.5, cm: 24.5, col: 37.5 },
+            { us: 8, eu: 38, cm: 25, col: 38 },
+            { us: 8.5, eu: 38.5, cm: 25.5, col: 38.5 },
+            { us: 9, eu: 39, cm: 26, col: 39 },
+            { us: 9.5, eu: 39.5, cm: 26.5, col: 39.5 },
+            { us: 10, eu: 40, cm: 27, col: 40 },
+            { us: 10.5, eu: 40.5, cm: 27.5, col: 40.5 },
+            { us: 11, eu: 41, cm: 28, col: 41 },
+            { us: 11.5, eu: 41.5, cm: 28.5, col: 41.5 },
+            { us: 12, eu: 42, cm: 29, col: 42 },
+            { us: 13, eu: 43, cm: 30, col: 43 },
+            { us: 14, eu: 44, cm: 31, col: 44 },
+            { us: 15, eu: 45, cm: 32, col: 45 }
+        ];
+
+        let tallaColombia = null;
+        let recomendacion = '';
+
+        if (sistema === 'us') {
+            const encontrado = tabla.find(t => t.us === valor);
+            if (encontrado) {
+                tallaColombia = encontrado.col;
+                recomendacion = `Talla US ${valor} equivale a talla Colombia ${encontrado.col}`;
+            } else {
+                const cercano = tabla.reduce((prev, curr) =>
+                    Math.abs(curr.us - valor) < Math.abs(prev.us - valor) ? curr : prev
+                );
+                tallaColombia = cercano.col;
+                recomendacion = `Talla US ${valor} no es exacta. La más cercana es US ${cercano.us} → Colombia ${cercano.col}`;
+            }
+        } else if (sistema === 'eu') {
+            const encontrado = tabla.find(t => t.eu === valor);
+            if (encontrado) {
+                tallaColombia = encontrado.col;
+                recomendacion = `Talla EU ${valor} equivale a talla Colombia ${encontrado.col}`;
+            } else {
+                const cercano = tabla.reduce((prev, curr) =>
+                    Math.abs(curr.eu - valor) < Math.abs(prev.eu - valor) ? curr : prev
+                );
+                tallaColombia = cercano.col;
+                recomendacion = `Talla EU ${valor} no es exacta. La más cercana es EU ${cercano.eu} → Colombia ${cercano.col}`;
+            }
+        } else if (sistema === 'cm') {
+            const encontrado = tabla.find(t => t.cm === valor);
+            if (encontrado) {
+                tallaColombia = encontrado.col;
+                recomendacion = `${valor} cm equivale a talla Colombia ${encontrado.col}`;
+            } else {
+                const cercano = tabla.reduce((prev, curr) =>
+                    Math.abs(curr.cm - valor) < Math.abs(prev.cm - valor) ? curr : prev
+                );
+                tallaColombia = cercano.col;
+                recomendacion = `${valor} cm no es exacto. El más cercano es ${cercano.cm} cm → Colombia ${cercano.col}`;
+            }
+        }
+
+        if (tallaColombia !== null) {
+            resultadoSpan.textContent = tallaColombia;
+            recomendacionSpan.textContent = recomendacion;
+        } else {
+            resultadoSpan.textContent = '--';
+            recomendacionSpan.textContent = 'No encontramos una conversión exacta';
+        }
+    }
+
+    // ============================================================
+    // FONDO ANIMADO
+    // ============================================================
     var bg = document.getElementById('bgAnimado'),
         colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
     for (var i=0;i<15;i++) {
