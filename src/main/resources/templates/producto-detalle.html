@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${producto.nombre}">FLOW COLOMBIA</title>
+    <title th:if="${producto != null}" th:text="${producto.nombre}">FLOW COLOMBIA</title>
+    <title th:unless="${producto != null}">Producto no encontrado</title>
     <style>
-        /* ============ ESTILOS BASE ============ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
         .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
@@ -17,8 +17,6 @@
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; transition: all 0.3s; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
-
-        /* ============ CARRUSEL DE IMÁGENES ============ */
         .imagenes-container { position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.3); }
         .imagenes-slider { display: flex; transition: transform 0.5s ease; touch-action: pan-y; }
         .imagenes-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; }
@@ -31,483 +29,109 @@
         .carrusel-btn:hover { background: rgba(255,0,255,0.5); }
         .carrusel-btn.prev { left: 10px; }
         .carrusel-btn.next { right: 10px; }
-        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
-        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; }
-        .imagen-secundaria:hover { border-color: #ffd700; transform: scale(1.05); }
-        .imagen-secundaria.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
-
-        /* ============ INFO DEL PRODUCTO ============ */
         .info-section { padding: 25px 30px 30px; }
         .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
-
-        /* ============ PRECIO + CALIFICACIÓN (JUNTOS) ============ */
-        .precio-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 8px 0 15px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .precio {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #00ffff;
-            text-shadow: 0 0 20px rgba(0,255,255,0.5);
-        }
-        .calificacion-resumen {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,215,0,0.08);
-            padding: 6px 16px;
-            border-radius: 25px;
-            border: 1px solid rgba(255,215,0,0.15);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .calificacion-resumen:hover {
-            background: rgba(255,215,0,0.15);
-            border-color: #ffd700;
-        }
-        .calificacion-resumen .estrellas {
-            color: #ffd700;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-        }
-        .calificacion-resumen .puntaje {
-            font-weight: 700;
-            color: #ffd700;
-            font-size: 1.1rem;
-        }
-        .calificacion-resumen .total-resenas {
-            color: #888;
-            font-size: 0.75rem;
-        }
-
+        .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        .calificacion-resumen { display: flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.08); padding: 6px 16px; border-radius: 25px; border: 1px solid rgba(255,215,0,0.15); cursor: pointer; transition: all 0.3s; }
+        .calificacion-resumen:hover { background: rgba(255,215,0,0.15); border-color: #ffd700; }
+        .calificacion-resumen .estrellas { color: #ffd700; font-size: 1.2rem; letter-spacing: 2px; }
+        .calificacion-resumen .puntaje { font-weight: 700; color: #ffd700; font-size: 1.1rem; }
+        .calificacion-resumen .total-resenas { color: #888; font-size: 0.75rem; }
         .meta { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 12px; }
         .sku { color: #ff00ff; }
         .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.75rem; text-transform: uppercase; }
         .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
-
-        /* ============ SELLOS DE CONFIANZA ============ */
-        .sellos-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 15px 0 20px;
-            padding: 15px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .sello-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: #aaa;
-        }
+        .sellos-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 15px 0 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .sello-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #aaa; }
         .sello-item .icono { font-size: 1.5rem; }
         .sello-item .texto { color: #ccc; }
         .sello-item .texto strong { color: #fff; }
-
-        /* ============ DROPDOWNS INTERACTIVOS ============ */
         .dropdown-container { margin: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .dropdown-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.3s;
-        }
+        .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
         .dropdown-header:hover { color: #ff00ff; }
-        .dropdown-header h3 {
-            font-size: 1rem;
-            color: #fff;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .dropdown-header h3 { font-size: 1rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px; }
         .dropdown-header .icono { font-size: 1.2rem; }
-        .dropdown-header .arrow {
-            transition: transform 0.3s;
-            font-size: 1.2rem;
-            color: #888;
-        }
+        .dropdown-header .arrow { transition: transform 0.3s; font-size: 1.2rem; color: #888; }
         .dropdown-header.active .arrow { transform: rotate(180deg); }
-        .dropdown-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.3s ease;
-            padding: 0 5px;
-        }
-        .dropdown-content.open {
-            max-height: 1000px;
-            padding: 5px 5px 20px;
-        }
-        .dropdown-content p {
-            color: #ccc;
-            line-height: 1.8;
-            font-size: 0.9rem;
-        }
-        .dropdown-content ul {
-            list-style: none;
-            padding: 0;
-        }
-        .dropdown-content ul li {
-            color: #ccc;
-            padding: 5px 0;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-        .dropdown-content ul li::before {
-            content: "✦ ";
-            color: #ff00ff;
-        }
-
-        /* ============ VARIACIONES ============ */
-        .variaciones {
-            background: rgba(255,0,255,0.05);
-            border: 1px solid #ff00ff;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-        }
+        .dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; padding: 0 5px; }
+        .dropdown-content.open { max-height: 1000px; padding: 5px 5px 20px; }
+        .dropdown-content p { color: #ccc; line-height: 1.8; font-size: 0.9rem; }
+        .dropdown-content ul { list-style: none; padding: 0; }
+        .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
+        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
         .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
         .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
         .variacion-group { flex: 1; min-width: 120px; }
         .variacion-group label { color: #00ffff; font-size: 0.8rem; display: block; margin-bottom: 5px; }
         .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; }
-
-        /* ============ CONVERTIDOR DE TALLAS ============ */
         .tallas-container { margin: 20px 0; }
-        .tallas-card {
-            background: rgba(20,20,20,0.85);
-            border: 2px solid #ff00ff;
-            border-radius: 16px;
-            padding: 20px;
-        }
+        .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 20px; }
         .tallas-card h3 { color: #ffd700; font-size: 1.2rem; margin-bottom: 5px; }
         .tallas-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
-        .tallas-conversor {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: flex-end;
-        }
+        .tallas-conversor { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
         .tallas-input-group { flex: 1; min-width: 130px; }
-        .tallas-input-group label {
-            display: block;
-            color: #00ffff;
-            font-size: 0.75rem;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-        .tallas-input-group select,
-        .tallas-input-group input {
-            width: 100%;
-            padding: 8px 10px;
-            background: #111;
-            border: 2px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.9rem;
-        }
-        .tallas-input-group select:focus,
-        .tallas-input-group input:focus {
-            outline: none;
-            border-color: #ff00ff;
-        }
-        .tallas-resultado {
-            flex: 1;
-            min-width: 150px;
-            background: rgba(255,215,0,0.05);
-            border: 1px solid #ffd700;
-            border-radius: 10px;
-            padding: 12px 15px;
-            text-align: center;
-        }
+        .tallas-input-group label { display: block; color: #00ffff; font-size: 0.75rem; margin-bottom: 4px; font-weight: 600; }
+        .tallas-input-group select, .tallas-input-group input { width: 100%; padding: 8px 10px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 0.9rem; }
+        .tallas-input-group select:focus, .tallas-input-group input:focus { outline: none; border-color: #ff00ff; }
+        .tallas-resultado { flex: 1; min-width: 150px; background: rgba(255,215,0,0.05); border: 1px solid #ffd700; border-radius: 10px; padding: 12px 15px; text-align: center; }
         .tallas-resultado p { margin: 3px 0; }
-        #tallaColombia {
-            color: #ffd700;
-            font-size: 1.6rem;
-            font-weight: 900;
-        }
+        #tallaColombia { color: #ffd700; font-size: 1.6rem; font-weight: 900; }
         .tallas-recomendacion { color: #aaa; font-size: 0.8rem; }
-
-        /* Tabla de tallas minimizada en dropdown */
         .tallas-dropdown { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .tallas-dropdown-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            cursor: pointer;
-            color: #00ffff;
-            font-size: 0.85rem;
-        }
+        .tallas-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: #00ffff; font-size: 0.85rem; }
         .tallas-dropdown-header .arrow { transition: transform 0.3s; }
         .tallas-dropdown-header.active .arrow { transform: rotate(180deg); }
-        .tallas-dropdown-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
-        }
+        .tallas-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
         .tallas-dropdown-content.open { max-height: 500px; }
-        .tallas-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            background: #222;
-            border-radius: 8px;
-            overflow: hidden;
-            font-size: 0.75rem;
-            margin-top: 10px;
-        }
-        .tallas-header {
-            display: contents;
-            font-weight: 700;
-            color: #ffd700;
-        }
+        .tallas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #222; border-radius: 8px; overflow: hidden; font-size: 0.75rem; margin-top: 10px; }
+        .tallas-header { display: contents; font-weight: 700; color: #ffd700; }
         .tallas-row { display: contents; }
-        .tallas-row span {
-            padding: 6px 8px;
-            background: #1a1a1a;
-            text-align: center;
-            border-bottom: 1px solid #222;
-        }
-        .tallas-tips {
-            margin-top: 15px;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 10px;
-            border-left: 3px solid #ffd700;
-        }
+        .tallas-row span { padding: 6px 8px; background: #1a1a1a; text-align: center; border-bottom: 1px solid #222; }
+        .tallas-tips { margin-top: 15px; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #ffd700; }
         .tallas-tips p { color: #fff; font-size: 0.85rem; margin-bottom: 8px; }
         .tallas-tips ul { list-style: none; padding: 0; }
-        .tallas-tips ul li {
-            color: #aaa;
-            padding: 3px 0;
-            font-size: 0.8rem;
-        }
-        .tallas-tips ul li::before {
-            content: "✓ ";
-            color: #ffd700;
-        }
-
-        /* ============ RESEÑAS ============ */
-        .resenas-section {
-            margin: 25px 0 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .resenas-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .resenas-header h3 {
-            color: #fff;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .resenas-header .cantidad {
-            color: #888;
-            font-size: 0.9rem;
-            font-weight: 400;
-        }
-        .resumen-calificacion {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        .resumen-calificacion .nota {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffd700;
-        }
-        .resumen-calificacion .estrellas-grandes {
-            font-size: 1.3rem;
-            color: #ffd700;
-            letter-spacing: 2px;
-        }
-        .resumen-calificacion .total {
-            color: #888;
-            font-size: 0.9rem;
-        }
-        .resena-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-left: 3px solid #ffd700;
-        }
-        .resena-item .nombre {
-            font-weight: 600;
-            color: #fff;
-            font-size: 0.95rem;
-        }
-        .resena-item .estrellas {
-            color: #ffd700;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin: 4px 0;
-        }
-        .resena-item .fecha {
-            color: #666;
-            font-size: 0.7rem;
-        }
-        .resena-item .comentario {
-            color: #ccc;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            line-height: 1.5;
-        }
-        .resena-item .imagen-resena {
-            max-width: 80px;
-            border-radius: 8px;
-            margin-top: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .resena-item .imagen-resena img { width: 100%; border-radius: 8px; }
-        .sin-resenas {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            background: rgba(255,255,255,0.02);
-            border-radius: 12px;
-        }
-
-        /* ============ CANTIDAD Y ACCIONES ============ */
-        .cantidad-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(0,255,255,0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0,255,255,0.2);
-            flex-wrap: wrap;
-        }
-        .qty-btn {
-            background: transparent;
-            color: #ff00ff;
-            border: 1px solid #ff00ff;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.8rem; }
+        .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
+        .resenas-section { margin: 25px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .resenas-header h3 { color: #fff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .resenas-header .cantidad { color: #888; font-size: 0.9rem; font-weight: 400; }
+        .resumen-calificacion { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .resumen-calificacion .nota { font-size: 2rem; font-weight: 900; color: #ffd700; }
+        .resumen-calificacion .estrellas-grandes { font-size: 1.3rem; color: #ffd700; letter-spacing: 2px; }
+        .resumen-calificacion .total { color: #888; font-size: 0.9rem; }
+        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-left: 3px solid #ffd700; }
+        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.95rem; }
+        .resena-item .estrellas { color: #ffd700; font-size: 0.9rem; letter-spacing: 1px; margin: 4px 0; }
+        .resena-item .fecha { color: #666; font-size: 0.7rem; }
+        .resena-item .comentario { color: #ccc; font-size: 0.9rem; margin-top: 5px; line-height: 1.5; }
+        .resena-item .imagen-resena { max-width: 80px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; }
+        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
         .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
-        .qty-input {
-            width: 55px;
-            text-align: center;
-            background: #111;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 8px;
-            border-radius: 6px;
-        }
+        .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; }
         .subtotal-display { color: #00ffff; font-weight: 700; }
-        .acciones {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 5px;
-        }
-        .btn-carrito {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(45deg, #ff00ff, #cc00cc);
-            color: #fff;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
+        .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-contraentrega {
-            width: 100%;
-            padding: 16px;
-            background: transparent;
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
+        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
         .btn-contraentrega:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 30px rgba(0,255,255,0.3); transform: scale(1.02); }
-        .banner-pago {
-            background: rgba(255,0,255,0.05);
-            border: 1px solid rgba(255,0,255,0.2);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            margin-top: 15px;
-        }
+        .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
         .banner-pago .icono { font-size: 2.5rem; }
         .banner-pago h3 { color: #ffd700; }
         .banner-pago p { color: #aaa; }
-
         .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
-
-        /* ============ WHATSAPP FLOTANTE ============ */
-        @keyframes pulseColombia {
-            0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); }
-            50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); }
-        }
-        .whatsapp-float {
-            position: fixed;
-            bottom: 90px;
-            left: 20px;
-            z-index: 999;
-            background: #25D366;
-            color: #fff;
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 4px 20px rgba(37,211,102,0.4);
-            animation: pulseColombia 2s infinite;
-            transition: transform 0.3s;
-        }
+        @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
+        .whatsapp-float { position: fixed; bottom: 90px; left: 20px; z-index: 999; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); animation: pulseColombia 2s infinite; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
         .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
-
-        /* ============ MODO CLARO ============ */
-        body.light-mode .descripcion { color: #444; }
+        body.light-mode .info-section .descripcion { color: #444; }
         body.light-mode .tallas-card { background: rgba(255,255,255,0.9); border-color: #ff00ff; }
         body.light-mode .tallas-conversor { background: rgba(0,0,0,0.05); }
-        body.light-mode .tallas-input-group select,
-        body.light-mode .tallas-input-group input { background: #f5f5f5; border-color: #ddd; color: #222; }
+        body.light-mode .tallas-input-group select, body.light-mode .tallas-input-group input { background: #f5f5f5; border-color: #ddd; color: #222; }
         body.light-mode .tallas-grid { background: #ddd; }
         body.light-mode .tallas-row span { background: #f5f5f5; border-bottom: 1px solid #ddd; }
         body.light-mode .tallas-tips { background: rgba(0,0,0,0.03); }
@@ -520,341 +144,292 @@
         body.light-mode .sello-item .texto strong { color: #111; }
         body.light-mode .calificacion-resumen { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); }
         body.light-mode .calificacion-resumen .total-resenas { color: #666; }
-
-        /* ============ RESPONSIVE ============ */
-        @media (max-width: 600px) {
-            .info-section { padding: 20px; }
-            .nombre { font-size: 1.3rem; }
-            .precio { font-size: 1.8rem; }
-            .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; }
-            .precio-row { flex-direction: column; align-items: flex-start; }
-            .calificacion-resumen { align-self: flex-start; }
-            .tallas-conversor { flex-direction: column; }
-            .tallas-input-group { min-width: 100%; }
-            .tallas-resultado { min-width: 100%; }
-            .carrusel-btn { padding: 8px 12px; font-size: 1rem; }
-            .imagen-principal { max-height: 350px; }
-            .sellos-container { gap: 12px; padding: 10px; }
-            .sello-item { font-size: 0.7rem; }
-            .resumen-calificacion .nota { font-size: 1.5rem; }
-            .resumen-calificacion .estrellas-grandes { font-size: 1rem; }
-        }
+        @media (max-width: 600px) { .info-section { padding: 20px; } .nombre { font-size: 1.3rem; } .precio { font-size: 1.8rem; } .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; } .precio-row { flex-direction: column; align-items: flex-start; } .calificacion-resumen { align-self: flex-start; } .tallas-conversor { flex-direction: column; } .tallas-input-group { min-width: 100%; } .tallas-resultado { min-width: 100%; } .carrusel-btn { padding: 8px 12px; font-size: 1rem; } .imagen-principal { max-height: 350px; } .sellos-container { gap: 12px; padding: 10px; } .sello-item { font-size: 0.7rem; } .resumen-calificacion .nota { font-size: 1.5rem; } .resumen-calificacion .estrellas-grandes { font-size: 1rem; } }
     </style>
 </head>
 <body>
 <div class="bg-grid" id="bgAnimado"></div>
 <div class="container">
     <a href="/" class="back-btn">← Volver</a>
-    <div class="producto-card">
 
-        <!-- ============================================================ -->
-        <!-- CARRUSEL DE IMÁGENES -->
-        <!-- ============================================================ -->
-        <div class="imagenes-container" id="carruselContainer">
-            <div class="imagenes-slider" id="carruselSlider">
-                <div class="imagenes-slide">
-                    <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+    <div th:if="${producto != null}">
+        <div class="producto-card">
+            <!-- Carrusel de imágenes -->
+            <div class="imagenes-container" id="carruselContainer">
+                <div class="imagenes-slider" id="carruselSlider">
+                    <div class="imagenes-slide">
+                        <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+                    </div>
+                    <div class="imagenes-slide" th:if="${producto.imagen2 != null}">
+                        <img class="imagen-principal" th:src="${producto.imagen2}" th:alt="${producto.nombre} - Imagen 2">
+                    </div>
+                    <div class="imagenes-slide" th:if="${producto.imagen3 != null}">
+                        <img class="imagen-principal" th:src="${producto.imagen3}" th:alt="${producto.nombre} - Imagen 3">
+                    </div>
+                    <div class="imagenes-slide" th:if="${producto.imagen4 != null}">
+                        <img class="imagen-principal" th:src="${producto.imagen4}" th:alt="${producto.nombre} - Imagen 4">
+                    </div>
+                    <div class="imagenes-slide" th:if="${producto.imagen5 != null}">
+                        <img class="imagen-principal" th:src="${producto.imagen5}" th:alt="${producto.nombre} - Imagen 5">
+                    </div>
+                    <div class="imagenes-slide" th:if="${producto.imagen6 != null}">
+                        <img class="imagen-principal" th:src="${producto.imagen6}" th:alt="${producto.nombre} - Imagen 6">
+                    </div>
                 </div>
-                <div class="imagenes-slide" th:if="${producto.imagen2 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen2}" th:alt="${producto.nombre} - Imagen 2">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen3 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen3}" th:alt="${producto.nombre} - Imagen 3">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen4 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen4}" th:alt="${producto.nombre} - Imagen 4">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen5 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen5}" th:alt="${producto.nombre} - Imagen 5">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen6 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen6}" th:alt="${producto.nombre} - Imagen 6">
-                </div>
-            </div>
-            <button class="carrusel-btn prev" id="carruselPrev">‹</button>
-            <button class="carrusel-btn next" id="carruselNext">›</button>
-            <div class="carrusel-dots" id="carruselDots"></div>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- INFORMACIÓN DEL PRODUCTO -->
-        <!-- ============================================================ -->
-        <div class="info-section">
-            <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
-
-            <!-- ======== PRECIO + CALIFICACIÓN JUNTOS ======== -->
-            <div class="precio-row">
-                <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
-
-                <div class="calificacion-resumen" onclick="document.getElementById('resenasSection').scrollIntoView({behavior:'smooth'})">
-                    <span class="estrellas" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
-                        (promedioCalificacion >= 4.5 ? '★★★★★' :
-                         promedioCalificacion >= 3.5 ? '★★★★☆' :
-                         promedioCalificacion >= 2.5 ? '★★★☆☆' :
-                         promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
-                        ★★★★★
-                    </span>
-                    <span class="puntaje" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
-                    <span class="total-resenas" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ' reseñas)'">(0 reseñas)</span>
-                </div>
+                <button class="carrusel-btn prev" id="carruselPrev">‹</button>
+                <button class="carrusel-btn next" id="carruselNext">›</button>
+                <div class="carrusel-dots" id="carruselDots"></div>
             </div>
 
-            <!-- SKU y Categoría -->
-            <div class="meta">
-                <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
-                <span class="categoria" th:text="${producto.categoria}">Categoría</span>
-                <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
-            </div>
+            <div class="info-section">
+                <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
 
-            <!-- ======== SELLOS DE CONFIANZA ======== -->
-            <div class="sellos-container">
-                <div class="sello-item">
-                    <span class="icono">📦</span>
-                    <span class="texto"><strong>Envío gratis</strong> a toda Colombia</span>
+                <!-- Precio + Calificación -->
+                <div class="precio-row">
+                    <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
+                    <div class="calificacion-resumen" onclick="document.getElementById('resenasSection').scrollIntoView({behavior:'smooth'})">
+                        <span class="estrellas" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
+                            (promedioCalificacion >= 4.5 ? '★★★★★' :
+                             promedioCalificacion >= 3.5 ? '★★★★☆' :
+                             promedioCalificacion >= 2.5 ? '★★★☆☆' :
+                             promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
+                            ★★★★★
+                        </span>
+                        <span class="puntaje" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
+                        <span class="total-resenas" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ' reseñas)'">(0 reseñas)</span>
+                    </div>
                 </div>
-                <div class="sello-item">
-                    <span class="icono">💵</span>
-                    <span class="texto"><strong>Pago contra entrega</strong> seguro</span>
-                </div>
-                <div class="sello-item">
-                    <span class="icono">🛡️</span>
-                    <span class="texto"><strong>Garantía</strong> de satisfacción</span>
-                </div>
-            </div>
 
-            <!-- ======== DROPDOWNS INTERACTIVOS ======== -->
-            <!-- Dropdown 1: Descripción -->
-            <div class="dropdown-container">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h3><span class="icono">📝</span> Descripción del producto</h3>
-                    <span class="arrow">▼</span>
+                <div class="meta">
+                    <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
+                    <span class="categoria" th:text="${producto.categoria}">Categoría</span>
+                    <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
                 </div>
-                <div class="dropdown-content">
-                    <p th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">
-                        Descripción del producto aquí.
-                    </p>
-                </div>
-            </div>
 
-            <!-- Dropdown 2: Información técnica -->
-            <div class="dropdown-container">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h3><span class="icono">⚙️</span> Información técnica</h3>
-                    <span class="arrow">▼</span>
+                <!-- Sellos de confianza -->
+                <div class="sellos-container">
+                    <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
+                    <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
+                    <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
                 </div>
-                <div class="dropdown-content">
-                    <div th:if="${producto.largo != null || producto.ancho != null || producto.alto != null || producto.peso != null}">
+
+                <!-- Dropdowns -->
+                <div class="dropdown-container">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <h3><span class="icono">📝</span> Descripción del producto</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content">
+                        <p th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
+                    </div>
+                </div>
+
+                <div class="dropdown-container">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <h3><span class="icono">⚙️</span> Información técnica</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content">
+                        <div th:if="${producto.largo != null || producto.ancho != null || producto.alto != null || producto.peso != null}">
+                            <ul>
+                                <li th:if="${producto.largo != null}"><strong>Largo:</strong> <span th:text="${producto.largo}">-</span></li>
+                                <li th:if="${producto.ancho != null}"><strong>Ancho:</strong> <span th:text="${producto.ancho}">-</span></li>
+                                <li th:if="${producto.alto != null}"><strong>Alto:</strong> <span th:text="${producto.alto}">-</span></li>
+                                <li th:if="${producto.peso != null}"><strong>Peso:</strong> <span th:text="${producto.peso}">-</span></li>
+                            </ul>
+                        </div>
+                        <p th:if="${producto.largo == null && producto.ancho == null && producto.alto == null && producto.peso == null}" style="color:#666;">No hay información técnica disponible.</p>
+                    </div>
+                </div>
+
+                <div class="dropdown-container">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <h3><span class="icono">🚚</span> Envío y garantía</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content">
                         <ul>
-                            <li th:if="${producto.largo != null}"><strong>Largo:</strong> <span th:text="${producto.largo}">-</span></li>
-                            <li th:if="${producto.ancho != null}"><strong>Ancho:</strong> <span th:text="${producto.ancho}">-</span></li>
-                            <li th:if="${producto.alto != null}"><strong>Alto:</strong> <span th:text="${producto.alto}">-</span></li>
-                            <li th:if="${producto.peso != null}"><strong>Peso:</strong> <span th:text="${producto.peso}">-</span></li>
+                            <li><strong>📦 Envío gratis</strong> a todo Colombia</li>
+                            <li><strong>⏰ Tiempo de entrega:</strong> 3-5 días hábiles</li>
+                            <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
+                            <li><strong>🛡️ Garantía:</strong> Productos 100% originales. Si no estás satisfecho, contáctanos</li>
+                            <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
                         </ul>
                     </div>
-                    <p th:if="${producto.largo == null && producto.ancho == null && producto.alto == null && producto.peso == null}" style="color:#666;">
-                        No hay información técnica disponible.
-                    </p>
                 </div>
-            </div>
 
-            <!-- Dropdown 3: Envío y garantía -->
-            <div class="dropdown-container">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h3><span class="icono">🚚</span> Envío y garantía</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="dropdown-content">
-                    <ul>
-                        <li><strong>📦 Envío gratis</strong> a todo Colombia</li>
-                        <li><strong>⏰ Tiempo de entrega:</strong> 3-5 días hábiles</li>
-                        <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
-                        <li><strong>🛡️ Garantía:</strong> Productos 100% originales. Si no estás satisfecho, contáctanos</li>
-                        <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- ======== VARIACIONES ======== -->
-            <div class="variaciones" th:if="${producto.tieneVariaciones}">
-                <h3>🎨 Personaliza tu producto</h3>
-                <div class="variacion-row">
-                    <div class="variacion-group">
-                        <label>Color</label>
-                        <select id="colorSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                    <div class="variacion-group">
-                        <label>Talla</label>
-                        <select id="tallaSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======== CONVERTIDOR DE TALLAS ======== -->
-            <div class="tallas-container" th:if="${producto.tieneVariaciones}">
-                <div class="tallas-card">
-                    <h3>👟 Guía de tallas</h3>
-                    <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
-
-                    <div class="tallas-conversor">
-                        <div class="tallas-input-group">
-                            <label for="tallaSelectSistema">Sistema de talla:</label>
-                            <select id="tallaSelectSistema" onchange="convertirTalla()">
-                                <option value="us">US (EE.UU.)</option>
-                                <option value="eu">EU (Europa)</option>
-                                <option value="cm">Centímetros (cm)</option>
+                <!-- Variaciones -->
+                <div class="variaciones" th:if="${producto.tieneVariaciones}">
+                    <h3>🎨 Personaliza tu producto</h3>
+                    <div class="variacion-row">
+                        <div class="variacion-group">
+                            <label>Color</label>
+                            <select id="colorSelect">
+                                <option value="">Seleccionar</option>
+                                <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
+                                    <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
+                                </th:block>
                             </select>
                         </div>
-                        <div class="tallas-input-group">
-                            <label for="tallaValue">Ingresa tu talla:</label>
-                            <input type="number" id="tallaValue" placeholder="Ej: 7" step="0.5" min="1" max="15" oninput="convertirTalla()">
-                        </div>
-                        <div class="tallas-resultado">
-                            <p><strong>Tu talla en Colombia:</strong> <span id="tallaColombia">--</span></p>
-                            <p class="tallas-recomendacion" id="tallaRecomendacion"></p>
+                        <div class="variacion-group">
+                            <label>Talla</label>
+                            <select id="tallaSelect">
+                                <option value="">Seleccionar</option>
+                                <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
+                                    <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
+                                </th:block>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Tabla minimizada en dropdown -->
-                    <div class="tallas-dropdown">
-                        <div class="tallas-dropdown-header" onclick="toggleTallasTabla(this)">
-                            <span>📊 Ver tabla de referencia</span>
-                            <span class="arrow">▼</span>
+                <!-- Convertidor de tallas -->
+                <div class="tallas-container" th:if="${producto.tieneVariaciones}">
+                    <div class="tallas-card">
+                        <h3>👟 Guía de tallas</h3>
+                        <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
+                        <div class="tallas-conversor">
+                            <div class="tallas-input-group">
+                                <label for="tallaSelectSistema">Sistema de talla:</label>
+                                <select id="tallaSelectSistema" onchange="convertirTalla()">
+                                    <option value="us">US (EE.UU.)</option>
+                                    <option value="eu">EU (Europa)</option>
+                                    <option value="cm">Centímetros (cm)</option>
+                                </select>
+                            </div>
+                            <div class="tallas-input-group">
+                                <label for="tallaValue">Ingresa tu talla:</label>
+                                <input type="number" id="tallaValue" placeholder="Ej: 7" step="0.5" min="1" max="15" oninput="convertirTalla()">
+                            </div>
+                            <div class="tallas-resultado">
+                                <p><strong>Tu talla en Colombia:</strong> <span id="tallaColombia">--</span></p>
+                                <p class="tallas-recomendacion" id="tallaRecomendacion"></p>
+                            </div>
                         </div>
-                        <div class="tallas-dropdown-content">
-                            <div class="tallas-grid">
-                                <div class="tallas-header"><span>US</span><span>EU</span><span>CM</span><span>Colombia</span></div>
-                                <div class="tallas-row"><span>5</span><span>35</span><span>22.1</span><span>35</span></div>
-                                <div class="tallas-row"><span>5.5</span><span>35.5</span><span>22.5</span><span>35.5</span></div>
-                                <div class="tallas-row"><span>6</span><span>36</span><span>23</span><span>36</span></div>
-                                <div class="tallas-row"><span>6.5</span><span>36.5</span><span>23.5</span><span>36.5</span></div>
-                                <div class="tallas-row"><span>7</span><span>37</span><span>24</span><span>37</span></div>
-                                <div class="tallas-row"><span>7.5</span><span>37.5</span><span>24.5</span><span>37.5</span></div>
-                                <div class="tallas-row"><span>8</span><span>38</span><span>25</span><span>38</span></div>
-                                <div class="tallas-row"><span>8.5</span><span>38.5</span><span>25.5</span><span>38.5</span></div>
-                                <div class="tallas-row"><span>9</span><span>39</span><span>26</span><span>39</span></div>
-                                <div class="tallas-row"><span>9.5</span><span>39.5</span><span>26.5</span><span>39.5</span></div>
-                                <div class="tallas-row"><span>10</span><span>40</span><span>27</span><span>40</span></div>
-                                <div class="tallas-row"><span>10.5</span><span>40.5</span><span>27.5</span><span>40.5</span></div>
-                                <div class="tallas-row"><span>11</span><span>41</span><span>28</span><span>41</span></div>
-                                <div class="tallas-row"><span>11.5</span><span>41.5</span><span>28.5</span><span>41.5</span></div>
-                                <div class="tallas-row"><span>12</span><span>42</span><span>29</span><span>42</span></div>
-                                <div class="tallas-row"><span>13</span><span>43</span><span>30</span><span>43</span></div>
-                                <div class="tallas-row"><span>14</span><span>44</span><span>31</span><span>44</span></div>
-                                <div class="tallas-row"><span>15</span><span>45</span><span>32</span><span>45</span></div>
+                        <div class="tallas-dropdown">
+                            <div class="tallas-dropdown-header" onclick="toggleTallasTabla(this)">
+                                <span>📊 Ver tabla de referencia</span>
+                                <span class="arrow">▼</span>
+                            </div>
+                            <div class="tallas-dropdown-content">
+                                <div class="tallas-grid">
+                                    <div class="tallas-header"><span>US</span><span>EU</span><span>CM</span><span>Colombia</span></div>
+                                    <div class="tallas-row"><span>5</span><span>35</span><span>22.1</span><span>35</span></div>
+                                    <div class="tallas-row"><span>5.5</span><span>35.5</span><span>22.5</span><span>35.5</span></div>
+                                    <div class="tallas-row"><span>6</span><span>36</span><span>23</span><span>36</span></div>
+                                    <div class="tallas-row"><span>6.5</span><span>36.5</span><span>23.5</span><span>36.5</span></div>
+                                    <div class="tallas-row"><span>7</span><span>37</span><span>24</span><span>37</span></div>
+                                    <div class="tallas-row"><span>7.5</span><span>37.5</span><span>24.5</span><span>37.5</span></div>
+                                    <div class="tallas-row"><span>8</span><span>38</span><span>25</span><span>38</span></div>
+                                    <div class="tallas-row"><span>8.5</span><span>38.5</span><span>25.5</span><span>38.5</span></div>
+                                    <div class="tallas-row"><span>9</span><span>39</span><span>26</span><span>39</span></div>
+                                    <div class="tallas-row"><span>9.5</span><span>39.5</span><span>26.5</span><span>39.5</span></div>
+                                    <div class="tallas-row"><span>10</span><span>40</span><span>27</span><span>40</span></div>
+                                    <div class="tallas-row"><span>10.5</span><span>40.5</span><span>27.5</span><span>40.5</span></div>
+                                    <div class="tallas-row"><span>11</span><span>41</span><span>28</span><span>41</span></div>
+                                    <div class="tallas-row"><span>11.5</span><span>41.5</span><span>28.5</span><span>41.5</span></div>
+                                    <div class="tallas-row"><span>12</span><span>42</span><span>29</span><span>42</span></div>
+                                    <div class="tallas-row"><span>13</span><span>43</span><span>30</span><span>43</span></div>
+                                    <div class="tallas-row"><span>14</span><span>44</span><span>31</span><span>44</span></div>
+                                    <div class="tallas-row"><span>15</span><span>45</span><span>32</span><span>45</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tallas-tips">
+                            <p><strong>💡 Consejos para encontrar tu talla perfecta:</strong></p>
+                            <ul>
+                                <li>📏 Mide tu pie al final del día (está más hinchado)</li>
+                                <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
+                                <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
+                                <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reseñas -->
+                <div class="resenas-section" id="resenasSection">
+                    <div class="resenas-header">
+                        <h3>⭐ Opiniones de clientes <span class="cantidad" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ')'">(0)</span></h3>
+                    </div>
+                    <div th:if="${totalResenas != null && totalResenas > 0}" class="resumen-calificacion">
+                        <span class="nota" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
+                        <span class="estrellas-grandes" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
+                            (promedioCalificacion >= 4.5 ? '★★★★★' :
+                             promedioCalificacion >= 3.5 ? '★★★★☆' :
+                             promedioCalificacion >= 2.5 ? '★★★☆☆' :
+                             promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
+                            ★★★★★
+                        </span>
+                        <span class="total" th:text="${totalResenas} + ' reseñas'">5 reseñas</span>
+                    </div>
+                    <div th:if="${!resenas.isEmpty()}">
+                        <div th:each="resena : ${resenas}" class="resena-item">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                                <span class="nombre" th:text="${resena.nombreCliente}">Cliente</span>
+                                <span class="estrellas" th:text="${#strings.repeat('★', resena.calificacion) + #strings.repeat('☆', 5 - resena.calificacion)}">★★★★★</span>
+                            </div>
+                            <span class="fecha" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
+                            <p class="comentario" th:text="${resena.comentario}">Comentario</p>
+                            <div class="imagen-resena" th:if="${resena.imagenUrl != null && !resena.imagenUrl.isEmpty()}">
+                                <img th:src="${resena.imagenUrl}" alt="Foto de la reseña">
                             </div>
                         </div>
                     </div>
-
-                    <div class="tallas-tips">
-                        <p><strong>💡 Consejos para encontrar tu talla perfecta:</strong></p>
-                        <ul>
-                            <li>📏 Mide tu pie al final del día (está más hinchado)</li>
-                            <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
-                            <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
-                            <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======== RESEÑAS DE CLIENTES ======== -->
-            <div class="resenas-section" id="resenasSection">
-                <div class="resenas-header">
-                    <h3>⭐ Opiniones de clientes <span class="cantidad" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ')'">(0)</span></h3>
-                </div>
-
-                <!-- Resumen de calificación -->
-                <div th:if="${totalResenas != null && totalResenas > 0}" class="resumen-calificacion">
-                    <span class="nota" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
-                    <span class="estrellas-grandes" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
-                        (promedioCalificacion >= 4.5 ? '★★★★★' :
-                         promedioCalificacion >= 3.5 ? '★★★★☆' :
-                         promedioCalificacion >= 2.5 ? '★★★☆☆' :
-                         promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
-                        ★★★★★
-                    </span>
-                    <span class="total" th:text="${totalResenas} + ' reseñas'">5 reseñas</span>
-                </div>
-
-                <!-- Lista de reseñas -->
-                <div th:if="${!resenas.isEmpty()}">
-                    <div th:each="resena : ${resenas}" class="resena-item">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                            <span class="nombre" th:text="${resena.nombreCliente}">Cliente</span>
-                            <span class="estrellas" th:text="${#strings.repeat('★', resena.calificacion) + #strings.repeat('☆', 5 - resena.calificacion)}">★★★★★</span>
-                        </div>
-                        <span class="fecha" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
-                        <p class="comentario" th:text="${resena.comentario}">Comentario</p>
-                        <div class="imagen-resena" th:if="${resena.imagenUrl != null && !resena.imagenUrl.isEmpty()}">
-                            <img th:src="${resena.imagenUrl}" alt="Foto de la reseña">
-                        </div>
+                    <div th:if="${resenas == null || resenas.isEmpty()}" class="sin-resenas">
+                        <p>⭐ No hay reseñas para este producto aún</p>
+                        <p style="font-size:0.8rem;">Sé el primero en opinar</p>
                     </div>
                 </div>
 
-                <!-- Sin reseñas -->
-                <div th:if="${resenas == null || resenas.isEmpty()}" class="sin-resenas">
-                    <p>⭐ No hay reseñas para este producto aún</p>
-                    <p style="font-size:0.8rem;">Sé el primero en opinar</p>
+                <!-- Cantidad y acciones -->
+                <div class="cantidad-row">
+                    <label>Cantidad</label>
+                    <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
+                    <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
+                    <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
+                    <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
                 </div>
-            </div>
-
-            <!-- ======== CANTIDAD Y ACCIONES ======== -->
-            <div class="cantidad-row">
-                <label>Cantidad</label>
-                <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
-                <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
-                <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
-                <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
-            </div>
-
-            <div class="acciones">
-                <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
-                <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
-            </div>
-
-            <div class="banner-pago">
-                <div class="icono">🇨🇴</div>
-                <h3>Pago contra entrega</h3>
-                <p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p>
+                <div class="acciones">
+                    <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
+                    <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
+                </div>
+                <div class="banner-pago">
+                    <div class="icono">🇨🇴</div>
+                    <h3>Pago contra entrega</h3>
+                    <p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Producto no encontrado -->
+    <div th:unless="${producto != null}" style="text-align:center; padding:60px 20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:20px;">
+        <div style="font-size:4rem; margin-bottom:20px;">🔍</div>
+        <h2 style="color:#ff00ff;">Producto no encontrado</h2>
+        <p style="color:#888; margin-top:10px;">El producto que buscas no existe o ha sido eliminado.</p>
+        <a href="/" style="display:inline-block; margin-top:20px; padding:12px 30px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:25px; text-decoration:none; font-weight:700;">Volver a la tienda</a>
+    </div>
+
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </div>
 
-<!-- ============================================================ -->
-<!-- WHATSAPP FLOTANTE -->
-<!-- ============================================================ -->
+<!-- WhatsApp flotante -->
 <a th:href="'https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Quiero%20más%20información%20sobre%20' + ${producto.nombre} + '%20(Ref:%20' + ${producto.sku} + ')%20🇨🇴'"
-   target="_blank"
-   class="whatsapp-float"
-   aria-label="WhatsApp">
+   target="_blank" class="whatsapp-float" aria-label="WhatsApp">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
         <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
     </svg>
 </a>
 
-<!-- ============================================================ -->
-<!-- SCRIPTS -->
-<!-- ============================================================ -->
 <script>
-    // ============================================================
-    // VARIABLES GLOBALES
-    // ============================================================
     var precioBase = 0;
     window.onload = function() {
-        var t = document.querySelector('.precio').textContent;
-        precioBase = parseInt(t.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+        var t = document.querySelector('.precio');
+        if (t) {
+            var texto = t.textContent;
+            precioBase = parseInt(texto.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+        }
     };
 
     // ============================================================
@@ -862,6 +437,8 @@
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         const slider = document.getElementById('carruselSlider');
+        if (!slider) return;
+
         const slides = slider.querySelectorAll('.imagenes-slide');
         const dotsContainer = document.getElementById('carruselDots');
         const prevBtn = document.getElementById('carruselPrev');
@@ -870,13 +447,20 @@
         let touchStartX = 0;
         let touchEndX = 0;
 
+        if (slides.length <= 1) {
+            if (dotsContainer) dotsContainer.style.display = 'none';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            return;
+        }
+
         // Crear dots
         slides.forEach((_, index) => {
             const dot = document.createElement('span');
             dot.className = 'carrusel-dot' + (index === 0 ? ' active' : '');
             dot.dataset.index = index;
             dot.addEventListener('click', function() { goToSlide(parseInt(this.dataset.index)); });
-            dotsContainer.appendChild(dot);
+            if (dotsContainer) dotsContainer.appendChild(dot);
         });
 
         function goToSlide(index) {
@@ -889,8 +473,8 @@
             });
         }
 
-        prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
-        nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
+        if (prevBtn) prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
 
         // Swipe táctil
         slider.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
@@ -903,19 +487,6 @@
             }
         });
 
-        // Imágenes secundarias (click para cambiar)
-        document.querySelectorAll('.imagen-secundaria').forEach(function(img) {
-            img.addEventListener('click', function() {
-                const src = this.src;
-                const index = Array.from(slider.querySelectorAll('.imagenes-slide img')).findIndex(img => img.src === src);
-                if (index >= 0) goToSlide(index);
-                else {
-                    // Si no está en el slider, reemplazar la primera imagen
-                    document.getElementById('imgPrincipal').src = src;
-                }
-            });
-        });
-
         window.goToSlide = goToSlide;
     });
 
@@ -926,7 +497,6 @@
         const content = header.nextElementSibling;
         const isOpen = content.classList.contains('open');
 
-        // Cerrar otros dropdowns (opcional: si quieres que solo uno esté abierto)
         document.querySelectorAll('.dropdown-content').forEach(c => c.classList.remove('open'));
         document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
 
@@ -937,7 +507,7 @@
     }
 
     // ============================================================
-    // TABLA DE TALLAS (MINIMIZADA)
+    // TABLA DE TALLAS
     // ============================================================
     function toggleTallasTabla(header) {
         const content = header.nextElementSibling;
