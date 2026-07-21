@@ -13,12 +13,14 @@ import java.util.stream.Collectors;
 public class WebController {
 
     private final ProductoRepository productoRepository;
+    private final ResenaRepository resenaRepository;
 
     // ============================================================
     // CONSTRUCTOR
     // ============================================================
-    public WebController(ProductoRepository productoRepository) {
+    public WebController(ProductoRepository productoRepository, ResenaRepository resenaRepository) {
         this.productoRepository = productoRepository;
+        this.resenaRepository = resenaRepository;
     }
 
     // ============================================================
@@ -41,13 +43,10 @@ public class WebController {
         // 2. Determinar la categoría por defecto (la del producto destacado)
         String categoriaDefault = "Cultivo"; // Fallback
         if (!categoriasDisponibles.isEmpty()) {
-            // Buscar el producto destacado (el que tiene el SKU de la oferta)
-            // Asumimos que el producto con SKU "2169621" es el destacado
             Producto productoDestacado = productoRepository.findBySku("2169621").orElse(null);
             if (productoDestacado != null && productoDestacado.getCategoria() != null) {
                 categoriaDefault = productoDestacado.getCategoria();
             } else {
-                // Si no hay SKU específico, usa la primera categoría
                 categoriaDefault = categoriasDisponibles.get(0);
             }
         }
@@ -115,13 +114,19 @@ public class WebController {
     }
 
     // ============================================================
-    // DETALLE DE PRODUCTO
+    // DETALLE DE PRODUCTO - CON RESEÑAS
     // ============================================================
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
         Producto producto = productoRepository.findById(id).orElse(null);
         if (producto != null) {
             optimizarImagenes(producto);
+
+            // Cargar reseñas aprobadas
+            List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
+            model.addAttribute("resenas", resenas);
+            model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
+            model.addAttribute("totalResenas", producto.getCantidadResenas());
         }
         model.addAttribute("producto", producto);
         return "producto-detalle";
@@ -148,7 +153,9 @@ public class WebController {
     @GetMapping("/contacto")
     public String contacto() { return "contacto"; }
 
-    // Rutas de administración
+    // ============================================================
+    // RUTAS DE ADMINISTRACIÓN
+    // ============================================================
     @GetMapping("/admin-login")
     public String adminLogin() { return "admin-login"; }
 

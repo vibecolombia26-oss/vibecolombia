@@ -15,15 +15,24 @@ public class AdminController {
     private final ProductoRepository productoRepository;
     private final PedidoRepository pedidoRepository;
     private final MensajeRepository mensajeRepository;
-    private String adminPassword = "2026Vibecolombia*";
+    private final ResenaRepository resenaRepository;
+    private String adminPassword = "FlowColombia2026*";
 
-    public AdminController(ProductoRepository productoRepository, PedidoRepository pedidoRepository, MensajeRepository mensajeRepository) {
+    public AdminController(ProductoRepository productoRepository,
+                           PedidoRepository pedidoRepository,
+                           MensajeRepository mensajeRepository,
+                           ResenaRepository resenaRepository) {
         this.productoRepository = productoRepository;
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
+        this.resenaRepository = resenaRepository;
     }
 
-    @GetMapping("/login") public String login() { return "admin-login"; }
+    // ============================================================
+    // LOGIN
+    // ============================================================
+    @GetMapping("/login")
+    public String login() { return "admin-login"; }
 
     @PostMapping("/login")
     public String procesarLogin(@RequestParam String password, Model model) {
@@ -32,6 +41,9 @@ public class AdminController {
         return "admin-login";
     }
 
+    // ============================================================
+    // PANEL PRINCIPAL
+    // ============================================================
     @GetMapping("/panel")
     public String panel(@RequestParam String key, Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
@@ -40,6 +52,9 @@ public class AdminController {
         return "admin-panel";
     }
 
+    // ============================================================
+    // PEDIDOS
+    // ============================================================
     @GetMapping("/pedidos")
     public String pedidos(@RequestParam String key, Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
@@ -48,6 +63,9 @@ public class AdminController {
         return "admin-pedidos";
     }
 
+    // ============================================================
+    // CHATS
+    // ============================================================
     @GetMapping("/chats")
     public String chats(@RequestParam String key, Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
@@ -77,6 +95,9 @@ public class AdminController {
         return result;
     }
 
+    // ============================================================
+    // CAMBIAR ESTADO DE PEDIDO
+    // ============================================================
     @PostMapping("/cambiar-estado/{id}")
     public String cambiarEstado(@PathVariable Long id, @RequestParam String key, @RequestParam String estado,
                                 @RequestParam(required = false) String transportadora,
@@ -92,19 +113,31 @@ public class AdminController {
         return "redirect:/admin/pedidos?key=" + key;
     }
 
+    // ============================================================
+    // GESTIÓN DE PRODUCTOS
+    // ============================================================
     @GetMapping("/nuevo")
     public String nuevoProducto(@RequestParam String key, Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
         model.addAttribute("producto", new Producto());
         model.addAttribute("key", key);
+        model.addAttribute("resenas", new ArrayList<>());
         return "admin-form";
     }
 
     @GetMapping("/editar/{id}")
     public String editarProducto(@PathVariable Long id, @RequestParam String key, Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        model.addAttribute("producto", productoRepository.findById(id).orElse(null));
+        Producto producto = productoRepository.findById(id).orElse(null);
+        model.addAttribute("producto", producto);
         model.addAttribute("key", key);
+
+        // Cargar reseñas del producto
+        if (producto != null) {
+            model.addAttribute("resenas", resenaRepository.findByProductoId(producto.getId()));
+        } else {
+            model.addAttribute("resenas", new ArrayList<>());
+        }
         return "admin-form";
     }
 
@@ -118,6 +151,7 @@ public class AdminController {
                                   @RequestParam(required = false) String imagen6File,
                                   RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
         // Guardar URLs directamente
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
@@ -138,6 +172,7 @@ public class AdminController {
                 if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
             }
         }
+
         productoRepository.save(producto);
         redirect.addFlashAttribute("mensaje", "✅ Producto guardado!");
         return "redirect:/admin/panel?key=" + key;
@@ -146,6 +181,8 @@ public class AdminController {
     @GetMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
+        // Eliminar reseñas asociadas
+        resenaRepository.deleteByProductoId(id);
         productoRepository.deleteById(id);
         redirect.addFlashAttribute("mensaje", "🗑️ Producto eliminado!");
         return "redirect:/admin/panel?key=" + key;
@@ -157,5 +194,53 @@ public class AdminController {
         pedidoRepository.deleteById(id);
         redirect.addFlashAttribute("mensaje", "🗑️ Pedido eliminado!");
         return "redirect:/admin/pedidos?key=" + key;
+    }
+
+    // ============================================================
+    // GESTIÓN DE RESEÑAS (DESDE EL ADMIN)
+    // ============================================================
+    @PostMapping("/guardar-resena")
+    public String guardarResena(@RequestParam String key,
+                                @RequestParam Long productoId,
+                                @RequestParam String nombreCliente,
+                                @RequestParam Integer calificacion,
+                                @RequestParam String comentario,
+                                @RequestParam(required = false) String imagenUrl,
+                                RedirectAttributes redirect) {
+        if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
+        Producto producto = productoRepository.findById(productoId).orElse(null);
+        if (producto == null) {
+            redirect.addFlashAttribute("mensaje", "❌ Producto no encontrado");
+            return "redirect:/admin/panel?key=" + key;
+        }
+
+        Resena resena = new Resena();
+        resena.setProducto(producto);
+        resena.setNombreCliente(nombreCliente);
+        resena.setCalificacion(calificacion);
+        resena.setComentario(comentario);
+        resena.setImagenUrl(imagenUrl);
+        resena.setFecha(LocalDateTime.now());
+        resena.setAprobado(true);
+
+        resenaRepository.save(resena);
+        redirect.addFlashAttribute("mensaje", "⭐ Reseña agregada correctamente");
+        return "redirect:/admin/editar/" + productoId + "?key=" + key;
+    }
+
+    @GetMapping("/eliminar-resena/{id}")
+    public String eliminarResena(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
+        if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
+        Resena resena = resenaRepository.findById(id).orElse(null);
+        if (resena != null) {
+            Long productoId = resena.getProducto().getId();
+            resenaRepository.deleteById(id);
+            redirect.addFlashAttribute("mensaje", "🗑️ Reseña eliminada");
+            return "redirect:/admin/editar/" + productoId + "?key=" + key;
+        }
+        redirect.addFlashAttribute("mensaje", "❌ Reseña no encontrada");
+        return "redirect:/admin/panel?key=" + key;
     }
 }

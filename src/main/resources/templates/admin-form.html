@@ -3,108 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${producto.id != null ? 'Editar' : 'Nuevo'} + ' Producto'">Formulario</title>
+    <title th:if="${producto.id == null}">Nuevo Producto - FLOW COLOMBIA</title>
+    <title th:if="${producto.id != null}">Editar Producto - FLOW COLOMBIA</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .container { max-width: 750px; margin: 0 auto; padding: 20px; }
-        .form-container { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 20px; padding: 30px; }
-        h1 { text-align: center; margin-bottom: 25px; color: #ff00ff; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #00ffff; font-size: 0.8rem; text-transform: uppercase; }
-        input, textarea, select { width: 100%; padding: 12px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.9rem; }
-        input:focus, textarea:focus { border-color: #ff00ff; outline: none; }
-        textarea { resize: vertical; min-height: 80px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
-        .btn-guardar { width: 100%; padding: 15px; margin-top: 20px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; text-transform: uppercase; }
-        .btn-guardar:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); }
-        .btn-volver { display: inline-block; margin-bottom: 15px; color: #00ffff; text-decoration: none; padding: 8px 16px; border: 1px solid #00ffff; border-radius: 25px; font-size: 0.85rem; }
-        .imagen-actual { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); margin: 5px; }
-        .section-title { color: #ff00ff; margin: 20px 0 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+        .container { max-width:900px; margin:0 auto; padding:20px; }
+        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
+        .header h1 { font-size:1.5rem; color:#ff00ff; }
+        .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; border:none; cursor:pointer; transition:all 0.3s; }
+        .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
+        .btn-back:hover { background:rgba(0,255,255,0.1); }
+        .btn-save { background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; }
+        .btn-save:hover { box-shadow:0 0 30px rgba(255,0,255,0.4); transform:scale(1.02); }
+        .form-section { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:25px; margin-bottom:20px; }
+        .form-section h2 { color:#ff00ff; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .form-group { margin-bottom:15px; }
+        .form-group.full { grid-column:1/-1; }
+        .form-group label { display:block; margin-bottom:5px; color:#00ffff; font-weight:600; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px; background:#111; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; transition:all 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#ff00ff; box-shadow:0 0 15px rgba(255,0,255,0.2); }
+        .form-group textarea { resize:vertical; min-height:100px; }
+        .form-group small { color:#666; display:block; margin-top:4px; }
+        .form-group .checkbox-group { display:flex; align-items:center; gap:10px; margin-top:5px; }
+        .form-group .checkbox-group input { width:auto; }
+        .imagenes-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        @media (max-width:600px){ .form-row,.imagenes-grid { grid-template-columns:1fr; } }
+
+        /* ============================================================ */
+        /* SECCIÓN DE RESEÑAS */
+        /* ============================================================ */
+        .resenas-section { margin-top:30px; border-top:2px solid #ff00ff; padding-top:20px; }
+        .resumen-calificacion { display:flex; align-items:center; gap:15px; flex-wrap:wrap; background:rgba(255,215,0,0.05); padding:12px 20px; border-radius:12px; border:1px solid rgba(255,215,0,0.15); margin-bottom:15px; }
+        .resumen-calificacion .label { color:#888; font-size:0.8rem; }
+        .resumen-calificacion .nota { color:#ffd700; font-size:1.5rem; font-weight:900; }
+        .resumen-calificacion .estrellas { color:#ffd700; font-size:1.3rem; letter-spacing:2px; }
+        .resumen-calificacion .total { color:#888; font-size:0.85rem; }
+        .resena-item { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:10px; border-left:3px solid #ffd700; }
+        .resena-item .nombre { color:#fff; font-weight:600; }
+        .resena-item .estrellas-item { color:#ffd700; margin-left:10px; }
+        .resena-item .fecha-item { color:#666; font-size:0.75rem; }
+        .resena-item .comentario-item { color:#ccc; margin:8px 0 0; }
+        .resena-item .imagen-resena { max-width:80px; border-radius:6px; margin-top:8px; border:1px solid rgba(255,255,255,0.1); }
+        .btn-eliminar-resena { color:#ff0044; font-size:0.75rem; text-decoration:none; display:inline-block; margin-top:5px; }
+        .btn-eliminar-resena:hover { text-decoration:underline; }
+        .no-resenas { color:#666; }
+        .form-resena { background:rgba(255,0,255,0.05); border:1px solid #ff00ff; border-radius:12px; padding:20px; margin-top:15px; }
+        .form-resena h4 { color:#00ffff; margin-bottom:10px; }
+        .btn-guardar-resena { margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:25px; cursor:pointer; font-weight:700; transition:all 0.3s; }
+        .btn-guardar-resena:hover { box-shadow:0 0 30px rgba(255,215,0,0.4); transform:scale(1.02); }
     </style>
 </head>
 <body>
 <div class="container">
-    <a th:href="@{/admin/panel(key=${key})}" class="btn-volver">← Volver</a>
-    <div class="form-container">
-        <h1 th:text="${producto.id != null ? 'Editar Producto' : 'Nuevo Producto'}">Formulario</h1>
-        <form th:action="@{/admin/guardar}" method="post">
-            <input type="hidden" name="key" th:value="${key}">
-            <input type="hidden" name="id" th:value="${producto.id}">
-            <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
+    <div class="header">
+        <h1 th:if="${producto.id == null}">➕ Nuevo Producto</h1>
+        <h1 th:if="${producto.id != null}">✏️ Editar Producto</h1>
+        <div>
+            <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Volver</a>
+        </div>
+    </div>
+
+    <form th:action="@{/admin/guardar(key=${key})}" method="post">
+        <input type="hidden" name="id" th:value="${producto.id}">
+
+        <!-- ============================================================ -->
+        <!-- INFORMACIÓN BÁSICA -->
+        <!-- ============================================================ -->
+        <div class="form-section">
+            <h2>📋 Información básica</h2>
             <div class="form-row">
-                <div class="form-group"><label>Precio (COP) *</label><input type="number" name="precio" th:value="${producto.precio}" step="0.01" required></div>
-                <div class="form-group"><label>SKU</label><input type="text" name="sku" th:value="${producto.sku}"></div>
+                <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
+                <div class="form-group"><label>SKU *</label><input type="text" name="sku" th:value="${producto.sku}" required></div>
             </div>
             <div class="form-row">
-                <div class="form-group">
-                    <label>Categoría</label>
-                    <select name="categoria">
+                <div class="form-group"><label>Precio *</label><input type="number" step="0.01" name="precio" th:value="${producto.precio}" required></div>
+                <div class="form-group"><label>Categoría *</label>
+                    <select name="categoria" required>
                         <option value="">Seleccionar...</option>
-                        <option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option>
                         <option value="Cultivo" th:selected="${producto.categoria == 'Cultivo'}">Cultivo</option>
+                        <option value="Hogar" th:selected="${producto.categoria == 'Hogar'}">Hogar</option>
                         <option value="Tecnología" th:selected="${producto.categoria == 'Tecnología'}">Tecnología</option>
-                        <option value="Ropa" th:selected="${producto.categoria == 'Ropa'}">Ropa</option>
+                        <option value="Cuidado Personal" th:selected="${producto.categoria == 'Cuidado Personal'}">Cuidado Personal</option>
                         <option value="Calzado" th:selected="${producto.categoria == 'Calzado'}">Calzado</option>
-                        <option value="Cuidado Personal" th:selected="${producto.categoria == 'Cuidado Personal'}">🧴 Cuidado Personal</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Descripción corta</label><textarea name="descripcion" th:text="${producto.descripcion}"></textarea></div>
             </div>
-            <div class="form-group"><label>Descripción larga</label><textarea name="descripcionLarga" th:text="${producto.descripcionLarga}" style="min-height:120px;"></textarea></div>
+            <div class="form-group full"><label>Descripción corta</label><textarea name="descripcion" rows="2">[[${producto.descripcion}]]</textarea></div>
+            <div class="form-group full"><label>Descripción larga (detalle)</label><textarea name="descripcionLarga" rows="4">[[${producto.descripcionLarga}]]</textarea></div>
+        </div>
 
-            <div class="form-group" style="margin-top:20px;">
-                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                    <input type="checkbox" id="tieneVariacionesChk" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" onchange="toggleVariaciones()" style="width:auto;">
-                    ¿Este producto tiene variaciones? (Talla, Color)
-                </label>
+        <!-- ============================================================ -->
+        <!-- IMÁGENES -->
+        <!-- ============================================================ -->
+        <div class="form-section">
+            <h2>🖼️ Imágenes (URLs de Cloudinary)</h2>
+            <div class="imagenes-grid">
+                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..."></div>
             </div>
-            <div id="variacionesSection" style="display:none; background:rgba(255,0,255,0.05); padding:15px; border-radius:10px; margin-bottom:15px;">
-                <h3 style="color:#ff00ff; margin-bottom:10px;">🎨 Variaciones</h3>
-                <div class="form-group"><label>Colores (separados por coma)</label><input type="text" id="coloresInput" placeholder="Rojo, Azul, Negro"></div>
-                <div class="form-group"><label>Tallas (separadas por coma)</label><input type="text" id="tallasInput" placeholder="38, 40, 42, 44"></div>
-                <input type="hidden" name="variacionesDisponibles" id="variacionesDisponibles" th:value="${producto.variacionesDisponibles}">
-            </div>
+            <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
+        </div>
 
-            <h3 class="section-title">Imágenes (pega la URL de Cloudinary)</h3>
+        <!-- ============================================================ -->
+        <!-- ESPECIFICACIONES TÉCNICAS -->
+        <!-- ============================================================ -->
+        <div class="form-section">
+            <h2>⚙️ Especificaciones técnicas</h2>
             <div class="form-row">
-                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen1 != null}" class="imagen-actual" th:src="${producto.imagen1}"></div>
-                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen2 != null}" class="imagen-actual" th:src="${producto.imagen2}"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen3 != null}" class="imagen-actual" th:src="${producto.imagen3}"></div>
-                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen4 != null}" class="imagen-actual" th:src="${producto.imagen4}"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen5 != null}" class="imagen-actual" th:src="${producto.imagen5}"></div>
-                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" placeholder="https://res.cloudinary.com/..."><img th:if="${producto.imagen6 != null}" class="imagen-actual" th:src="${producto.imagen6}"></div>
-            </div>
-
-            <h3 class="section-title">Medidas</h3>
-            <div class="form-row-4">
                 <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}"></div>
                 <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}"></div>
                 <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}"></div>
                 <div class="form-group"><label>Peso</label><input type="text" name="peso" th:value="${producto.peso}"></div>
             </div>
+        </div>
 
-            <button type="submit" class="btn-guardar">💾 Guardar Producto</button>
-        </form>
-    </div>
+        <!-- ============================================================ -->
+        <!-- VARIACIONES -->
+        <!-- ============================================================ -->
+        <div class="form-section">
+            <h2>🎨 Variaciones</h2>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="tieneVariaciones" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" value="true">
+                <label for="tieneVariaciones">Este producto tiene variaciones (colores, tallas, etc.)</label>
+            </div>
+            <div class="form-group full">
+                <label>Variaciones disponibles</label>
+                <input type="text" name="variacionesDisponibles" th:value="${producto.variacionesDisponibles}" placeholder="Ej: Rojo,Azul,Verde|S,M,L,XL">
+                <small style="color:#666;">Formato: colores separados por coma | tallas separadas por coma (ej: Rojo,Azul|S,M,L)</small>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECCIÓN DE RESEÑAS Y CALIFICACIÓN -->
+        <!-- ============================================================ -->
+        <div class="form-section resenas-section" th:if="${producto.id != null}">
+            <h2>⭐ Reseñas y calificación</h2>
+
+            <!-- Resumen -->
+            <div class="resumen-calificacion">
+                <span class="label">Calificación promedio:</span>
+                <span class="nota" th:text="${producto.promedioCalificacion != null ? #numbers.formatDecimal(producto.promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '0.0'}">0.0</span>
+                <span class="estrellas" th:text="${producto.promedioCalificacion != null && producto.promedioCalificacion > 0 ?
+                    (producto.promedioCalificacion >= 4.5 ? '★★★★★' :
+                     producto.promedioCalificacion >= 3.5 ? '★★★★☆' :
+                     producto.promedioCalificacion >= 2.5 ? '★★★☆☆' :
+                     producto.promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '☆☆☆☆☆'}">
+                    ☆☆☆☆☆
+                </span>
+                <span class="total" th:text="${producto.cantidadResenas != null ? producto.cantidadResenas + ' reseñas' : '0 reseñas'}">0 reseñas</span>
+            </div>
+
+            <!-- Lista de reseñas -->
+            <div th:if="${!resenas.isEmpty()}">
+                <div th:each="resena : ${resenas}" class="resena-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                        <div>
+                            <span class="nombre" th:text="${resena.nombreCliente}">Cliente</span>
+                            <span class="estrellas-item" th:text="${#strings.repeat('★', resena.calificacion) + #strings.repeat('☆', 5 - resena.calificacion)}">★★★★★</span>
+                        </div>
+                        <span class="fecha-item" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
+                    </div>
+                    <p class="comentario-item" th:text="${resena.comentario}">Comentario</p>
+                    <img class="imagen-resena" th:if="${resena.imagenUrl}" th:src="${resena.imagenUrl}" alt="Foto de la reseña">
+                    <a class="btn-eliminar-resena" th:href="@{/admin/eliminar-resena/{id}(id=${resena.id}, key=${key})}" onclick="return confirm('¿Eliminar esta reseña?')">🗑️ Eliminar</a>
+                </div>
+            </div>
+            <p class="no-resenas" th:if="${resenas.isEmpty()}">No hay reseñas para este producto</p>
+
+            <!-- Formulario para agregar reseña -->
+            <div class="form-resena">
+                <h4>➕ Agregar reseña</h4>
+                <form th:action="@{/admin/guardar-resena(key=${key})}" method="post">
+                    <input type="hidden" name="productoId" th:value="${producto.id}">
+
+                    <div class="form-row">
+                        <div class="form-group"><label>Nombre del cliente *</label><input type="text" name="nombreCliente" placeholder="Ej: María Rodríguez" required></div>
+                        <div class="form-group"><label>Calificación *</label>
+                            <select name="calificacion" required>
+                                <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
+                                <option value="4">⭐⭐⭐⭐ (Muy bueno)</option>
+                                <option value="3">⭐⭐⭐ (Bueno)</option>
+                                <option value="2">⭐⭐ (Regular)</option>
+                                <option value="1">⭐ (Malo)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full"><label>Comentario *</label><textarea name="comentario" rows="3" placeholder="Escribe el comentario del cliente..." required></textarea></div>
+
+                    <div class="form-group full"><label>URL de la imagen (Cloudinary)</label><input type="text" name="imagenUrl" placeholder="https://res.cloudinary.com/.../imagen.jpg"></div>
+
+                    <button type="submit" class="btn-guardar-resena">✅ Guardar reseña</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- BOTONES DE ACCIÓN -->
+        <!-- ============================================================ -->
+        <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
+            <button type="submit" class="btn btn-save" style="padding:14px 40px; font-size:1rem;">💾 Guardar producto</button>
+            <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn" style="background:#ff0044; color:#fff; border:none; padding:14px 30px;" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
+        </div>
+    </form>
 </div>
-<script>
-    function toggleVariaciones() {
-        document.getElementById('variacionesSection').style.display = document.getElementById('tieneVariacionesChk').checked ? 'block' : 'none';
-    }
-    window.addEventListener('load', function() {
-        toggleVariaciones();
-        var v = document.getElementById('variacionesDisponibles').value;
-        if (v && v.includes('|')) { var p = v.split('|'); document.getElementById('coloresInput').value = p[0]||''; document.getElementById('tallasInput').value = p[1]||''; }
-    });
-    document.querySelector('form').addEventListener('submit', function() {
-        document.getElementById('variacionesDisponibles').value = document.getElementById('coloresInput').value + '|' + document.getElementById('tallasInput').value;
-    });
-</script>
 </body>
 </html>
