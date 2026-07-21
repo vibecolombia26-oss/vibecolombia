@@ -16,28 +16,125 @@
         .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; transition: all 0.3s; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
-        .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; background: rgba(0,0,0,0.3); }
+
+        /* ============ CARRUSEL ============ */
+        .imagenes-container { position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.3); }
+        .imagenes-slider { display: flex; transition: transform 0.5s ease; touch-action: pan-y; }
+        .imagenes-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; }
+        .imagen-principal { width: 100%; max-height: 500px; object-fit: contain; display: block; cursor: grab; }
+        .imagen-principal:active { cursor: grabbing; }
+        .carrusel-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10; }
+        .carrusel-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s; }
+        .carrusel-dot.active { background: #ffd700; border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.5); transform: scale(1.2); }
+        .carrusel-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: #fff; border: none; padding: 12px 16px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; transition: all 0.3s; }
+        .carrusel-btn:hover { background: rgba(255,0,255,0.5); }
+        .carrusel-btn.prev { left: 10px; }
+        .carrusel-btn.next { right: 10px; }
+        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
+        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; }
+        .imagen-secundaria:hover { border-color: #ffd700; transform: scale(1.05); }
+        .imagen-secundaria.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+
+        /* ============ INFO DEL PRODUCTO ============ */
         .info-section { padding: 25px 30px 30px; }
         .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
         .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        .calificacion-resumen { display: flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.08); padding: 6px 16px; border-radius: 25px; border: 1px solid rgba(255,215,0,0.15); cursor: pointer; transition: all 0.3s; }
+        .calificacion-resumen:hover { background: rgba(255,215,0,0.15); border-color: #ffd700; }
+        .calificacion-resumen .estrellas { color: #ffd700; font-size: 1.2rem; letter-spacing: 2px; }
+        .calificacion-resumen .puntaje { font-weight: 700; color: #ffd700; font-size: 1.1rem; }
+        .calificacion-resumen .total-resenas { color: #888; font-size: 0.75rem; }
         .meta { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 12px; }
         .sku { color: #ff00ff; }
         .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.75rem; text-transform: uppercase; }
         .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
-        .descripcion { color: #ccc; line-height: 1.8; font-size: 0.9rem; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+
+        /* ============ SELLOS DE CONFIANZA ============ */
+        .sellos-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 15px 0 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .sello-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #aaa; }
+        .sello-item .icono { font-size: 1.5rem; }
+        .sello-item .texto { color: #ccc; }
+        .sello-item .texto strong { color: #fff; }
+
+        /* ============ DROPDOWNS ============ */
+        .dropdown-container { margin: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
+        .dropdown-header:hover { color: #ff00ff; }
+        .dropdown-header h3 { font-size: 1rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .dropdown-header .icono { font-size: 1.2rem; }
+        .dropdown-header .arrow { transition: transform 0.3s; font-size: 1.2rem; color: #888; }
+        .dropdown-header.active .arrow { transform: rotate(180deg); }
+        .dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; padding: 0 5px; }
+        .dropdown-content.open { max-height: 1000px; padding: 5px 5px 20px; }
+        .dropdown-content p { color: #ccc; line-height: 1.8; font-size: 0.9rem; }
+        .dropdown-content ul { list-style: none; padding: 0; }
+        .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
+
+        /* ============ VARIACIONES ============ */
         .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
         .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
         .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
         .variacion-group { flex: 1; min-width: 120px; }
         .variacion-group label { color: #00ffff; font-size: 0.8rem; display: block; margin-bottom: 5px; }
         .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; }
+
+        /* ============ CONVERTIDOR DE TALLAS ============ */
+        .tallas-container { margin: 20px 0; }
+        .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 20px; }
+        .tallas-card h3 { color: #ffd700; font-size: 1.2rem; margin-bottom: 5px; }
+        .tallas-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
+        .tallas-conversor { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+        .tallas-input-group { flex: 1; min-width: 130px; }
+        .tallas-input-group label { display: block; color: #00ffff; font-size: 0.75rem; margin-bottom: 4px; font-weight: 600; }
+        .tallas-input-group select, .tallas-input-group input { width: 100%; padding: 8px 10px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 0.9rem; }
+        .tallas-input-group select:focus, .tallas-input-group input:focus { outline: none; border-color: #ff00ff; }
+        .tallas-resultado { flex: 1; min-width: 150px; background: rgba(255,215,0,0.05); border: 1px solid #ffd700; border-radius: 10px; padding: 12px 15px; text-align: center; }
+        .tallas-resultado p { margin: 3px 0; }
+        #tallaColombia { color: #ffd700; font-size: 1.6rem; font-weight: 900; }
+        .tallas-recomendacion { color: #aaa; font-size: 0.8rem; }
+        .tallas-dropdown { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .tallas-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: #00ffff; font-size: 0.85rem; }
+        .tallas-dropdown-header .arrow { transition: transform 0.3s; }
+        .tallas-dropdown-header.active .arrow { transform: rotate(180deg); }
+        .tallas-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .tallas-dropdown-content.open { max-height: 500px; }
+        .tallas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #222; border-radius: 8px; overflow: hidden; font-size: 0.75rem; margin-top: 10px; }
+        .tallas-header { display: contents; font-weight: 700; color: #ffd700; }
+        .tallas-row { display: contents; }
+        .tallas-row span { padding: 6px 8px; background: #1a1a1a; text-align: center; border-bottom: 1px solid #222; }
+        .tallas-tips { margin-top: 15px; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #ffd700; }
+        .tallas-tips p { color: #fff; font-size: 0.85rem; margin-bottom: 8px; }
+        .tallas-tips ul { list-style: none; padding: 0; }
+        .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.8rem; }
+        .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
+
+        /* ============ RESEÑAS ============ */
+        .resenas-section { margin: 25px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .resenas-header h3 { color: #fff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .resenas-header .cantidad { color: #888; font-size: 0.9rem; font-weight: 400; }
+        .resumen-calificacion { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .resumen-calificacion .nota { font-size: 2rem; font-weight: 900; color: #ffd700; }
+        .resumen-calificacion .estrellas-grandes { font-size: 1.3rem; color: #ffd700; letter-spacing: 2px; }
+        .resumen-calificacion .total { color: #888; font-size: 0.9rem; }
+        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-left: 3px solid #ffd700; }
+        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.95rem; }
+        .resena-item .estrellas { color: #ffd700; font-size: 0.9rem; letter-spacing: 1px; margin: 4px 0; }
+        .resena-item .fecha { color: #666; font-size: 0.7rem; }
+        .resena-item .comentario { color: #ccc; font-size: 0.9rem; margin-top: 5px; line-height: 1.5; }
+        .resena-item .imagen-resena { max-width: 80px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .resena-item .imagen-resena img { width: 100%; border-radius: 8px; }
+        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; }
+
+        /* ============ CANTIDAD Y ACCIONES ============ */
         .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
         .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
         .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
         .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; }
         .subtotal-display { color: #00ffff; font-weight: 700; }
-        .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
         .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
         .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
@@ -47,10 +144,49 @@
         .banner-pago h3 { color: #ffd700; }
         .banner-pago p { color: #aaa; }
         .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
+
+        /* ============ WHATSAPP FLOTANTE ============ */
+        @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
         .whatsapp-float { position: fixed; bottom: 90px; left: 20px; z-index: 999; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); animation: pulseColombia 2s infinite; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
         .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
-        @media (max-width: 600px) { .info-section { padding: 20px; } .nombre { font-size: 1.3rem; } .precio { font-size: 1.8rem; } .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; } }
+
+        /* ============ MODO CLARO ============ */
+        body.light-mode .descripcion { color: #444; }
+        body.light-mode .tallas-card { background: rgba(255,255,255,0.9); border-color: #ff00ff; }
+        body.light-mode .tallas-conversor { background: rgba(0,0,0,0.05); }
+        body.light-mode .tallas-input-group select, body.light-mode .tallas-input-group input { background: #f5f5f5; border-color: #ddd; color: #222; }
+        body.light-mode .tallas-grid { background: #ddd; }
+        body.light-mode .tallas-row span { background: #f5f5f5; border-bottom: 1px solid #ddd; }
+        body.light-mode .tallas-tips { background: rgba(0,0,0,0.03); }
+        body.light-mode .tallas-tips ul li { color: #555; }
+        body.light-mode .resena-item { background: rgba(0,0,0,0.03); }
+        body.light-mode .resena-item .nombre { color: #222; }
+        body.light-mode .resena-item .comentario { color: #444; }
+        body.light-mode .sellos-container { background: rgba(0,0,0,0.03); }
+        body.light-mode .sello-item .texto { color: #555; }
+        body.light-mode .sello-item .texto strong { color: #111; }
+        body.light-mode .calificacion-resumen { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); }
+        body.light-mode .calificacion-resumen .total-resenas { color: #666; }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 600px) {
+            .info-section { padding: 20px; }
+            .nombre { font-size: 1.3rem; }
+            .precio { font-size: 1.8rem; }
+            .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; }
+            .precio-row { flex-direction: column; align-items: flex-start; }
+            .calificacion-resumen { align-self: flex-start; }
+            .tallas-conversor { flex-direction: column; }
+            .tallas-input-group { min-width: 100%; }
+            .tallas-resultado { min-width: 100%; }
+            .carrusel-btn { padding: 8px 12px; font-size: 1rem; }
+            .imagen-principal { max-height: 350px; }
+            .sellos-container { gap: 12px; padding: 10px; }
+            .sello-item { font-size: 0.7rem; }
+            .resumen-calificacion .nota { font-size: 1.5rem; }
+            .resumen-calificacion .estrellas-grandes { font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -58,27 +194,221 @@
 <div class="container">
     <a href="/" class="back-btn">← Volver</a>
     <div class="producto-card">
-        <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+
+        <!-- ============================================================ -->
+        <!-- CARRUSEL DE IMÁGENES -->
+        <!-- ============================================================ -->
+        <div class="imagenes-container" id="carruselContainer">
+            <div class="imagenes-slider" id="carruselSlider">
+                <div class="imagenes-slide">
+                    <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+                </div>
+                <div class="imagenes-slide" th:if="${producto.imagen2 != null}">
+                    <img class="imagen-principal" th:src="${producto.imagen2}" th:alt="${producto.nombre}">
+                </div>
+                <div class="imagenes-slide" th:if="${producto.imagen3 != null}">
+                    <img class="imagen-principal" th:src="${producto.imagen3}" th:alt="${producto.nombre}">
+                </div>
+                <div class="imagenes-slide" th:if="${producto.imagen4 != null}">
+                    <img class="imagen-principal" th:src="${producto.imagen4}" th:alt="${producto.nombre}">
+                </div>
+                <div class="imagenes-slide" th:if="${producto.imagen5 != null}">
+                    <img class="imagen-principal" th:src="${producto.imagen5}" th:alt="${producto.nombre}">
+                </div>
+                <div class="imagenes-slide" th:if="${producto.imagen6 != null}">
+                    <img class="imagen-principal" th:src="${producto.imagen6}" th:alt="${producto.nombre}">
+                </div>
+            </div>
+            <button class="carrusel-btn prev" id="carruselPrev">‹</button>
+            <button class="carrusel-btn next" id="carruselNext">›</button>
+            <div class="carrusel-dots" id="carruselDots"></div>
+        </div>
+
         <div class="info-section">
             <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
+
+            <!-- ======== PRECIO + CALIFICACIÓN ======== -->
             <div class="precio-row">
                 <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
+                <div class="calificacion-resumen" onclick="document.getElementById('resenasSection').scrollIntoView({behavior:'smooth'})">
+                    <span class="estrellas" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
+                        (promedioCalificacion >= 4.5 ? '★★★★★' :
+                         promedioCalificacion >= 3.5 ? '★★★★☆' :
+                         promedioCalificacion >= 2.5 ? '★★★☆☆' :
+                         promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
+                        ★★★★★
+                    </span>
+                    <span class="puntaje" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
+                    <span class="total-resenas" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ' reseñas)'">(0 reseñas)</span>
+                </div>
             </div>
+
+            <!-- ======== METADATOS ======== -->
             <div class="meta">
                 <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
                 <span class="categoria" th:text="${producto.categoria}">Categoría</span>
                 <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
             </div>
-            <div class="descripcion" th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</div>
 
-            <div class="variaciones" th:if="${producto.tieneVariaciones}">
-                <h3>🎨 Personaliza tu producto</h3>
-                <div class="variacion-row">
-                    <div class="variacion-group"><label>Color</label><select id="colorSelect"><option value="">Seleccionar</option><th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}"><option th:value="${color.trim()}" th:text="${color.trim()}"></option></th:block></select></div>
-                    <div class="variacion-group"><label>Talla</label><select id="tallaSelect"><option value="">Seleccionar</option><th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}"><option th:value="${talla.trim()}" th:text="${talla.trim()}"></option></th:block></select></div>
+            <!-- ======== SELLOS DE CONFIANZA ======== -->
+            <div class="sellos-container">
+                <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
+                <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
+                <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
+            </div>
+
+            <!-- ======== DROPDOWNS ======== -->
+            <div class="dropdown-container">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><span class="icono">📝</span> Descripción del producto</h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <p th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
                 </div>
             </div>
 
+            <div class="dropdown-container">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><span class="icono">🚚</span> Envío y garantía</h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <ul>
+                        <li><strong>📦 Envío gratis</strong> a todo Colombia</li>
+                        <li><strong>⏰ Tiempo de entrega:</strong> 3-5 días hábiles</li>
+                        <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
+                        <li><strong>🛡️ Garantía:</strong> Productos 100% originales. Si no estás satisfecho, contáctanos</li>
+                        <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ======== VARIACIONES ======== -->
+            <div class="variaciones" th:if="${producto.tieneVariaciones}">
+                <h3>🎨 Personaliza tu producto</h3>
+                <div class="variacion-row">
+                    <div class="variacion-group">
+                        <label>Color</label>
+                        <select id="colorSelect">
+                            <option value="">Seleccionar</option>
+                            <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
+                                <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="variacion-group">
+                        <label>Talla</label>
+                        <select id="tallaSelect">
+                            <option value="">Seleccionar</option>
+                            <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
+                                <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======== CONVERTIDOR DE TALLAS ======== -->
+            <div class="tallas-container" th:if="${producto.tieneVariaciones}">
+                <div class="tallas-card">
+                    <h3>👟 Guía de tallas</h3>
+                    <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
+                    <div class="tallas-conversor">
+                        <div class="tallas-input-group">
+                            <label for="tallaSelectSistema">Sistema de talla:</label>
+                            <select id="tallaSelectSistema" onchange="convertirTalla()">
+                                <option value="us">US (EE.UU.)</option>
+                                <option value="eu">EU (Europa)</option>
+                                <option value="cm">Centímetros (cm)</option>
+                            </select>
+                        </div>
+                        <div class="tallas-input-group">
+                            <label for="tallaValue">Ingresa tu talla:</label>
+                            <input type="number" id="tallaValue" placeholder="Ej: 7" step="0.5" min="1" max="15" oninput="convertirTalla()">
+                        </div>
+                        <div class="tallas-resultado">
+                            <p><strong>Tu talla en Colombia:</strong> <span id="tallaColombia">--</span></p>
+                            <p class="tallas-recomendacion" id="tallaRecomendacion"></p>
+                        </div>
+                    </div>
+                    <div class="tallas-dropdown">
+                        <div class="tallas-dropdown-header" onclick="toggleTallasTabla(this)">
+                            <span>📊 Ver tabla de referencia</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="tallas-dropdown-content">
+                            <div class="tallas-grid">
+                                <div class="tallas-header"><span>US</span><span>EU</span><span>CM</span><span>Colombia</span></div>
+                                <div class="tallas-row"><span>5</span><span>35</span><span>22.1</span><span>35</span></div>
+                                <div class="tallas-row"><span>5.5</span><span>35.5</span><span>22.5</span><span>35.5</span></div>
+                                <div class="tallas-row"><span>6</span><span>36</span><span>23</span><span>36</span></div>
+                                <div class="tallas-row"><span>6.5</span><span>36.5</span><span>23.5</span><span>36.5</span></div>
+                                <div class="tallas-row"><span>7</span><span>37</span><span>24</span><span>37</span></div>
+                                <div class="tallas-row"><span>7.5</span><span>37.5</span><span>24.5</span><span>37.5</span></div>
+                                <div class="tallas-row"><span>8</span><span>38</span><span>25</span><span>38</span></div>
+                                <div class="tallas-row"><span>8.5</span><span>38.5</span><span>25.5</span><span>38.5</span></div>
+                                <div class="tallas-row"><span>9</span><span>39</span><span>26</span><span>39</span></div>
+                                <div class="tallas-row"><span>9.5</span><span>39.5</span><span>26.5</span><span>39.5</span></div>
+                                <div class="tallas-row"><span>10</span><span>40</span><span>27</span><span>40</span></div>
+                                <div class="tallas-row"><span>10.5</span><span>40.5</span><span>27.5</span><span>40.5</span></div>
+                                <div class="tallas-row"><span>11</span><span>41</span><span>28</span><span>41</span></div>
+                                <div class="tallas-row"><span>11.5</span><span>41.5</span><span>28.5</span><span>41.5</span></div>
+                                <div class="tallas-row"><span>12</span><span>42</span><span>29</span><span>42</span></div>
+                                <div class="tallas-row"><span>13</span><span>43</span><span>30</span><span>43</span></div>
+                                <div class="tallas-row"><span>14</span><span>44</span><span>31</span><span>44</span></div>
+                                <div class="tallas-row"><span>15</span><span>45</span><span>32</span><span>45</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tallas-tips">
+                        <p><strong>💡 Consejos para encontrar tu talla perfecta:</strong></p>
+                        <ul>
+                            <li>📏 Mide tu pie al final del día (está más hinchado)</li>
+                            <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
+                            <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
+                            <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======== RESEÑAS ======== -->
+            <div class="resenas-section" id="resenasSection">
+                <div class="resenas-header">
+                    <h3>⭐ Opiniones de clientes <span class="cantidad" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ')'">(0)</span></h3>
+                </div>
+                <div th:if="${totalResenas != null && totalResenas > 0}" class="resumen-calificacion">
+                    <span class="nota" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
+                    <span class="estrellas-grandes" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
+                        (promedioCalificacion >= 4.5 ? '★★★★★' :
+                         promedioCalificacion >= 3.5 ? '★★★★☆' :
+                         promedioCalificacion >= 2.5 ? '★★★☆☆' :
+                         promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
+                        ★★★★★
+                    </span>
+                    <span class="total" th:text="${totalResenas} + ' reseñas'">5 reseñas</span>
+                </div>
+                <div th:if="${!resenas.isEmpty()}">
+                    <div th:each="resena : ${resenas}" class="resena-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                            <span class="nombre" th:text="${resena.nombreCliente}">Cliente</span>
+                            <span class="estrellas" th:text="${#strings.repeat('★', resena.calificacion) + #strings.repeat('☆', 5 - resena.calificacion)}">★★★★★</span>
+                        </div>
+                        <span class="fecha" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
+                        <p class="comentario" th:text="${resena.comentario}">Comentario</p>
+                        <div class="imagen-resena" th:if="${resena.imagenUrl != null && !resena.imagenUrl.isEmpty()}">
+                            <img th:src="${resena.imagenUrl}" alt="Foto de la reseña">
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${resenas == null || resenas.isEmpty()}" class="sin-resenas">
+                    <p>⭐ No hay reseñas para este producto aún</p>
+                    <p style="font-size:0.8rem;">Sé el primero en opinar</p>
+                </div>
+            </div>
+
+            <!-- ======== CANTIDAD Y ACCIONES ======== -->
             <div class="cantidad-row">
                 <label>Cantidad</label>
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
@@ -100,6 +430,9 @@
     <p class="footer-mini">🇨🇴 Hecho en Colombia con orgullo 🇨🇴</p>
 </div>
 
+<!-- ============================================================ -->
+<!-- WHATSAPP FLOTANTE -->
+<!-- ============================================================ -->
 <a th:href="'https://wa.me/573150152056?text=¡Hola%20FLOW%20COLOMBIA!%20Quiero%20más%20información%20sobre%20' + ${producto.nombre} + '%20(Ref:%20' + ${producto.sku} + ')%20🇨🇴'"
    target="_blank" class="whatsapp-float" aria-label="WhatsApp">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
@@ -107,13 +440,167 @@
     </svg>
 </a>
 
+<!-- ============================================================ -->
+<!-- SCRIPTS -->
+<!-- ============================================================ -->
 <script>
     var precioBase = 0;
     window.onload = function() {
-        var t = document.querySelector('.precio').textContent;
-        precioBase = parseInt(t.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+        var t = document.querySelector('.precio');
+        if (t) {
+            var texto = t.textContent;
+            precioBase = parseInt(texto.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+        }
     };
 
+    // ============================================================
+    // CARRUSEL
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('carruselSlider');
+        if (!slider) return;
+
+        const slides = slider.querySelectorAll('.imagenes-slide');
+        const dotsContainer = document.getElementById('carruselDots');
+        const prevBtn = document.getElementById('carruselPrev');
+        const nextBtn = document.getElementById('carruselNext');
+        let currentIndex = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        if (slides.length <= 1) {
+            if (dotsContainer) dotsContainer.style.display = 'none';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            return;
+        }
+
+        slides.forEach((_, index) => {
+            const dot = document.createElement('span');
+            dot.className = 'carrusel-dot' + (index === 0 ? ' active' : '');
+            dot.dataset.index = index;
+            dot.addEventListener('click', function() { goToSlide(parseInt(this.dataset.index)); });
+            if (dotsContainer) dotsContainer.appendChild(dot);
+        });
+
+        function goToSlide(index) {
+            if (index < 0) index = slides.length - 1;
+            if (index >= slides.length) index = 0;
+            currentIndex = index;
+            slider.style.transform = 'translateX(' + (-currentIndex * 100) + '%)';
+            document.querySelectorAll('.carrusel-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentIndex);
+            });
+        }
+
+        if (prevBtn) prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
+
+        slider.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
+        slider.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) goToSlide(currentIndex + 1);
+                else goToSlide(currentIndex - 1);
+            }
+        });
+
+        window.goToSlide = goToSlide;
+    });
+
+    // ============================================================
+    // DROPDOWNS
+    // ============================================================
+    function toggleDropdown(header) {
+        const content = header.nextElementSibling;
+        const isOpen = content.classList.contains('open');
+
+        document.querySelectorAll('.dropdown-content').forEach(c => c.classList.remove('open'));
+        document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
+
+        if (!isOpen) {
+            content.classList.add('open');
+            header.classList.add('active');
+        }
+    }
+
+    // ============================================================
+    // TABLA DE TALLAS
+    // ============================================================
+    function toggleTallasTabla(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('open');
+        header.classList.toggle('active');
+    }
+
+    // ============================================================
+    // CONVERTIDOR DE TALLAS
+    // ============================================================
+    function convertirTalla() {
+        const sistema = document.getElementById('tallaSelectSistema');
+        const valorInput = document.getElementById('tallaValue');
+        const resultadoSpan = document.getElementById('tallaColombia');
+        const recomendacionSpan = document.getElementById('tallaRecomendacion');
+
+        if (!sistema || !valorInput || !resultadoSpan) return;
+
+        const valor = parseFloat(valorInput.value);
+
+        if (isNaN(valor) || valor <= 0) {
+            resultadoSpan.textContent = '--';
+            recomendacionSpan.textContent = '';
+            return;
+        }
+
+        const tabla = [
+            { us: 5, eu: 35, cm: 22.1, col: 35 },
+            { us: 5.5, eu: 35.5, cm: 22.5, col: 35.5 },
+            { us: 6, eu: 36, cm: 23, col: 36 },
+            { us: 6.5, eu: 36.5, cm: 23.5, col: 36.5 },
+            { us: 7, eu: 37, cm: 24, col: 37 },
+            { us: 7.5, eu: 37.5, cm: 24.5, col: 37.5 },
+            { us: 8, eu: 38, cm: 25, col: 38 },
+            { us: 8.5, eu: 38.5, cm: 25.5, col: 38.5 },
+            { us: 9, eu: 39, cm: 26, col: 39 },
+            { us: 9.5, eu: 39.5, cm: 26.5, col: 39.5 },
+            { us: 10, eu: 40, cm: 27, col: 40 },
+            { us: 10.5, eu: 40.5, cm: 27.5, col: 40.5 },
+            { us: 11, eu: 41, cm: 28, col: 41 },
+            { us: 11.5, eu: 41.5, cm: 28.5, col: 41.5 },
+            { us: 12, eu: 42, cm: 29, col: 42 },
+            { us: 13, eu: 43, cm: 30, col: 43 },
+            { us: 14, eu: 44, cm: 31, col: 44 },
+            { us: 15, eu: 45, cm: 32, col: 45 }
+        ];
+
+        let tallaColombia = null;
+        let recomendacion = '';
+
+        if (sistema.value === 'us') {
+            const encontrado = tabla.find(t => t.us === valor);
+            if (encontrado) { tallaColombia = encontrado.col; recomendacion = 'Talla US ' + valor + ' equivale a Colombia ' + encontrado.col; }
+            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.us - valor) < Math.abs(prev.us - valor) ? curr : prev);
+                tallaColombia = cercano.col; recomendacion = 'Talla US ' + valor + ' no es exacta. La más cercana es US ' + cercano.us + ' → Colombia ' + cercano.col; }
+        } else if (sistema.value === 'eu') {
+            const encontrado = tabla.find(t => t.eu === valor);
+            if (encontrado) { tallaColombia = encontrado.col; recomendacion = 'Talla EU ' + valor + ' equivale a Colombia ' + encontrado.col; }
+            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.eu - valor) < Math.abs(prev.eu - valor) ? curr : prev);
+                tallaColombia = cercano.col; recomendacion = 'Talla EU ' + valor + ' no es exacta. La más cercana es EU ' + cercano.eu + ' → Colombia ' + cercano.col; }
+        } else if (sistema.value === 'cm') {
+            const encontrado = tabla.find(t => t.cm === valor);
+            if (encontrado) { tallaColombia = encontrado.col; recomendacion = valor + ' cm equivale a Colombia ' + encontrado.col; }
+            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.cm - valor) < Math.abs(prev.cm - valor) ? curr : prev);
+                tallaColombia = cercano.col; recomendacion = valor + ' cm no es exacto. El más cercano es ' + cercano.cm + ' cm → Colombia ' + cercano.col; }
+        }
+
+        if (tallaColombia !== null) { resultadoSpan.textContent = tallaColombia; recomendacionSpan.textContent = recomendacion; }
+        else { resultadoSpan.textContent = '--'; recomendacionSpan.textContent = 'No encontramos una conversión exacta'; }
+    }
+
+    // ============================================================
+    // CANTIDAD
+    // ============================================================
     function cambiarCantidad(d) {
         var i = document.getElementById('cantidad');
         var v = Math.max(1, (parseInt(i.value)||1) + d);
@@ -126,6 +613,9 @@
         document.getElementById('subtotalDisplay').innerHTML = '= $' + (precioBase*c).toLocaleString('es-CO');
     }
 
+    // ============================================================
+    // CARRITO
+    // ============================================================
     function agregarAlCarrito() {
         var nombre = document.querySelector('.nombre').textContent.trim();
         var imagen = document.getElementById('imgPrincipal')?.src || '';
@@ -177,6 +667,9 @@
 
     actualizarSubtotal();
 
+    // ============================================================
+    // FONDO ANIMADO
+    // ============================================================
     var bg = document.getElementById('bgAnimado'),
         colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
     for (var i=0;i<15;i++) {
