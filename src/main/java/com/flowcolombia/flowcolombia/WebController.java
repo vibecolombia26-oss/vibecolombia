@@ -16,22 +16,24 @@ public class WebController {
     private final ResenaRepository resenaRepository;
 
     // ============================================================
-    // CONSTRUCTOR
+    // CONFIGURACIÓN DE CATEGORÍAS
     // ============================================================
+    private static final String CATEGORIA_DEFAULT = "Todos"; // ← CAMBIADO A "Todos"
+
     public WebController(ProductoRepository productoRepository, ResenaRepository resenaRepository) {
         this.productoRepository = productoRepository;
         this.resenaRepository = resenaRepository;
     }
 
     // ============================================================
-    // PÁGINA PRINCIPAL - CON CATEGORÍAS DINÁMICAS
+    // PÁGINA PRINCIPAL
     // ============================================================
     @GetMapping("/")
     public String home(
             @RequestParam(required = false) String categoria,
             Model model) {
 
-        // 1. Obtener TODAS las categorías disponibles (desde la BD)
+        // 1. Obtener TODAS las categorías disponibles desde la BD
         List<String> categoriasDisponibles = productoRepository.findAll()
                 .stream()
                 .map(Producto::getCategoria)
@@ -40,26 +42,15 @@ public class WebController {
                 .sorted()
                 .collect(Collectors.toList());
 
-        // 2. Determinar la categoría por defecto (la del producto destacado)
-        String categoriaDefault = "Cultivo"; // Fallback
-        if (!categoriasDisponibles.isEmpty()) {
-            Producto productoDestacado = productoRepository.findBySku("2169621").orElse(null);
-            if (productoDestacado != null && productoDestacado.getCategoria() != null) {
-                categoriaDefault = productoDestacado.getCategoria();
-            } else {
-                categoriaDefault = categoriasDisponibles.get(0);
-            }
-        }
-
-        // 3. Determinar la categoría activa
-        String categoriaActiva = categoriaDefault;
+        // 2. Determinar la categoría activa
+        String categoriaActiva = CATEGORIA_DEFAULT;
         if (categoria != null && !categoria.equals("Todos") && categoriasDisponibles.contains(categoria)) {
             categoriaActiva = categoria;
         } else if (categoria != null && categoria.equals("Todos")) {
             categoriaActiva = "Todos";
         }
 
-        // 4. Obtener los productos filtrados
+        // 3. Obtener los productos filtrados
         List<Producto> productosFiltrados;
         if (categoriaActiva.equals("Todos")) {
             productosFiltrados = productoRepository.findAll();
@@ -67,26 +58,43 @@ public class WebController {
             productosFiltrados = productoRepository.findByCategoria(categoriaActiva);
         }
 
-        // 5. OPTIMIZAR IMÁGENES DE CLOUDINARY
+        // 4. Optimizar imágenes
         for (Producto p : productosFiltrados) {
             optimizarImagenes(p);
         }
 
-        // 6. Obtener el producto destacado (para el banner)
+        // 5. Obtener producto destacado
         Producto productoDestacado = productoRepository.findBySku("2169621").orElse(null);
         if (productoDestacado != null) {
             optimizarImagenes(productoDestacado);
         }
 
-        // 7. Pasar los datos a la vista
+        // 6. Pasar datos a la vista
         model.addAttribute("productos", productosFiltrados);
         model.addAttribute("categoriaActiva", categoriaActiva);
         model.addAttribute("categorias", categoriasDisponibles);
-        model.addAttribute("categoriaDefault", categoriaDefault);
+        model.addAttribute("categoriaDefault", CATEGORIA_DEFAULT);
         model.addAttribute("productoDestacado", productoDestacado);
         model.addAttribute("totalProductos", productoRepository.count());
 
         return "index";
+    }
+
+    // ============================================================
+    // DETALLE DE PRODUCTO
+    // ============================================================
+    @GetMapping("/producto/{id}")
+    public String detalle(@PathVariable Long id, Model model) {
+        Producto producto = productoRepository.findById(id).orElse(null);
+        if (producto != null) {
+            optimizarImagenes(producto);
+            List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
+            model.addAttribute("resenas", resenas);
+            model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
+            model.addAttribute("totalResenas", producto.getCantidadResenas());
+        }
+        model.addAttribute("producto", producto);
+        return "producto-detalle";
     }
 
     // ============================================================
@@ -111,25 +119,6 @@ public class WebController {
         if (p.getImagen6() != null && p.getImagen6().contains("cloudinary.com")) {
             p.setImagen6(p.getImagen6().replace("/upload/", "/upload/f_auto,q_auto/"));
         }
-    }
-
-    // ============================================================
-    // DETALLE DE PRODUCTO - CON RESEÑAS
-    // ============================================================
-    @GetMapping("/producto/{id}")
-    public String detalle(@PathVariable Long id, Model model) {
-        Producto producto = productoRepository.findById(id).orElse(null);
-        if (producto != null) {
-            optimizarImagenes(producto);
-
-            // Cargar reseñas aprobadas
-            List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
-            model.addAttribute("resenas", resenas);
-            model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
-            model.addAttribute("totalResenas", producto.getCantidadResenas());
-        }
-        model.addAttribute("producto", producto);
-        return "producto-detalle";
     }
 
     // ============================================================
