@@ -173,4 +173,21 @@ public class WebController {
 
     @GetMapping("/admin-chats")
     public String adminChats() { return "admin-chats"; }
+
+    @GetMapping("/producto/{id}")
+    public String detalle(@PathVariable Long id, Model model) {
+        System.out.println("🔍 Producto ID solicitado: " + id);
+
+        Producto producto = productoRepository.findById(id).orElse(null);
+
+        System.out.println("📦 Producto encontrado: " + (producto != null ? producto.getNombre() : "null"));
+
+        if (producto == null) {
+            return "redirect:/?error=Producto no encontrado";
+        }
+
+        model.addAttribute("producto", producto);
+        return "producto-detalle";
+    }
+
 }
