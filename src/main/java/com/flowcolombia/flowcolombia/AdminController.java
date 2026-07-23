@@ -132,7 +132,6 @@ public class AdminController {
         model.addAttribute("producto", producto);
         model.addAttribute("key", key);
 
-        // Cargar reseñas del producto
         if (producto != null) {
             model.addAttribute("resenas", resenaRepository.findByProductoId(producto.getId()));
         } else {
@@ -157,17 +156,14 @@ public class AdminController {
 
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
 
-        // 🔍 LOGS DE DEPURACIÓN
         System.out.println("=========================================");
-        System.out.println("📦 Guardando producto: " + producto.getNombre());
-        System.out.println("🆔 ID: " + producto.getId());
-        System.out.println("📷 Imagen1: " + imagen1File);
-        System.out.println("🎨 Colores: " + coloresInput);
-        System.out.println("📏 Tallas: " + tallasInput);
-        System.out.println("📦 Variaciones: " + variacionesDisponibles);
+        System.out.println("Guardando producto: " + producto.getNombre());
+        System.out.println("ID: " + producto.getId());
+        System.out.println("Colores: " + coloresInput);
+        System.out.println("Tallas: " + tallasInput);
         System.out.println("=========================================");
 
-        // 1. Guardar URLs de imágenes
+        // Guardar URLs de imágenes
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
         if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
@@ -175,7 +171,7 @@ public class AdminController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // 2. Mantener imágenes existentes si no se cambian
+        // Mantener imágenes existentes
         if (producto.getId() != null) {
             Producto existente = productoRepository.findById(producto.getId()).orElse(null);
             if (existente != null) {
@@ -188,31 +184,27 @@ public class AdminController {
             }
         }
 
-        // 3. Guardar variaciones desde campos separados
+        // Guardar variaciones
         if (coloresInput != null || tallasInput != null) {
-            String coloresStr = coloresInput != null ? coloresInput.replace(/\s*,\s*/g, ", ") : "";
-            String tallasStr = tallasInput != null ? tallasInput.replace(/\s*,\s*/g, ", ") : "";
+            String coloresStr = coloresInput != null ? coloresInput.replace("\\s*,\\s*", ", ") : "";
+            String tallasStr = tallasInput != null ? tallasInput.replace("\\s*,\\s*", ", ") : "";
             String variacionesStr = coloresStr + "|" + tallasStr;
             producto.setVariacionesDisponibles(variacionesStr);
-            System.out.println("✅ Variaciones guardadas: " + variacionesStr);
         } else if (variacionesDisponibles != null) {
-            // Fallback: si viene el campo antiguo
             producto.setVariacionesDisponibles(variacionesDisponibles);
         }
 
-        // 4. Guardar producto
         productoRepository.save(producto);
-        redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
+        redirect.addFlashAttribute("mensaje", "Producto guardado correctamente!");
         return "redirect:/admin/panel?key=" + key;
     }
 
     @GetMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        // Eliminar reseñas asociadas
         resenaRepository.deleteByProductoId(id);
         productoRepository.deleteById(id);
-        redirect.addFlashAttribute("mensaje", "🗑️ Producto eliminado!");
+        redirect.addFlashAttribute("mensaje", "Producto eliminado!");
         return "redirect:/admin/panel?key=" + key;
     }
 
@@ -220,12 +212,12 @@ public class AdminController {
     public String eliminarPedido(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
         pedidoRepository.deleteById(id);
-        redirect.addFlashAttribute("mensaje", "🗑️ Pedido eliminado!");
+        redirect.addFlashAttribute("mensaje", "Pedido eliminado!");
         return "redirect:/admin/pedidos?key=" + key;
     }
 
     // ============================================================
-    // GESTIÓN DE RESEÑAS (DESDE EL ADMIN)
+    // GESTIÓN DE RESEÑAS
     // ============================================================
     @PostMapping("/guardar-resena")
     public String guardarResena(@RequestParam String key,
@@ -239,7 +231,7 @@ public class AdminController {
 
         Producto producto = productoRepository.findById(productoId).orElse(null);
         if (producto == null) {
-            redirect.addFlashAttribute("mensaje", "❌ Producto no encontrado");
+            redirect.addFlashAttribute("mensaje", "Producto no encontrado");
             return "redirect:/admin/panel?key=" + key;
         }
 
@@ -253,7 +245,7 @@ public class AdminController {
         resena.setAprobado(true);
 
         resenaRepository.save(resena);
-        redirect.addFlashAttribute("mensaje", "⭐ Reseña agregada correctamente");
+        redirect.addFlashAttribute("mensaje", "Reseña agregada correctamente");
         return "redirect:/admin/editar/" + productoId + "?key=" + key;
     }
 
@@ -265,10 +257,10 @@ public class AdminController {
         if (resena != null) {
             Long productoId = resena.getProducto().getId();
             resenaRepository.deleteById(id);
-            redirect.addFlashAttribute("mensaje", "🗑️ Reseña eliminada");
+            redirect.addFlashAttribute("mensaje", "Reseña eliminada");
             return "redirect:/admin/editar/" + productoId + "?key=" + key;
         }
-        redirect.addFlashAttribute("mensaje", "❌ Reseña no encontrada");
+        redirect.addFlashAttribute("mensaje", "Reseña no encontrada");
         return "redirect:/admin/panel?key=" + key;
     }
 }
