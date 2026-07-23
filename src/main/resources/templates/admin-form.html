@@ -28,8 +28,9 @@
         .form-group small { color:#666; display:block; margin-top:4px; }
         .form-group .checkbox-group { display:flex; align-items:center; gap:10px; margin-top:5px; }
         .form-group .checkbox-group input { width:auto; }
-        .imagenes-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-        @media (max-width:600px){ .form-row,.imagenes-grid { grid-template-columns:1fr; } }
+        .imagenes-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+        .btn-eliminar { background:#ff0044; color:#fff; border:none; padding:14px 30px; border-radius:25px; cursor:pointer; transition:all 0.3s; }
+        .btn-eliminar:hover { box-shadow:0 0 30px rgba(255,0,68,0.4); transform:scale(1.02); }
 
         /* ============================================================ */
         /* SECCIÓN DE RESEÑAS */
@@ -53,6 +54,8 @@
         .form-resena h4 { color:#00ffff; margin-bottom:10px; }
         .btn-guardar-resena { margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:25px; cursor:pointer; font-weight:700; transition:all 0.3s; }
         .btn-guardar-resena:hover { box-shadow:0 0 30px rgba(255,215,0,0.4); transform:scale(1.02); }
+
+        @media (max-width:600px){ .form-row,.imagenes-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -65,7 +68,10 @@
         </div>
     </div>
 
-    <form th:action="@{/admin/guardar(key=${key})}" method="post">
+    <!-- ============================================================ -->
+    <!-- FORMULARIO PRINCIPAL - CON ENCTYPE PARA MULTIPART -->
+    <!-- ============================================================ -->
+    <form th:action="@{/admin/guardar(key=${key})}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="id" th:value="${producto.id}">
 
         <!-- ============================================================ -->
@@ -95,7 +101,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- IMÁGENES -->
+        <!-- IMÁGENES (URLs de Cloudinary) -->
         <!-- ============================================================ -->
         <div class="form-section">
             <h2>🖼️ Imágenes (URLs de Cloudinary)</h2>
@@ -124,7 +130,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- VARIACIONES -->
+        <!-- VARIACIONES - CON CAMPOS SEPARADOS PARA COLOR Y TALLA -->
         <!-- ============================================================ -->
         <div class="form-section">
             <h2>🎨 Variaciones</h2>
@@ -132,10 +138,24 @@
                 <input type="checkbox" id="tieneVariaciones" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" value="true">
                 <label for="tieneVariaciones">Este producto tiene variaciones (colores, tallas, etc.)</label>
             </div>
-            <div class="form-group full">
-                <label>Variaciones disponibles</label>
-                <input type="text" name="variacionesDisponibles" th:value="${producto.variacionesDisponibles}" placeholder="Ej: Rojo,Azul,Verde|S,M,L,XL">
-                <small style="color:#666;">Formato: colores separados por coma | tallas separadas por coma (ej: Rojo,Azul|S,M,L)</small>
+
+            <div id="variacionesCampos" th:style="${producto.tieneVariaciones ? 'display:block;' : 'display:none;'}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Colores disponibles</label>
+                        <input type="text" id="coloresInput" name="coloresInput"
+                               th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ','), ', ')}"
+                               placeholder="Ej: Rojo, Azul, Verde, Negro">
+                        <small style="color:#666;">Separa los colores con comas (ej: Rojo, Azul, Negro)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Tallas disponibles</label>
+                        <input type="text" id="tallasInput" name="tallasInput"
+                               th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ','), ', ')}"
+                               placeholder="Ej: S, M, L, XL">
+                        <small style="color:#666;">Separa las tallas con comas (ej: S, M, L, XL)</small>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -145,7 +165,6 @@
         <div class="form-section resenas-section" th:if="${producto.id != null}">
             <h2>⭐ Reseñas y calificación</h2>
 
-            <!-- Resumen -->
             <div class="resumen-calificacion">
                 <span class="label">Calificación promedio:</span>
                 <span class="nota" th:text="${producto.promedioCalificacion != null ? #numbers.formatDecimal(producto.promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '0.0'}">0.0</span>
@@ -159,7 +178,6 @@
                 <span class="total" th:text="${producto.cantidadResenas != null ? producto.cantidadResenas + ' reseñas' : '0 reseñas'}">0 reseñas</span>
             </div>
 
-            <!-- Lista de reseñas -->
             <div th:if="${!resenas.isEmpty()}">
                 <div th:each="resena : ${resenas}" class="resena-item">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
@@ -176,12 +194,10 @@
             </div>
             <p class="no-resenas" th:if="${resenas.isEmpty()}">No hay reseñas para este producto</p>
 
-            <!-- Formulario para agregar reseña -->
             <div class="form-resena">
                 <h4>➕ Agregar reseña</h4>
                 <form th:action="@{/admin/guardar-resena(key=${key})}" method="post">
                     <input type="hidden" name="productoId" th:value="${producto.id}">
-
                     <div class="form-row">
                         <div class="form-group"><label>Nombre del cliente *</label><input type="text" name="nombreCliente" placeholder="Ej: María Rodríguez" required></div>
                         <div class="form-group"><label>Calificación *</label>
@@ -194,11 +210,8 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group full"><label>Comentario *</label><textarea name="comentario" rows="3" placeholder="Escribe el comentario del cliente..." required></textarea></div>
-
                     <div class="form-group full"><label>URL de la imagen (Cloudinary)</label><input type="text" name="imagenUrl" placeholder="https://res.cloudinary.com/.../imagen.jpg"></div>
-
                     <button type="submit" class="btn-guardar-resena">✅ Guardar reseña</button>
                 </form>
             </div>
@@ -209,9 +222,51 @@
         <!-- ============================================================ -->
         <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
             <button type="submit" class="btn btn-save" style="padding:14px 40px; font-size:1rem;">💾 Guardar producto</button>
-            <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn" style="background:#ff0044; color:#fff; border:none; padding:14px 30px;" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
+            <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
         </div>
     </form>
 </div>
+
+<script>
+    // ============================================================
+    // MOSTRAR/OCULTAR CAMPOS DE VARIACIONES
+    // ============================================================
+    document.getElementById('tieneVariaciones').addEventListener('change', function() {
+        const campos = document.getElementById('variacionesCampos');
+        if (this.checked) {
+            campos.style.display = 'block';
+        } else {
+            campos.style.display = 'none';
+            // Limpiar campos cuando se desactiva
+            document.getElementById('coloresInput').value = '';
+            document.getElementById('tallasInput').value = '';
+        }
+    });
+
+    // ============================================================
+    // COMBINAR COLORES Y TALLAS EN UN SOLO CAMPO ANTES DE ENVIAR
+    // ============================================================
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Obtener los valores de color y talla
+        const colores = document.getElementById('coloresInput').value.trim();
+        const tallas = document.getElementById('tallasInput').value.trim();
+
+        // Crear el campo oculto para variacionesDisponibles
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'variacionesDisponibles';
+
+        if (colores || tallas) {
+            // Formato: "color1,color2|talla1,talla2"
+            const coloresStr = colores ? colores.replace(/\s*,\s*/g, ', ') : '';
+            const tallasStr = tallas ? tallas.replace(/\s*,\s*/g, ', ') : '';
+            hiddenInput.value = coloresStr + '|' + tallasStr;
+        } else {
+            hiddenInput.value = '|';
+        }
+
+        this.appendChild(hiddenInput);
+    });
+</script>
 </body>
 </html>

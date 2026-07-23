@@ -142,17 +142,32 @@ public class AdminController {
     }
 
     @PostMapping("/guardar")
-    public String guardarProducto(@ModelAttribute Producto producto, @RequestParam String key,
+    public String guardarProducto(@ModelAttribute Producto producto,
+                                  @RequestParam String key,
                                   @RequestParam(required = false) String imagen1File,
                                   @RequestParam(required = false) String imagen2File,
                                   @RequestParam(required = false) String imagen3File,
                                   @RequestParam(required = false) String imagen4File,
                                   @RequestParam(required = false) String imagen5File,
                                   @RequestParam(required = false) String imagen6File,
+                                  @RequestParam(required = false) String coloresInput,
+                                  @RequestParam(required = false) String tallasInput,
+                                  @RequestParam(required = false) String variacionesDisponibles,
                                   RedirectAttributes redirect) {
+
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
 
-        // Guardar URLs directamente
+        // 🔍 LOGS DE DEPURACIÓN
+        System.out.println("=========================================");
+        System.out.println("📦 Guardando producto: " + producto.getNombre());
+        System.out.println("🆔 ID: " + producto.getId());
+        System.out.println("📷 Imagen1: " + imagen1File);
+        System.out.println("🎨 Colores: " + coloresInput);
+        System.out.println("📏 Tallas: " + tallasInput);
+        System.out.println("📦 Variaciones: " + variacionesDisponibles);
+        System.out.println("=========================================");
+
+        // 1. Guardar URLs de imágenes
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
         if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
@@ -160,7 +175,7 @@ public class AdminController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // Mantener imágenes existentes si no se cambian
+        // 2. Mantener imágenes existentes si no se cambian
         if (producto.getId() != null) {
             Producto existente = productoRepository.findById(producto.getId()).orElse(null);
             if (existente != null) {
@@ -173,8 +188,21 @@ public class AdminController {
             }
         }
 
+        // 3. Guardar variaciones desde campos separados
+        if (coloresInput != null || tallasInput != null) {
+            String coloresStr = coloresInput != null ? coloresInput.replace(/\s*,\s*/g, ", ") : "";
+            String tallasStr = tallasInput != null ? tallasInput.replace(/\s*,\s*/g, ", ") : "";
+            String variacionesStr = coloresStr + "|" + tallasStr;
+            producto.setVariacionesDisponibles(variacionesStr);
+            System.out.println("✅ Variaciones guardadas: " + variacionesStr);
+        } else if (variacionesDisponibles != null) {
+            // Fallback: si viene el campo antiguo
+            producto.setVariacionesDisponibles(variacionesDisponibles);
+        }
+
+        // 4. Guardar producto
         productoRepository.save(producto);
-        redirect.addFlashAttribute("mensaje", "✅ Producto guardado!");
+        redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         return "redirect:/admin/panel?key=" + key;
     }
 
