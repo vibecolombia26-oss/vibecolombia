@@ -1343,13 +1343,15 @@
 
 <script>
     // ============================================================
-    // ACTUALIZAR BARRA FLOTANTE DEL CARRITO
+    // ACTUALIZAR BARRA FLOTANTE DEL CARRITO (VERSIÓN MEJORADA)
     // ============================================================
     function actualizarBarraCarrito() {
         const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
         const floatDiv = document.getElementById('cartFloat');
         const countSpan = document.getElementById('cartFloatCount');
         const totalSpan = document.getElementById('cartFloatTotal');
+
+        if (!floatDiv || !countSpan || !totalSpan) return;
 
         if (carrito.length === 0) {
             floatDiv.classList.remove('show');
@@ -1368,11 +1370,46 @@
         floatDiv.classList.add('show');
     }
 
-    // Actualizar cada vez que cambia el carrito
+    // ============================================================
+    // SOBRESCRIBIR LA FUNCIÓN AGREGAR AL CARRITO PARA ACTUALIZAR LA BARRA
+    // ============================================================
+    // Guardar la función original si existe
+    const originalAgregar = window.agregarAlCarrito;
+
+    // Definir la nueva función
+    window.agregarAlCarrito = function(nombre, precio, imagen) {
+        let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+
+        // Verificar si el producto ya está en el carrito
+        let existe = false;
+        for (let i = 0; i < carrito.length; i++) {
+            if (carrito[i].nombre === nombre) {
+                carrito[i].cantidad += 1;
+                existe = true;
+                break;
+            }
+        }
+        if (!existe) {
+            carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
+        }
+
+        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+
+        // Actualizar contador y barra
+        actualizarContador();
+        actualizarBarraCarrito();
+
+        // Mostrar notificación
+        mostrarToast(`${nombre} agregado al carrito`, '🛒');
+    };
+
+    // ============================================================
+    // ACTUALIZAR BARRA CUANDO LA PÁGINA CARGA
+    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         actualizarBarraCarrito();
 
-        // Escuchar cambios en localStorage (cuando se agrega desde otro lugar)
+        // Escuchar cambios en localStorage (cuando se agrega desde otra pestaña)
         window.addEventListener('storage', function(e) {
             if (e.key === 'carritoFlowColombia') {
                 actualizarBarraCarrito();
@@ -1380,18 +1417,8 @@
         });
     });
 
-    // Reemplazar la función agregarAlCarrito para que actualice la barra
-    const originalAgregar = window.agregarAlCarrito;
-    if (originalAgregar) {
-        window.agregarAlCarrito = function(nombre, precio, imagen) {
-            let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-            carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
-            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-            actualizarBarraCarrito();
-            mostrarToast(`${nombre} agregado al carrito`, '🛒');
-            actualizarContador();
-        };
-    }
+    // También actualizar cuando se usa el botón de agregar desde el carrito
+    setInterval(actualizarBarraCarrito, 5000);
 </script>
 
 </body>
