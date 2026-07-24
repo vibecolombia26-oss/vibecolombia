@@ -1179,5 +1179,220 @@
     </svg>
 </a>
 
+<!-- ============================================================ -->
+<!-- BARRA FLOTANTE DE CARRITO (SIEMPRE VISIBLE) -->
+<!-- ============================================================ -->
+<div id="cartFloat" style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9998;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 2px solid rgba(255,0,255,0.3);
+    padding: 12px 20px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+">
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <span style="color: #fff; font-weight: 600; font-size: 0.9rem;">
+            🛒 <span id="cartFloatCount">0</span> productos
+        </span>
+        <span style="color: #00ffff; font-weight: 900; font-size: 1.2rem;">
+            Total: $<span id="cartFloatTotal">0</span>
+        </span>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="/carrito" style="
+            padding: 10px 25px;
+            background: linear-gradient(45deg, #00ffff, #0088cc);
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        ">
+            Ver carrito
+        </a>
+        <a href="/carrito?contraentrega=true" style="
+            padding: 10px 25px;
+            background: linear-gradient(45deg, #ffd700, #f0a500);
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            animation: pulseContraentrega 1.5s infinite;
+            box-shadow: 0 0 30px rgba(255,215,0,0.2);
+            position: relative;
+            overflow: hidden;
+        ">
+            💵 Pagar contra entrega
+            <span style="
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+                animation: shineContraentrega 3s infinite;
+                pointer-events: none;
+            "></span>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* ============================================================ */
+    /* ANIMACIONES PARA EL BOTÓN DE PAGO CONTRA ENTREGA */
+    /* ============================================================ */
+
+    /* Pulso del botón */
+    @keyframes pulseContraentrega {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.2);
+        }
+    }
+
+    /* Brillo deslizante */
+    @keyframes shineContraentrega {
+        0% {
+            transform: rotate(0deg) translateX(-100%);
+            opacity: 0;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            transform: rotate(360deg) translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    /* Animación de entrada de la barra */
+    @keyframes slideUpCart {
+        0% {
+            transform: translateY(100%);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    #cartFloat.show {
+        display: flex !important;
+        animation: slideUpCart 0.4s ease;
+    }
+
+    /* Modo claro */
+    body.light-mode #cartFloat {
+        background: rgba(255,255,255,0.95);
+        border-top: 2px solid rgba(255,0,255,0.2);
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+    }
+
+    body.light-mode #cartFloat span[style*="color: #fff"] {
+        color: #222 !important;
+    }
+
+    body.light-mode #cartFloat .btn-contraentrega-float {
+        background: linear-gradient(45deg, #ffd700, #e6a800);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        #cartFloat {
+            padding: 10px 15px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        #cartFloat div:first-child {
+            justify-content: center;
+        }
+        #cartFloat .btn-contraentrega-float,
+        #cartFloat .btn-carrito-float {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+            padding: 12px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<script>
+    // ============================================================
+    // ACTUALIZAR BARRA FLOTANTE DEL CARRITO
+    // ============================================================
+    function actualizarBarraCarrito() {
+        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        const floatDiv = document.getElementById('cartFloat');
+        const countSpan = document.getElementById('cartFloatCount');
+        const totalSpan = document.getElementById('cartFloatTotal');
+
+        if (carrito.length === 0) {
+            floatDiv.classList.remove('show');
+            return;
+        }
+
+        let total = 0;
+        carrito.forEach(item => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            total += precio * cantidad;
+        });
+
+        countSpan.textContent = carrito.length;
+        totalSpan.textContent = total.toLocaleString('es-CO');
+        floatDiv.classList.add('show');
+    }
+
+    // Actualizar cada vez que cambia el carrito
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarBarraCarrito();
+
+        // Escuchar cambios en localStorage (cuando se agrega desde otro lugar)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'carritoFlowColombia') {
+                actualizarBarraCarrito();
+            }
+        });
+    });
+
+    // Reemplazar la función agregarAlCarrito para que actualice la barra
+    const originalAgregar = window.agregarAlCarrito;
+    if (originalAgregar) {
+        window.agregarAlCarrito = function(nombre, precio, imagen) {
+            let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+            carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
+            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+            actualizarBarraCarrito();
+            mostrarToast(`${nombre} agregado al carrito`, '🛒');
+            actualizarContador();
+        };
+    }
+</script>
+
 </body>
 </html>
