@@ -245,8 +245,10 @@ public class AdminController {
         resena.setAprobado(true);
 
         resenaRepository.save(resena);
-        redirect.addFlashAttribute("mensaje", "Reseña agregada correctamente");
-        return "redirect:/admin/editar/" + productoId + "?key=" + key;
+        redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
+
+        // 🔥 REDIRIGIR A LA PÁGINA PÚBLICA DEL PRODUCTO CON PARÁMETRO PARA RECARGAR
+        return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
     }
 
     @GetMapping("/eliminar-resena/{id}")

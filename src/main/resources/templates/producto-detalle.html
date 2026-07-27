@@ -12,8 +12,8 @@
         .particula-emoji { position: absolute; animation: flotarEmoji linear infinite; opacity: 0.4; font-size: 1.5rem; }
         @keyframes flotar { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         @keyframes flotarEmoji { 0% { transform: translateY(105vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.2; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
-        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 20px; }
-        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 20px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.85rem; transition: all 0.3s; }
+        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 15px; }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 20px; margin: 15px 0; border: 1px solid #00ffff; border-radius: 25px; text-transform: uppercase; font-size: 0.8rem; transition: all 0.3s; }
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
 
@@ -36,114 +36,205 @@
         .imagen-secundaria.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
         /* ============ INFO DEL PRODUCTO ============ */
-        .info-section { padding: 25px 30px 30px; }
-        .nombre { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
-        .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 15px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .precio { font-size: 2.5rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
-        .calificacion-resumen { display: flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.08); padding: 6px 16px; border-radius: 25px; border: 1px solid rgba(255,215,0,0.15); cursor: pointer; transition: all 0.3s; }
+        .info-section { padding: 20px 20px 25px; }
+        .nombre { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
+        .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .precio { font-size: 2.2rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        .calificacion-resumen { display: flex; align-items: center; gap: 6px; background: rgba(255,215,0,0.08); padding: 4px 12px; border-radius: 25px; border: 1px solid rgba(255,215,0,0.15); cursor: pointer; transition: all 0.3s; }
         .calificacion-resumen:hover { background: rgba(255,215,0,0.15); border-color: #ffd700; }
-        .calificacion-resumen .estrellas { color: #ffd700; font-size: 1.2rem; letter-spacing: 2px; }
-        .calificacion-resumen .puntaje { font-weight: 700; color: #ffd700; font-size: 1.1rem; }
-        .calificacion-resumen .total-resenas { color: #888; font-size: 0.75rem; }
-        .meta { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 12px; }
-        .sku { color: #ff00ff; }
-        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.75rem; text-transform: uppercase; }
-        .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.8rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
-
-        /* ============ SELLOS DE CONFIANZA ============ */
-        .sellos-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 15px 0 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .sello-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #aaa; }
-        .sello-item .icono { font-size: 1.5rem; }
-        .sello-item .texto { color: #ccc; }
-        .sello-item .texto strong { color: #fff; }
+        .calificacion-resumen .estrellas { color: #ffd700; font-size: 1rem; letter-spacing: 1px; }
+        .calificacion-resumen .puntaje { font-weight: 700; color: #ffd700; font-size: 1rem; }
+        .calificacion-resumen .total-resenas { color: #888; font-size: 0.7rem; }
+        .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .sku { color: #ff00ff; font-size: 0.85rem; }
+        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.7rem; text-transform: uppercase; }
+        .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.75rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
 
         /* ============ DROPDOWNS ============ */
-        .dropdown-container { margin: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
+        .dropdown-container { margin: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
         .dropdown-header:hover { color: #ff00ff; }
-        .dropdown-header h3 { font-size: 1rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .dropdown-header .icono { font-size: 1.2rem; }
-        .dropdown-header .arrow { transition: transform 0.3s; font-size: 1.2rem; color: #888; }
+        .dropdown-header h3 { font-size: 0.95rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .dropdown-header .icono { font-size: 1.1rem; }
+        .dropdown-header .arrow { transition: transform 0.3s; font-size: 1.1rem; color: #888; }
         .dropdown-header.active .arrow { transform: rotate(180deg); }
         .dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; padding: 0 5px; }
         .dropdown-content.open { max-height: 1000px; padding: 5px 5px 20px; }
         .dropdown-content p { color: #ccc; line-height: 1.8; font-size: 0.9rem; }
         .dropdown-content ul { list-style: none; padding: 0; }
-        .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
 
         /* ============ VARIACIONES ============ */
-        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 20px 0; }
-        .variaciones h3 { color: #ff00ff; margin-bottom: 12px; }
-        .variacion-row { display: flex; gap: 20px; flex-wrap: wrap; }
-        .variacion-group { flex: 1; min-width: 120px; }
-        .variacion-group label { color: #00ffff; font-size: 0.8rem; display: block; margin-bottom: 5px; }
-        .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; }
+        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .variaciones h3 { color: #ff00ff; margin-bottom: 10px; font-size: 1.1rem; }
+        .variacion-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .variacion-group { flex: 1; min-width: 100px; }
+        .variacion-group label { color: #00ffff; font-size: 0.75rem; display: block; margin-bottom: 4px; }
+        .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.9rem; }
 
         /* ============ CONVERTIDOR DE TALLAS ============ */
-        .tallas-container { margin: 20px 0; }
-        .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 20px; }
-        .tallas-card h3 { color: #ffd700; font-size: 1.2rem; margin-bottom: 5px; }
-        .tallas-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; }
-        .tallas-conversor { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
-        .tallas-input-group { flex: 1; min-width: 130px; }
-        .tallas-input-group label { display: block; color: #00ffff; font-size: 0.75rem; margin-bottom: 4px; font-weight: 600; }
+        .tallas-container { margin: 15px 0; }
+        .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 18px; }
+        .tallas-card h3 { color: #ffd700; font-size: 1.1rem; margin-bottom: 4px; }
+        .tallas-desc { color: #aaa; font-size: 0.8rem; margin-bottom: 12px; }
+        .tallas-conversor { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+        .tallas-input-group { flex: 1; min-width: 120px; }
+        .tallas-input-group label { display: block; color: #00ffff; font-size: 0.7rem; margin-bottom: 3px; font-weight: 600; }
         .tallas-input-group select, .tallas-input-group input { width: 100%; padding: 8px 10px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 0.9rem; }
         .tallas-input-group select:focus, .tallas-input-group input:focus { outline: none; border-color: #ff00ff; }
-        .tallas-resultado { flex: 1; min-width: 150px; background: rgba(255,215,0,0.05); border: 1px solid #ffd700; border-radius: 10px; padding: 12px 15px; text-align: center; }
-        .tallas-resultado p { margin: 3px 0; }
-        #tallaColombia { color: #ffd700; font-size: 1.6rem; font-weight: 900; }
-        .tallas-recomendacion { color: #aaa; font-size: 0.8rem; }
-        .tallas-dropdown { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .tallas-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: #00ffff; font-size: 0.85rem; }
+        .tallas-resultado { flex: 1; min-width: 140px; background: rgba(255,215,0,0.05); border: 1px solid #ffd700; border-radius: 10px; padding: 10px 12px; text-align: center; }
+        .tallas-resultado p { margin: 2px 0; font-size: 0.85rem; }
+        #tallaColombia { color: #ffd700; font-size: 1.4rem; font-weight: 900; }
+        .tallas-recomendacion { color: #aaa; font-size: 0.75rem; }
+        .tallas-dropdown { margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .tallas-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; cursor: pointer; color: #00ffff; font-size: 0.8rem; }
         .tallas-dropdown-header .arrow { transition: transform 0.3s; }
         .tallas-dropdown-header.active .arrow { transform: rotate(180deg); }
         .tallas-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
         .tallas-dropdown-content.open { max-height: 500px; }
-        .tallas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #222; border-radius: 8px; overflow: hidden; font-size: 0.75rem; margin-top: 10px; }
+        .tallas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #222; border-radius: 8px; overflow: hidden; font-size: 0.7rem; margin-top: 10px; }
         .tallas-header { display: contents; font-weight: 700; color: #ffd700; }
         .tallas-row { display: contents; }
-        .tallas-row span { padding: 6px 8px; background: #1a1a1a; text-align: center; border-bottom: 1px solid #222; }
-        .tallas-tips { margin-top: 15px; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #ffd700; }
-        .tallas-tips p { color: #fff; font-size: 0.85rem; margin-bottom: 8px; }
+        .tallas-row span { padding: 5px 6px; background: #1a1a1a; text-align: center; border-bottom: 1px solid #222; }
+        .tallas-tips { margin-top: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #ffd700; }
+        .tallas-tips p { color: #fff; font-size: 0.8rem; margin-bottom: 6px; }
         .tallas-tips ul { list-style: none; padding: 0; }
-        .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.8rem; }
+        .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.75rem; }
         .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
 
         /* ============ RESEÑAS ============ */
-        .resenas-section { margin: 25px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-        .resenas-header h3 { color: #fff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
-        .resenas-header .cantidad { color: #888; font-size: 0.9rem; font-weight: 400; }
-        .resumen-calificacion { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
-        .resumen-calificacion .nota { font-size: 2rem; font-weight: 900; color: #ffd700; }
-        .resumen-calificacion .estrellas-grandes { font-size: 1.3rem; color: #ffd700; letter-spacing: 2px; }
-        .resumen-calificacion .total { color: #888; font-size: 0.9rem; }
-        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-left: 3px solid #ffd700; }
-        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.95rem; }
-        .resena-item .estrellas { color: #ffd700; font-size: 0.9rem; letter-spacing: 1px; margin: 4px 0; }
-        .resena-item .fecha { color: #666; font-size: 0.7rem; }
-        .resena-item .comentario { color: #ccc; font-size: 0.9rem; margin-top: 5px; line-height: 1.5; }
-        .resena-item .imagen-resena { max-width: 80px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .resenas-section { margin: 20px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .resenas-header h3 { color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .resenas-header .cantidad { color: #888; font-size: 0.85rem; font-weight: 400; }
+        .resumen-calificacion { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .resumen-calificacion .nota { font-size: 1.8rem; font-weight: 900; color: #ffd700; }
+        .resumen-calificacion .estrellas-grandes { font-size: 1.2rem; color: #ffd700; letter-spacing: 2px; }
+        .resumen-calificacion .total { color: #888; font-size: 0.85rem; }
+        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #ffd700; }
+        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.9rem; }
+        .resena-item .estrellas { color: #ffd700; font-size: 0.85rem; letter-spacing: 1px; margin: 3px 0; }
+        .resena-item .fecha { color: #666; font-size: 0.65rem; }
+        .resena-item .comentario { color: #ccc; font-size: 0.85rem; margin-top: 5px; line-height: 1.5; }
+        .resena-item .imagen-resena { max-width: 70px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .resena-item .imagen-resena img { width: 100%; border-radius: 8px; }
-        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; }
+        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; font-size: 0.9rem; }
+
+        /* ============ SELLOS DE CONFIANZA (AL FINAL) ============ */
+        .sellos-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 15px 0 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .sello-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        .sello-item .icono { font-size: 1.3rem; }
+        .sello-item .texto { color: #ccc; }
+        .sello-item .texto strong { color: #fff; }
 
         /* ============ CANTIDAD Y ACCIONES ============ */
-        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
-        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
+        .cantidad-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0 10px;
+            padding: 12px;
+            background: rgba(0,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0,255,255,0.2);
+            flex-wrap: wrap;
+        }
+        .cantidad-row label { font-size: 0.85rem; }
+        .qty-btn {
+            background: transparent;
+            color: #ff00ff;
+            border: 1px solid #ff00ff;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
-        .qty-input { width: 55px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; }
-        .subtotal-display { color: #00ffff; font-weight: 700; }
-        .acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
-        .btn-carrito { width: 100%; padding: 16px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            background: #111;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .subtotal-display { color: #00ffff; font-weight: 700; font-size: 0.9rem; }
+
+        .acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .btn-carrito {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-contraentrega { width: 100%; padding: 16px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s; }
+        .btn-carrito:active { transform: scale(0.97); }
+        .btn-contraentrega {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
         .btn-contraentrega:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 30px rgba(0,255,255,0.3); transform: scale(1.02); }
-        .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px; }
-        .banner-pago .icono { font-size: 2.5rem; }
-        .banner-pago h3 { color: #ffd700; }
-        .banner-pago p { color: #aaa; }
-        .footer-mini { text-align: center; padding: 15px; margin-top: 20px; color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; }
+        .btn-contraentrega:active { transform: scale(0.97); }
+
+        .banner-pago {
+            background: rgba(255,0,255,0.05);
+            border: 1px solid rgba(255,0,255,0.2);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .banner-pago .icono { font-size: 2rem; }
+        .banner-pago h3 { color: #ffd700; font-size: 1rem; }
+        .banner-pago p { color: #aaa; font-size: 0.85rem; }
+
+        .footer-mini { text-align: center; padding: 15px; margin-top: 15px; color: #ffd700; font-size: 0.7rem; letter-spacing: 2px; }
 
         /* ============ WHATSAPP FLOTANTE ============ */
         @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
@@ -169,23 +260,119 @@
         body.light-mode .calificacion-resumen { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); }
         body.light-mode .calificacion-resumen .total-resenas { color: #666; }
 
-        /* ============ RESPONSIVE ============ */
-        @media (max-width: 600px) {
-            .info-section { padding: 20px; }
-            .nombre { font-size: 1.3rem; }
+        /* ================================================================ */
+        /* ============ RESPONSIVE MEJORADO ============ */
+        /* ================================================================ */
+
+        /* Tablets y celulares grandes */
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .info-section { padding: 15px 15px 20px; }
+            .nombre { font-size: 1.4rem; }
             .precio { font-size: 1.8rem; }
-            .btn-carrito, .btn-contraentrega { font-size: 0.85rem; padding: 14px; }
-            .precio-row { flex-direction: column; align-items: flex-start; }
-            .calificacion-resumen { align-self: flex-start; }
-            .tallas-conversor { flex-direction: column; }
+            .btn-carrito, .btn-contraentrega { font-size: 0.8rem; padding: 12px; }
+        }
+
+        /* Celulares (600px o menos) */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .back-btn { padding: 8px 16px; font-size: 0.7rem; margin: 10px 0; }
+
+            .info-section { padding: 12px 12px 18px; }
+            .nombre { font-size: 1.2rem; }
+            .precio-row { flex-direction: column; align-items: flex-start; gap: 6px; margin: 5px 0 10px; padding-bottom: 10px; }
+            .precio { font-size: 1.6rem; }
+            .calificacion-resumen { padding: 4px 10px; align-self: flex-start; }
+            .calificacion-resumen .estrellas { font-size: 0.85rem; }
+            .calificacion-resumen .puntaje { font-size: 0.85rem; }
+            .calificacion-resumen .total-resenas { font-size: 0.65rem; }
+            .meta { gap: 8px; margin-bottom: 10px; }
+            .sku { font-size: 0.75rem; }
+            .categoria { font-size: 0.65rem; padding: 3px 10px; }
+            .colombia-badge { font-size: 0.65rem; padding: 4px 10px; }
+
+            /* Dropdowns */
+            .dropdown-header { padding: 10px 0; }
+            .dropdown-header h3 { font-size: 0.85rem; }
+            .dropdown-content p { font-size: 0.8rem; }
+            .dropdown-content ul li { font-size: 0.75rem; padding: 4px 0; }
+
+            /* Variaciones */
+            .variaciones { padding: 12px; margin: 12px 0; }
+            .variaciones h3 { font-size: 1rem; }
+            .variacion-group { min-width: 80px; }
+            .variacion-group select { padding: 8px; font-size: 0.8rem; }
+
+            /* Convertidor de tallas */
+            .tallas-card { padding: 14px; }
+            .tallas-card h3 { font-size: 1rem; }
+            .tallas-desc { font-size: 0.75rem; }
+            .tallas-conversor { padding: 10px; gap: 8px; flex-direction: column; }
             .tallas-input-group { min-width: 100%; }
-            .tallas-resultado { min-width: 100%; }
-            .carrusel-btn { padding: 8px 12px; font-size: 1rem; }
-            .imagen-principal { max-height: 350px; }
-            .sellos-container { gap: 12px; padding: 10px; }
-            .sello-item { font-size: 0.7rem; }
+            .tallas-input-group select, .tallas-input-group input { padding: 8px; font-size: 0.8rem; }
+            .tallas-resultado { min-width: 100%; padding: 8px 10px; }
+            .tallas-resultado p { font-size: 0.8rem; }
+            #tallaColombia { font-size: 1.2rem; }
+            .tallas-grid { font-size: 0.6rem; }
+            .tallas-row span { padding: 4px 4px; }
+            .tallas-tips p { font-size: 0.75rem; }
+            .tallas-tips ul li { font-size: 0.7rem; padding: 2px 0; }
+
+            /* Reseñas */
+            .resenas-section { margin: 15px 0 10px; padding-top: 12px; }
+            .resenas-header h3 { font-size: 1rem; }
             .resumen-calificacion .nota { font-size: 1.5rem; }
             .resumen-calificacion .estrellas-grandes { font-size: 1rem; }
+            .resena-item { padding: 10px; }
+            .resena-item .nombre { font-size: 0.8rem; }
+            .resena-item .estrellas { font-size: 0.75rem; }
+            .resena-item .comentario { font-size: 0.75rem; }
+            .resena-item .imagen-resena { max-width: 60px; }
+
+            /* Sellos (al final) */
+            .sellos-container { gap: 10px; padding: 10px; margin: 12px 0 8px; }
+            .sello-item { font-size: 0.65rem; gap: 4px; }
+            .sello-item .icono { font-size: 1.1rem; }
+
+            /* Cantidad y acciones */
+            .cantidad-row { gap: 10px; padding: 10px; margin: 12px 0 8px; }
+            .cantidad-row label { font-size: 0.75rem; }
+            .qty-btn { width: 30px; height: 30px; font-size: 0.9rem; }
+            .qty-input { width: 44px; padding: 5px; font-size: 0.8rem; }
+            .subtotal-display { font-size: 0.8rem; }
+
+            .acciones { gap: 6px; }
+            .btn-carrito, .btn-contraentrega { padding: 12px; font-size: 0.75rem; border-radius: 20px; }
+
+            .banner-pago { padding: 10px; margin-top: 10px; }
+            .banner-pago .icono { font-size: 1.8rem; }
+            .banner-pago h3 { font-size: 0.9rem; }
+            .banner-pago p { font-size: 0.75rem; }
+
+            /* Carrusel */
+            .carrusel-btn { padding: 6px 10px; font-size: 1rem; }
+            .imagen-principal { max-height: 280px; }
+            .imagenes-secundarias { padding: 8px; gap: 6px; }
+            .imagen-secundaria { width: 45px; height: 45px; }
+
+            /* Barra flotante */
+            #cartFloat { padding: 8px 12px; }
+            #cartFloat span { font-size: 0.7rem !important; }
+            #cartFloat a { padding: 8px 16px; font-size: 0.7rem !important; }
+
+            /* Footer */
+            .footer-mini { font-size: 0.6rem; padding: 10px; }
+        }
+
+        /* Celulares muy pequeños (menos de 400px) */
+        @media (max-width: 400px) {
+            .nombre { font-size: 1rem; }
+            .precio { font-size: 1.3rem; }
+            .container { padding: 8px; }
+            .info-section { padding: 10px; }
+            .producto-card { border-radius: 14px; }
+            .imagen-principal { max-height: 220px; }
+            .btn-carrito, .btn-contraentrega { font-size: 0.7rem; padding: 10px; }
         }
     </style>
 </head>
@@ -248,13 +435,6 @@
                 <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
                 <span class="categoria" th:text="${producto.categoria}">Categoría</span>
                 <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
-            </div>
-
-            <!-- ======== SELLOS DE CONFIANZA ======== -->
-            <div class="sellos-container">
-                <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
-                <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
-                <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
             </div>
 
             <!-- ======== DROPDOWNS ======== -->
@@ -406,6 +586,13 @@
                     <p>⭐ No hay reseñas para este producto aún</p>
                     <p style="font-size:0.8rem;">Sé el primero en opinar</p>
                 </div>
+            </div>
+
+            <!-- ======== SELLOS DE CONFIANZA (MOVIDOS AL FINAL) ======== -->
+            <div class="sellos-container">
+                <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
+                <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
+                <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
             </div>
 
             <!-- ======== CANTIDAD Y ACCIONES ======== -->
@@ -687,10 +874,28 @@
         el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
         bg.appendChild(el);
     }
+
+    // ============================================================
+    // RECARGAR RESEÑAS DESPUÉS DE AGREGAR UNA (desde el admin)
+    // ============================================================
+    // Si la página viene con un parámetro "resena=ok", recargamos para mostrar los nuevos datos
+    if (window.location.search.includes('resena=ok')) {
+        // Limpiar el parámetro para evitar un bucle
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+        location.reload();
+    }
+
+    // También escuchar cambios en localStorage (por si se actualiza desde otra pestaña)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'flowResenaActualizada') {
+            location.reload();
+        }
+    });
 </script>
 
 <!-- ============================================================ -->
-<!-- BARRA FLOTANTE DE CARRITO (SIEMPRE VISIBLE) -->
+<!-- BARRA FLOTANTE DE CARRITO -->
 <!-- ============================================================ -->
 <div id="cartFloat" style="
     position: fixed;
@@ -772,81 +977,44 @@
     /* ANIMACIONES PARA EL BOTÓN DE PAGO CONTRA ENTREGA */
     /* ============================================================ */
 
-    /* Pulso del botón */
     @keyframes pulseContraentrega {
-        0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 20px rgba(255,215,0,0.3);
-        }
-        50% {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.2);
-        }
+        0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.2); }
     }
 
-    /* Brillo deslizante */
     @keyframes shineContraentrega {
-        0% {
-            transform: rotate(0deg) translateX(-100%);
-            opacity: 0;
-        }
-        50% {
-            opacity: 1;
-        }
-        100% {
-            transform: rotate(360deg) translateX(100%);
-            opacity: 0;
-        }
+        0% { transform: rotate(0deg) translateX(-100%); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: rotate(360deg) translateX(100%); opacity: 0; }
     }
 
-    /* Animación de entrada de la barra */
     @keyframes slideUpCart {
-        0% {
-            transform: translateY(100%);
-        }
-        100% {
-            transform: translateY(0);
-        }
+        0% { transform: translateY(100%); }
+        100% { transform: translateY(0); }
     }
 
-    #cartFloat.show {
-        display: flex !important;
-        animation: slideUpCart 0.4s ease;
-    }
+    #cartFloat.show { display: flex !important; animation: slideUpCart 0.4s ease; }
 
-    /* Modo claro */
     body.light-mode #cartFloat {
         background: rgba(255,255,255,0.95);
         border-top: 2px solid rgba(255,0,255,0.2);
         box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
     }
+    body.light-mode #cartFloat span[style*="color: #fff"] { color: #222 !important; }
 
-    body.light-mode #cartFloat span[style*="color: #fff"] {
-        color: #222 !important;
-    }
-
-    body.light-mode #cartFloat .btn-contraentrega-float {
-        background: linear-gradient(45deg, #ffd700, #e6a800);
-    }
-
-    /* Responsive */
     @media (max-width: 600px) {
         #cartFloat {
-            padding: 10px 15px;
+            padding: 8px 12px;
             flex-direction: column;
             align-items: stretch;
-            gap: 8px;
+            gap: 6px;
         }
-        #cartFloat div:first-child {
-            justify-content: center;
-        }
-        #cartFloat .btn-contraentrega-float,
-        #cartFloat .btn-carrito-float {
+        #cartFloat div:first-child { justify-content: center; }
+        #cartFloat a {
             width: 100%;
             text-align: center;
-            justify-content: center;
-            padding: 12px;
-            font-size: 0.8rem;
+            padding: 10px;
+            font-size: 0.75rem !important;
         }
     }
 </style>
@@ -878,19 +1046,13 @@
         floatDiv.classList.add('show');
     }
 
-    // Actualizar cada vez que cambia el carrito
     document.addEventListener('DOMContentLoaded', function() {
         actualizarBarraCarrito();
-
-        // Escuchar cambios en localStorage (cuando se agrega desde otro lugar)
         window.addEventListener('storage', function(e) {
-            if (e.key === 'carritoFlowColombia') {
-                actualizarBarraCarrito();
-            }
+            if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
         });
     });
 
-    // Reemplazar la función agregarAlCarrito para que actualice la barra
     const originalAgregar = window.agregarAlCarrito;
     if (originalAgregar) {
         window.agregarAlCarrito = function(nombre, precio, imagen) {
