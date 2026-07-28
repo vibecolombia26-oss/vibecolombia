@@ -227,28 +227,57 @@ public class AdminController {
                                 @RequestParam String comentario,
                                 @RequestParam(required = false) String imagenUrl,
                                 RedirectAttributes redirect) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
 
+        // 🔍 LOGS DE DEPURACIÓN
+        System.out.println("=========================================");
+        System.out.println("📝 RECIBIENDO RESEÑA:");
+        System.out.println("  Key: " + key);
+        System.out.println("  Producto ID: " + productoId);
+        System.out.println("  Cliente: " + nombreCliente);
+        System.out.println("  Calificación: " + calificacion);
+        System.out.println("  Comentario: " + comentario);
+        System.out.println("  Imagen URL: " + imagenUrl);
+        System.out.println("=========================================");
+
+        // Validar contraseña
+        if (!adminPassword.equals(key)) {
+            System.out.println("❌ Contraseña incorrecta");
+            return "redirect:/admin/login";
+        }
+
+        // Buscar producto
         Producto producto = productoRepository.findById(productoId).orElse(null);
         if (producto == null) {
-            redirect.addFlashAttribute("mensaje", "Producto no encontrado");
+            System.out.println("❌ Producto no encontrado con ID: " + productoId);
+            redirect.addFlashAttribute("mensaje", "❌ Producto no encontrado");
             return "redirect:/admin/panel?key=" + key;
         }
 
-        Resena resena = new Resena();
-        resena.setProducto(producto);
-        resena.setNombreCliente(nombreCliente);
-        resena.setCalificacion(calificacion);
-        resena.setComentario(comentario);
-        resena.setImagenUrl(imagenUrl);
-        resena.setFecha(LocalDateTime.now());
-        resena.setAprobado(true);
+        // Crear y guardar reseña
+        try {
+            Resena resena = new Resena();
+            resena.setProducto(producto);
+            resena.setNombreCliente(nombreCliente);
+            resena.setCalificacion(calificacion);
+            resena.setComentario(comentario);
+            resena.setImagenUrl(imagenUrl);
+            resena.setFecha(LocalDateTime.now());
+            resena.setAprobado(true);
 
-        resenaRepository.save(resena);
-        redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
+            Resena saved = resenaRepository.save(resena);
+            System.out.println("✅ Reseña guardada con ID: " + saved.getId());
 
-        // 🔥 REDIRIGIR A LA PÁGINA PÚBLICA DEL PRODUCTO CON PARÁMETRO PARA RECARGAR
-        return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
+            redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
+
+            // 🔥 REDIRIGIR A LA PÁGINA PÚBLICA DEL PRODUCTO
+            return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
+
+        } catch (Exception e) {
+            System.err.println("❌ Error al guardar reseña: " + e.getMessage());
+            e.printStackTrace();
+            redirect.addFlashAttribute("mensaje", "❌ Error al guardar la reseña: " + e.getMessage());
+            return "redirect:/admin/editar/" + productoId + "?key=" + key;
+        }
     }
 
     @GetMapping("/eliminar-resena/{id}")

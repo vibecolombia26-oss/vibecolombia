@@ -1017,6 +1017,22 @@
             font-size: 0.75rem !important;
         }
     }
+
+    /* ============================================================ */
+    /* AJUSTE DE WHATSAPP EN MÓVIL (POR ENCIMA DE LA BARRA) */
+    /* ============================================================ */
+    @media (max-width: 600px) {
+        .whatsapp-float {
+            bottom: 160px !important;
+            z-index: 9999 !important;
+            width: 48px;
+            height: 48px;
+        }
+        #cartFloat {
+            z-index: 9998 !important;
+        }
+    }
+
 </style>
 
 <script>
@@ -1064,6 +1080,17 @@
             actualizarContador();
         };
     }
+
+    // ============================================================
+    // RECARGAR SI VIENE DE AGREGAR RESEÑA (parámetro resena=ok)
+    // ============================================================
+    if (window.location.search.includes('resena=ok')) {
+        // Limpiar el parámetro para evitar bucle
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+        location.reload();
+    }
+
 </script>
 
 </body>
