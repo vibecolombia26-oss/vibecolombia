@@ -129,7 +129,7 @@
         }
 
         /* ================================================================ */
-        /* HEADER CON PLANETA QUIETO + TEXTO JUGUETÓN */
+        /* HEADER CON PLANETA Y ANILLO TRICOLOR */
         /* ================================================================ */
         .header {
             text-align: center;
@@ -158,7 +158,7 @@
             100% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Planeta decorativo (estático) */
+        /* Planeta con anillo tricolor */
         .planet-wrapper {
             position: relative;
             z-index: 1;
@@ -171,33 +171,48 @@
             box-shadow: 0 0 40px rgba(74, 144, 217, 0.4), 0 0 80px rgba(74, 144, 217, 0.2);
             border: 2px solid rgba(255,255,255,0.1);
         }
+        /* Anillo tricolor exterior (gira) */
+        .planet-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            width: calc(100% + 30px);
+            height: calc(100% + 30px);
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #ffd700; /* Amarillo */
+            border-right-color: #0033a0; /* Azul */
+            border-bottom-color: #ce1126; /* Rojo */
+            animation: spinRing 6s linear infinite;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3), 0 0 40px rgba(0,51,160,0.2), 0 0 60px rgba(206,17,38,0.2);
+            pointer-events: none;
+        }
+        /* Anillo interior (gira en reversa) */
         .planet-wrapper::after {
             content: '';
             position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
+            top: -5px;
+            left: -5px;
+            width: calc(100% + 10px);
+            height: calc(100% + 10px);
             border-radius: 50%;
-            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.15), transparent 50%);
+            border: 2px solid transparent;
+            border-top-color: rgba(255,215,0,0.4);
+            border-right-color: rgba(0,51,160,0.4);
+            border-bottom-color: rgba(206,17,38,0.4);
+            animation: spinRingReverse 8s linear infinite;
             pointer-events: none;
         }
-        .planet-wrapper .ring {
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 140%;
-            height: 140%;
-            border-radius: 50%;
-            border: 2px solid rgba(255,215,0,0.15);
-            animation: pulseRing 3s ease-in-out infinite;
+        @keyframes spinRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        @keyframes pulseRing {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.05); opacity: 0.6; }
+        @keyframes spinRingReverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
         }
 
-        /* Texto juguetón (pasa por el medio) */
         .text-wrapper {
             position: relative;
             z-index: 2;
@@ -450,6 +465,17 @@
             background: radial-gradient(circle at 30% 30%, #6aafe6, #2a5a7c);
             box-shadow: 0 0 40px rgba(106, 175, 230, 0.3);
         }
+        body.light-mode .planet-wrapper::before {
+            border-top-color: #d4a017;
+            border-right-color: #0033a0;
+            border-bottom-color: #ce1126;
+            box-shadow: 0 0 20px rgba(212,160,23,0.3), 0 0 40px rgba(0,51,160,0.2), 0 0 60px rgba(206,17,38,0.2);
+        }
+        body.light-mode .planet-wrapper::after {
+            border-top-color: rgba(212,160,23,0.4);
+            border-right-color: rgba(0,51,160,0.4);
+            border-bottom-color: rgba(206,17,38,0.4);
+        }
         body.light-mode footer {
             background: rgba(255,255,255,0.9);
             border-top: 1px solid rgba(255,0,255,0.1);
@@ -504,6 +530,20 @@
                 width: 140px;
                 height: 140px;
             }
+            .planet-wrapper::before {
+                top: -12px;
+                left: -12px;
+                width: calc(100% + 24px);
+                height: calc(100% + 24px);
+                border-width: 3px;
+            }
+            .planet-wrapper::after {
+                top: -4px;
+                left: -4px;
+                width: calc(100% + 8px);
+                height: calc(100% + 8px);
+                border-width: 1.5px;
+            }
             .toast-container {
                 top: 70px;
                 right: 10px;
@@ -530,6 +570,20 @@
                 width: 110px;
                 height: 110px;
             }
+            .planet-wrapper::before {
+                top: -8px;
+                left: -8px;
+                width: calc(100% + 16px);
+                height: calc(100% + 16px);
+                border-width: 3px;
+            }
+            .planet-wrapper::after {
+                top: -3px;
+                left: -3px;
+                width: calc(100% + 6px);
+                height: calc(100% + 6px);
+                border-width: 1.5px;
+            }
             .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .product-card { padding: 15px; }
             .product-card img { margin-bottom: 8px; }
@@ -544,6 +598,16 @@
             .planet-wrapper {
                 width: 90px;
                 height: 90px;
+            }
+            .planet-wrapper::before {
+                top: -6px;
+                left: -6px;
+                width: calc(100% + 12px);
+                height: calc(100% + 12px);
+                border-width: 2px;
+            }
+            .planet-wrapper::after {
+                display: none;
             }
         }
     </style>
@@ -584,7 +648,7 @@
         <div class="stars-bg" id="starsBg"></div>
 
         <div class="planet-wrapper">
-            <div class="ring"></div>
+            <!-- Anillo tricolor generado por CSS -->
         </div>
 
         <div class="text-wrapper">
