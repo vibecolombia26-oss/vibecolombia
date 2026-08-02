@@ -647,17 +647,22 @@
     <header class="header">
         <div class="stars-bg" id="starsBg"></div>
 
-        <div class="planet-wrapper">
-            <!-- Anillo tricolor generado por CSS -->
+        <div class="planet-wrapper" style="
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(255,215,0,0.4), 0 0 80px rgba(0,51,160,0.3), 0 0 120px rgba(206,17,38,0.2);
+    border: 3px solid rgba(255,215,0,0.3);
+">
+            <img src="https://res.cloudinary.com/bcpwhn6o/image/upload/v1785693526/Copilot_20260802_125800_ee1tfo.png"
+                 alt="FlowColombia Planeta"
+                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
         </div>
-
-        <div class="text-wrapper">
-            <h1 class="logo-text">FLOW COLOMBIA</h1>
-        </div>
-
-        <p class="subtitle">✦ NEON ERA ✦</p>
-        <div class="colombia-badge">🇨🇴 ENVÍOS GRATIS A TODO COLOMBIA 🇨🇴</div>
-    </header>
 
     <!-- ============ PRODUCTOS ============ -->
     <div class="products-grid">
