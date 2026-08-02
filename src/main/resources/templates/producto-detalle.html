@@ -103,6 +103,27 @@
         .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.75rem; }
         .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
 
+        /* ============ POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ============ */
+        .dropdown-container.politica-tallas {
+            margin: 10px 0;
+        }
+        .dropdown-container.politica-tallas .dropdown-content ul li {
+            padding: 5px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .dropdown-container.politica-tallas .dropdown-content ul li::before {
+            content: "✦ ";
+            color: #ff00ff;
+        }
+        .dropdown-container.politica-tallas .dropdown-content ul li a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+        .dropdown-container.politica-tallas .dropdown-content ul li a:hover {
+            text-decoration: underline;
+        }
+
         /* ============ RESEÑAS ============ */
         .resenas-section { margin: 20px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
@@ -259,12 +280,25 @@
         body.light-mode .sello-item .texto strong { color: #111; }
         body.light-mode .calificacion-resumen { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); }
         body.light-mode .calificacion-resumen .total-resenas { color: #666; }
+        body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li { color: #555; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li a { color: #0088cc; }
 
         /* ================================================================ */
-        /* ============ RESPONSIVE MEJORADO ============ */
+        /* AJUSTE DE WHATSAPP EN MÓVIL */
         /* ================================================================ */
+        @media (max-width: 600px) {
+            .whatsapp-float {
+                bottom: 160px !important;
+                z-index: 9999 !important;
+                width: 48px;
+                height: 48px;
+            }
+            #cartFloat { z-index: 9998 !important; }
+        }
 
-        /* Tablets y celulares grandes */
+        /* ================================================================ */
+        /* RESPONSIVE */
+        /* ================================================================ */
         @media (max-width: 768px) {
             .container { padding: 12px; }
             .info-section { padding: 15px 15px 20px; }
@@ -272,12 +306,9 @@
             .precio { font-size: 1.8rem; }
             .btn-carrito, .btn-contraentrega { font-size: 0.8rem; padding: 12px; }
         }
-
-        /* Celulares (600px o menos) */
         @media (max-width: 600px) {
             .container { padding: 10px; }
             .back-btn { padding: 8px 16px; font-size: 0.7rem; margin: 10px 0; }
-
             .info-section { padding: 12px 12px 18px; }
             .nombre { font-size: 1.2rem; }
             .precio-row { flex-direction: column; align-items: flex-start; gap: 6px; margin: 5px 0 10px; padding-bottom: 10px; }
@@ -290,26 +321,18 @@
             .sku { font-size: 0.75rem; }
             .categoria { font-size: 0.65rem; padding: 3px 10px; }
             .colombia-badge { font-size: 0.65rem; padding: 4px 10px; }
-
-            /* Dropdowns */
             .dropdown-header { padding: 10px 0; }
             .dropdown-header h3 { font-size: 0.85rem; }
             .dropdown-content p { font-size: 0.8rem; }
             .dropdown-content ul li { font-size: 0.75rem; padding: 4px 0; }
-
-            /* Variaciones */
             .variaciones { padding: 12px; margin: 12px 0; }
             .variaciones h3 { font-size: 1rem; }
             .variacion-group { min-width: 80px; }
             .variacion-group select { padding: 8px; font-size: 0.8rem; }
-
-            /* Convertidor de tallas */
             .tallas-card { padding: 14px; }
             .tallas-card h3 { font-size: 1rem; }
-            .tallas-desc { font-size: 0.75rem; }
-            .tallas-conversor { padding: 10px; gap: 8px; flex-direction: column; }
+            .tallas-conversor { flex-direction: column; }
             .tallas-input-group { min-width: 100%; }
-            .tallas-input-group select, .tallas-input-group input { padding: 8px; font-size: 0.8rem; }
             .tallas-resultado { min-width: 100%; padding: 8px 10px; }
             .tallas-resultado p { font-size: 0.8rem; }
             #tallaColombia { font-size: 1.2rem; }
@@ -317,8 +340,6 @@
             .tallas-row span { padding: 4px 4px; }
             .tallas-tips p { font-size: 0.75rem; }
             .tallas-tips ul li { font-size: 0.7rem; padding: 2px 0; }
-
-            /* Reseñas */
             .resenas-section { margin: 15px 0 10px; padding-top: 12px; }
             .resenas-header h3 { font-size: 1rem; }
             .resumen-calificacion .nota { font-size: 1.5rem; }
@@ -328,43 +349,29 @@
             .resena-item .estrellas { font-size: 0.75rem; }
             .resena-item .comentario { font-size: 0.75rem; }
             .resena-item .imagen-resena { max-width: 60px; }
-
-            /* Sellos (al final) */
             .sellos-container { gap: 10px; padding: 10px; margin: 12px 0 8px; }
             .sello-item { font-size: 0.65rem; gap: 4px; }
             .sello-item .icono { font-size: 1.1rem; }
-
-            /* Cantidad y acciones */
             .cantidad-row { gap: 10px; padding: 10px; margin: 12px 0 8px; }
             .cantidad-row label { font-size: 0.75rem; }
             .qty-btn { width: 30px; height: 30px; font-size: 0.9rem; }
             .qty-input { width: 44px; padding: 5px; font-size: 0.8rem; }
             .subtotal-display { font-size: 0.8rem; }
-
             .acciones { gap: 6px; }
             .btn-carrito, .btn-contraentrega { padding: 12px; font-size: 0.75rem; border-radius: 20px; }
-
             .banner-pago { padding: 10px; margin-top: 10px; }
             .banner-pago .icono { font-size: 1.8rem; }
             .banner-pago h3 { font-size: 0.9rem; }
             .banner-pago p { font-size: 0.75rem; }
-
-            /* Carrusel */
             .carrusel-btn { padding: 6px 10px; font-size: 1rem; }
             .imagen-principal { max-height: 280px; }
             .imagenes-secundarias { padding: 8px; gap: 6px; }
             .imagen-secundaria { width: 45px; height: 45px; }
-
-            /* Barra flotante */
             #cartFloat { padding: 8px 12px; }
             #cartFloat span { font-size: 0.7rem !important; }
             #cartFloat a { padding: 8px 16px; font-size: 0.7rem !important; }
-
-            /* Footer */
             .footer-mini { font-size: 0.6rem; padding: 10px; }
         }
-
-        /* Celulares muy pequeños (menos de 400px) */
         @media (max-width: 400px) {
             .nombre { font-size: 1rem; }
             .precio { font-size: 1.3rem; }
@@ -416,7 +423,7 @@
 
             <!-- ======== PRECIO + CALIFICACIÓN ======== -->
             <div class="precio-row">
-                <div class="precio" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
+                <div class="precio" id="precioProducto" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
                 <div class="calificacion-resumen" onclick="document.getElementById('resenasSection').scrollIntoView({behavior:'smooth'})">
                     <span class="estrellas" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
                         (promedioCalificacion >= 4.5 ? '★★★★★' :
@@ -460,6 +467,23 @@
                         <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
                         <li><strong>🛡️ Garantía:</strong> Productos 100% originales. Si no estás satisfecho, contáctanos</li>
                         <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ======== POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ======== -->
+            <div class="dropdown-container politica-tallas">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <ul>
+                        <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
+                        <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
+                        <li>El cambio está sujeto a disponibilidad de inventario.</li>
+                        <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
+                        <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
                     </ul>
                 </div>
             </div>
@@ -588,7 +612,7 @@
                 </div>
             </div>
 
-            <!-- ======== SELLOS DE CONFIANZA (MOVIDOS AL FINAL) ======== -->
+            <!-- ======== SELLOS DE CONFIANZA ======== -->
             <div class="sellos-container">
                 <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
                 <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
@@ -601,7 +625,7 @@
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
                 <input class="qty-input" type="number" id="cantidad" value="1" min="1" onchange="actualizarSubtotal()">
                 <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
-                <span class="subtotal-display" id="subtotalDisplay">= $<span th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
+                <span class="subtotal-display" id="subtotalDisplay">= $<span id="precioSubtotalInicial" th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
             </div>
             <div class="acciones">
                 <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
@@ -632,13 +656,29 @@
 <!-- ============================================================ -->
 <script>
     var precioBase = 0;
-    window.onload = function() {
-        var t = document.querySelector('.precio');
-        if (t) {
-            var texto = t.textContent;
-            precioBase = parseInt(texto.replace('$','').replace(/\./g,'').replace(/,/g,'').trim()) || 0;
+
+    // Inicializar correctamente el precio base y el subtotal
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener el precio del elemento con clase .precio
+        var precioElement = document.querySelector('.precio');
+        if (precioElement) {
+            var textoPrecio = precioElement.textContent.trim();
+            // Limpiar caracteres no numéricos (mantener solo dígitos y punto decimal)
+            var numeroLimpio = textoPrecio.replace(/[^0-9,]/g, '').replace(',', '.');
+            var precioNumerico = parseFloat(numeroLimpio);
+            if (!isNaN(precioNumerico)) {
+                precioBase = precioNumerico;
+            } else {
+                // Fallback: intentar con otro formato (ej. "$96.000")
+                var soloNumeros = textoPrecio.replace(/[^0-9]/g, '');
+                if (soloNumeros.length > 0) {
+                    precioBase = parseInt(soloNumeros, 10);
+                }
+            }
         }
-    };
+        // Actualizar el subtotal inicial
+        actualizarSubtotal();
+    });
 
     // ============================================================
     // CARRUSEL
@@ -797,7 +837,11 @@
 
     function actualizarSubtotal() {
         var c = parseInt(document.getElementById('cantidad').value)||1;
-        document.getElementById('subtotalDisplay').innerHTML = '= $' + (precioBase*c).toLocaleString('es-CO');
+        var subtotal = precioBase * c;
+        var subtotalDisplay = document.getElementById('subtotalDisplay');
+        if (subtotalDisplay) {
+            subtotalDisplay.innerHTML = '= $' + subtotal.toLocaleString('es-CO');
+        }
     }
 
     // ============================================================
@@ -852,8 +896,6 @@
         window.location.href = '/carrito?contraentrega=true';
     }
 
-    actualizarSubtotal();
-
     // ============================================================
     // FONDO ANIMADO
     // ============================================================
@@ -876,17 +918,14 @@
     }
 
     // ============================================================
-    // RECARGAR RESEÑAS DESPUÉS DE AGREGAR UNA (desde el admin)
+    // RECARGAR SI VIENE DE AGREGAR RESEÑA
     // ============================================================
-    // Si la página viene con un parámetro "resena=ok", recargamos para mostrar los nuevos datos
     if (window.location.search.includes('resena=ok')) {
-        // Limpiar el parámetro para evitar un bucle
         const newUrl = window.location.pathname + window.location.hash;
         window.history.replaceState({}, document.title, newUrl);
         location.reload();
     }
 
-    // También escuchar cambios en localStorage (por si se actualiza desde otra pestaña)
     window.addEventListener('storage', function(e) {
         if (e.key === 'flowResenaActualizada') {
             location.reload();
@@ -973,26 +1012,19 @@
 </div>
 
 <style>
-    /* ============================================================ */
-    /* ANIMACIONES PARA EL BOTÓN DE PAGO CONTRA ENTREGA */
-    /* ============================================================ */
-
     @keyframes pulseContraentrega {
         0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,215,0,0.3); }
         50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.2); }
     }
-
     @keyframes shineContraentrega {
         0% { transform: rotate(0deg) translateX(-100%); opacity: 0; }
         50% { opacity: 1; }
         100% { transform: rotate(360deg) translateX(100%); opacity: 0; }
     }
-
     @keyframes slideUpCart {
         0% { transform: translateY(100%); }
         100% { transform: translateY(0); }
     }
-
     #cartFloat.show { display: flex !important; animation: slideUpCart 0.4s ease; }
 
     body.light-mode #cartFloat {
@@ -1017,28 +1049,9 @@
             font-size: 0.75rem !important;
         }
     }
-
-    /* ============================================================ */
-    /* AJUSTE DE WHATSAPP EN MÓVIL (POR ENCIMA DE LA BARRA) */
-    /* ============================================================ */
-    @media (max-width: 600px) {
-        .whatsapp-float {
-            bottom: 160px !important;
-            z-index: 9999 !important;
-            width: 48px;
-            height: 48px;
-        }
-        #cartFloat {
-            z-index: 9998 !important;
-        }
-    }
-
 </style>
 
 <script>
-    // ============================================================
-    // ACTUALIZAR BARRA FLOTANTE DEL CARRITO
-    // ============================================================
     function actualizarBarraCarrito() {
         const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
         const floatDiv = document.getElementById('cartFloat');
@@ -1069,8 +1082,8 @@
         });
     });
 
-    const originalAgregar = window.agregarAlCarrito;
-    if (originalAgregar) {
+    const originalAgregar2 = window.agregarAlCarrito;
+    if (originalAgregar2) {
         window.agregarAlCarrito = function(nombre, precio, imagen) {
             let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
             carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
@@ -1080,17 +1093,6 @@
             actualizarContador();
         };
     }
-
-    // ============================================================
-    // RECARGAR SI VIENE DE AGREGAR RESEÑA (parámetro resena=ok)
-    // ============================================================
-    if (window.location.search.includes('resena=ok')) {
-        // Limpiar el parámetro para evitar bucle
-        const newUrl = window.location.pathname + window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
-        location.reload();
-    }
-
 </script>
 
 </body>
