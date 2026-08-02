@@ -583,23 +583,24 @@
 
 <div class="container">
     <!-- ============ HEADER CON LOGO INTERACTIVO ============ -->
+    <!-- ============ HEADER CON PLANETA TIERRA Y TEXTO ORBITANDO ============ -->
     <header class="header">
         <!-- Fondo de estrellas -->
         <div class="stars-bg" id="starsBg"></div>
 
-        <!-- Anillo de ofertas (texto decorativo) -->
-        <div class="offer-ring">
-            <span style="top: 0%; left: 50%;">✨ OFERTAS ✨</span>
-            <span style="top: 25%; left: 85%;">🔥 DESCUENTOS 🔥</span>
-            <span style="top: 70%; left: 5%;">💫 ENVÍO GRATIS 💫</span>
-            <span style="top: 90%; left: 50%;">✨ FLOW COLOMBIA ✨</span>
-            <span style="top: 25%; left: 5%;">🔥 PROMOCIONES 🔥</span>
-            <span style="top: 70%; left: 85%;">💫 OFERTAS 💫</span>
-        </div>
+        <!-- Contenedor del planeta y el texto orbitando -->
+        <div class="earth-container">
+            <!-- Planeta Tierra (imagen) -->
+            <div class="earth-wrapper">
+                <div class="earth">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Blue_Marble_2002.png/1280px-Blue_Marble_2002.png" alt="Tierra">
+                </div>
+            </div>
 
-        <!-- Logo 3D -->
-        <div class="logo-wrapper">
-            <h1 class="logo-text">FLOW COLOMBIA</h1>
+            <!-- Texto orbitando alrededor de la Tierra -->
+            <div class="orbit-text">
+                <span>✦ FLOW COLOMBIA ✦</span>
+            </div>
         </div>
 
         <p class="subtitle">✦ NEON ERA ✦</p>
@@ -926,6 +927,140 @@
             font-size: 0.75rem !important;
         }
     }
+
+    /* ============ PLANETA TIERRA Y TEXTO ORBITANDO ============ */
+    .header {
+        position: relative;
+        text-align: center;
+        padding: 40px 20px 25px;
+        overflow: hidden;
+    }
+
+    /* Fondo de estrellas */
+    .stars-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .star {
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+        animation: twinkle 2s infinite alternate;
+    }
+    @keyframes twinkle {
+        0% { opacity: 0.2; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Contenedor principal 3D */
+    .earth-container {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        width: 220px;
+        height: 220px;
+        perspective: 800px;
+        margin: 0 auto 10px;
+    }
+
+    /* Planeta Tierra */
+    .earth-wrapper {
+        width: 100%;
+        height: 100%;
+        animation: spinEarth 20s linear infinite;
+        transform-style: preserve-3d;
+    }
+    .earth {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(0, 150, 255, 0.4), 0 0 80px rgba(0, 150, 255, 0.2);
+        background: #1a3a5c; /* fallback */
+    }
+    .earth img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    @keyframes spinEarth {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
+    }
+
+    /* Texto orbitando alrededor de la Tierra */
+    .orbit-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        animation: orbitText 12s linear infinite;
+        transform-style: preserve-3d;
+    }
+    .orbit-text span {
+        position: absolute;
+        top: -18px;
+        left: 50%;
+        transform: translateX(-50%) translateZ(130px);
+        font-size: 1.8rem;
+        font-weight: 900;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(255, 0, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.6);
+        white-space: nowrap;
+        background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    @keyframes orbitText {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
+    }
+
+    /* Ajuste para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .earth-container {
+            width: 160px;
+            height: 160px;
+        }
+        .orbit-text span {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            transform: translateX(-50%) translateZ(100px);
+        }
+    }
+    @media (max-width: 480px) {
+        .earth-container {
+            width: 120px;
+            height: 120px;
+        }
+        .orbit-text span {
+            font-size: 1rem;
+            letter-spacing: 3px;
+            transform: translateX(-50%) translateZ(80px);
+        }
+    }
+
+    /* Modo claro */
+    body.light-mode .earth {
+        box-shadow: 0 0 40px rgba(0, 100, 200, 0.3);
+    }
+    body.light-mode .orbit-text span {
+        background: linear-gradient(45deg, #cc00cc, #0088cc, #b8860b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
 </style>
 
 <script>
