@@ -128,14 +128,190 @@
             opacity: 0.5;
         }
 
-        <!-- ============ HEADER CON 3D REAL (Three.js) ============ -->
-        <header class="header" style="position:relative; text-align:center; padding:40px 20px 25px; overflow:hidden; min-height:400px;">
-        <!-- Contenedor donde se renderizará el 3D -->
-        <div id="three-container" style="position:relative; z-index:1; width:100%; max-width:400px; height:320px; margin:0 auto;"></div>
+        <!-- ============ THREE.JS - TIERRA 3D REAL + TEXTO 3D ============ -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script>
+         document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('three-container');
+            if (!container) return;
+            const width = container.clientWidth || 400;
+            const height = container.clientHeight || 320;
 
-        <p class="subtitle" style="position:relative; z-index:2;">✦ NEON ERA ✦</p>
-        <div class="colombia-badge" style="position:relative; z-index:2;">🇨🇴 ENVÍOS GRATIS A TODO COLOMBIA 🇨🇴</div>
-        </header>
+        // Escena
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0a);
+
+        // Cámara
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(0, 0.5, 3.8);
+        camera.lookAt(0, 0, 0);
+
+        // Renderizador
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // Luces
+        const ambient = new THREE.AmbientLight(0x404060);
+        scene.add(ambient);
+            const light = new THREE.DirectionalLight(0xffffff, 2);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+            const backLight = new THREE.DirectionalLight(0x4488ff, 0.8);
+        backLight.position.set(-1, -1, -1);
+        scene.add(backLight);
+
+        // Estrellas
+        const starsGeo = new THREE.BufferGeometry();
+            const starsCount = 2000;
+            const positions = new Float32Array(starsCount * 3);
+            for (let i = 0; i < starsCount * 3; i++) {
+        positions[i] = (Math.random() - 0.5) * 200;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.8 });
+            const stars = new THREE.Points(starsGeo, starsMat);
+        scene.add(stars);
+
+        // ============================================================
+        // 1. TIERRA 3D REAL (con textura de Cloudinary)
+        // ============================================================
+        const textureLoader = new THREE.TextureLoader();
+        // Usa una imagen de Cloudinary (si no funciona, usa la de Wikimedia)
+        const earthTextureUrl = 'https://res.cloudinary.com/bcpwhn6o/image/upload/v1783699365/1780606143WhatsApp_Image_2026-06-04_at_3.18.44_PM_hygiom.jpg';
+        // Para la Tierra, mejor usar una textura de planeta real. Usaremos una de prueba:
+        const earthTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Blue_Marble_2002.png/1280px-Blue_Marble_2002.png');
+
+            const earthGeo = new THREE.SphereGeometry(1, 64, 64);
+            const earthMat = new THREE.MeshPhongMaterial({
+            map: earthTexture,
+            specular: new THREE.Color(0x333333),
+            shininess: 15,
+        });
+            const earth = new THREE.Mesh(earthGeo, earthMat);
+        scene.add(earth);
+
+        // Atmósfera
+        const glowGeo = new THREE.SphereGeometry(1.08, 64, 64);
+            const glowMat = new THREE.MeshPhongMaterial({
+            color: 0x4488ff,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide,
+        });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+        scene.add(glow);
+
+        // ============================================================
+        // 2. TEXTO 3D ORBITANDO (usando Sprite con canvas mejorado)
+        // ============================================================
+        // Creamos un canvas con el texto en alta resolución
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Gradiente neón
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        grad.addColorStop(0, '#ff00ff');
+        grad.addColorStop(0.3, '#00ffff');
+        grad.addColorStop(0.6, '#ffd700');
+        grad.addColorStop(1, '#ff00ff');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 120px Arial, sans-serif';
+        ctx.shadowColor = '#ff00ff';
+        ctx.shadowBlur = 40;
+        ctx.fillStyle = grad;
+        ctx.fillText('✦ FLOW COLOMBIA ✦', canvas.width / 2, canvas.height / 2);
+
+        // Segundo texto más pequeño (efecto de brillo)
+        ctx.shadowBlur = 80;
+        ctx.shadowColor = '#00ffff';
+        ctx.globalAlpha = 0.3;
+        ctx.fillText('✦ FLOW COLOMBIA ✦', canvas.width / 2, canvas.height / 2);
+
+            const textTexture = new THREE.CanvasTexture(canvas);
+        textTexture.needsUpdate = true;
+            const textMat = new THREE.SpriteMaterial({
+            map: textTexture,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+        });
+            const textSprite = new THREE.Sprite(textMat);
+        textSprite.scale.set(4.5, 0.6, 1);
+
+        // Grupo para orbitar
+        const orbitGroup = new THREE.Group();
+        orbitGroup.add(textSprite);
+        textSprite.position.set(0, 0, 2.0);
+        scene.add(orbitGroup);
+
+        // ============================================================
+        // 3. ANILLO DE PARTÍCULAS (opcional, para dar más efecto)
+        // ============================================================
+        const ringParticles = new THREE.BufferGeometry();
+            const ringCount = 200;
+            const ringPos = new Float32Array(ringCount * 3);
+            for (let i = 0; i < ringCount; i++) {
+            const angle = (i / ringCount) * Math.PI * 2;
+            const radius = 1.6;
+        ringPos[i*3] = Math.cos(angle) * radius;
+        ringPos[i*3+1] = Math.sin(angle) * 0.3;
+        ringPos[i*3+2] = Math.sin(angle) * radius;
+        }
+        ringParticles.setAttribute('position', new THREE.BufferAttribute(ringPos, 3));
+            const ringMat = new THREE.PointsMaterial({
+            color: 0x4488ff,
+            size: 0.03,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+        });
+            const ring = new THREE.Points(ringParticles, ringMat);
+        scene.add(ring);
+
+        // ============================================================
+        // 4. ANIMACIÓN
+        // ============================================================
+        let time = 0;
+            function animate() {
+        requestAnimationFrame(animate);
+            time += 0.005;
+
+        // Rotar Tierra
+        earth.rotation.y += 0.004;
+        glow.rotation.y += 0.004;
+
+        // Rotar texto
+        orbitGroup.rotation.y = time;
+
+        // Rotar estrellas y anillo
+        stars.rotation.y += 0.0001;
+        ring.rotation.y += 0.002;
+        ring.rotation.x = Math.sin(time * 0.5) * 0.05;
+
+        renderer.render(scene, camera);
+        }
+        animate();
+
+        // ============================================================
+        // 5. REDIMENSIONAR
+        // ============================================================
+        window.addEventListener('resize', function() {
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if (w > 0 && h > 0) {
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+        }
+        });
+        });
+        </script>
 
         /* Fondo de estrellas detrás del logo */
         .stars-bg {
