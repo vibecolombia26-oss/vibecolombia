@@ -15,9 +15,7 @@ public class WebController {
     private final ProductoRepository productoRepository;
     private final ResenaRepository resenaRepository;
 
-    // ============================================================
-    // CONFIGURACIÓN DE CATEGORÍAS
-    // ============================================================
+    // Categoría por defecto: Calzado
     private static final String CATEGORIA_DEFAULT = "Calzado";
 
     public WebController(ProductoRepository productoRepository, ResenaRepository resenaRepository) {
@@ -26,7 +24,7 @@ public class WebController {
     }
 
     // ============================================================
-    // PÁGINA PRINCIPAL
+    // PÁGINA PRINCIPAL - SOLO CATEGORÍAS (sin "Todos")
     // ============================================================
     @GetMapping("/")
     public String home(@RequestParam(required = false) String categoria, Model model) {
@@ -75,64 +73,6 @@ public class WebController {
 
         return "index";
     }
-        // 3. Obtener los productos filtrados
-        List<Producto> productosFiltrados;
-        if (categoriaActiva.equals("Todos")) {
-            productosFiltrados = productoRepository.findAll();
-        } else {
-            productosFiltrados = productoRepository.findByCategoria(categoriaActiva);
-        }
-
-        // 4. Optimizar imágenes de Cloudinary
-        for (Producto p : productosFiltrados) {
-            optimizarImagenes(p);
-        }
-
-        // 5. Obtener producto destacado (oferta del mes)
-        Producto productoDestacado = productoRepository.findBySku("2169621").orElse(null);
-        if (productoDestacado != null) {
-            optimizarImagenes(productoDestacado);
-        }
-
-        // 6. Pasar datos a la vista
-        model.addAttribute("productos", productosFiltrados);
-        model.addAttribute("categoriaActiva", categoriaActiva);
-        model.addAttribute("categorias", categoriasDisponibles);
-        model.addAttribute("categoriaDefault", CATEGORIA_DEFAULT);
-        model.addAttribute("productoDestacado", productoDestacado);
-        model.addAttribute("totalProductos", productoRepository.count());
-
-        return "index";
-    }
-
-    // ============================================================
-    // DETALLE DE PRODUCTO (UN SOLO MÉTODO - ELIMINADO EL DUPLICADO)
-    // ============================================================
-    @GetMapping("/producto/{id}")
-    public String detalle(@PathVariable Long id, Model model) {
-        // 🔍 LOG DE DEPURACIÓN
-        System.out.println("🔍 Buscando producto con ID: " + id);
-
-        Producto producto = productoRepository.findById(id).orElse(null);
-
-        if (producto == null) {
-            System.out.println("❌ Producto no encontrado con ID: " + id);
-            return "redirect:/?error=Producto no encontrado";
-        }
-
-        System.out.println("✅ Producto encontrado: " + producto.getNombre());
-
-        optimizarImagenes(producto);
-
-        // Cargar reseñas del producto
-        List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
-        model.addAttribute("resenas", resenas);
-        model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
-        model.addAttribute("totalResenas", producto.getCantidadResenas());
-        model.addAttribute("producto", producto);
-
-        return "producto-detalle";
-    }
 
     // ============================================================
     // MÉTODO PARA OPTIMIZAR IMÁGENES DE CLOUDINARY
@@ -158,6 +98,34 @@ public class WebController {
         if (p.getImagen6() != null && p.getImagen6().contains("cloudinary.com")) {
             p.setImagen6(p.getImagen6().replace("/upload/", "/upload/f_auto,q_auto/"));
         }
+    }
+
+    // ============================================================
+    // DETALLE DE PRODUCTO - CON RESEÑAS
+    // ============================================================
+    @GetMapping("/producto/{id}")
+    public String detalle(@PathVariable Long id, Model model) {
+        System.out.println("🔍 Buscando producto con ID: " + id);
+
+        Producto producto = productoRepository.findById(id).orElse(null);
+
+        if (producto == null) {
+            System.out.println("❌ Producto no encontrado con ID: " + id);
+            return "redirect:/?error=Producto no encontrado";
+        }
+
+        System.out.println("✅ Producto encontrado: " + producto.getNombre());
+
+        optimizarImagenes(producto);
+
+        // Cargar reseñas del producto
+        List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
+        model.addAttribute("resenas", resenas);
+        model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
+        model.addAttribute("totalResenas", producto.getCantidadResenas());
+        model.addAttribute("producto", producto);
+
+        return "producto-detalle";
     }
 
     // ============================================================
