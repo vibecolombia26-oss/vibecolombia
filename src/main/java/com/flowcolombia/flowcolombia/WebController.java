@@ -29,11 +29,8 @@ public class WebController {
     // PÁGINA PRINCIPAL
     // ============================================================
     @GetMapping("/")
-    public String home(
-            @RequestParam(required = false) String categoria,
-            Model model) {
-
-        // 1. Obtener todas las categorías disponibles desde la BD
+    public String home(@RequestParam(required = false) String categoria, Model model) {
+        // Obtener todas las categorías disponibles desde la BD
         List<String> categoriasDisponibles = productoRepository.findAll()
                 .stream()
                 .map(Producto::getCategoria)
@@ -42,14 +39,42 @@ public class WebController {
                 .sorted()
                 .collect(Collectors.toList());
 
-        // 2. Determinar la categoría activa
+        // Determinar la categoría activa (por defecto "Calzado")
         String categoriaActiva = CATEGORIA_DEFAULT;
-        if (categoria != null && !categoria.equals("Todos") && categoriasDisponibles.contains(categoria)) {
+        if (categoria != null && categoriasDisponibles.contains(categoria)) {
             categoriaActiva = categoria;
-        } else if (categoria != null && categoria.equals("Todos")) {
-            categoriaActiva = "Todos";
         }
 
+        // Obtener productos filtrados (solo por categoría, nunca "Todos")
+        List<Producto> productosFiltrados;
+        if (categoria != null && categoriasDisponibles.contains(categoria)) {
+            productosFiltrados = productoRepository.findByCategoria(categoria);
+        } else {
+            // Por defecto, mostrar la categoría configurada (Calzado)
+            productosFiltrados = productoRepository.findByCategoria(CATEGORIA_DEFAULT);
+        }
+
+        // Optimizar imágenes de Cloudinary
+        for (Producto p : productosFiltrados) {
+            optimizarImagenes(p);
+        }
+
+        // Producto destacado (opcional)
+        Producto productoDestacado = productoRepository.findBySku("2169621").orElse(null);
+        if (productoDestacado != null) {
+            optimizarImagenes(productoDestacado);
+        }
+
+        // Pasar datos a la vista
+        model.addAttribute("productos", productosFiltrados);
+        model.addAttribute("categoriaActiva", categoriaActiva);
+        model.addAttribute("categorias", categoriasDisponibles);
+        model.addAttribute("categoriaDefault", CATEGORIA_DEFAULT);
+        model.addAttribute("productoDestacado", productoDestacado);
+        model.addAttribute("totalProductos", productoRepository.count());
+
+        return "index";
+    }
         // 3. Obtener los productos filtrados
         List<Producto> productosFiltrados;
         if (categoriaActiva.equals("Todos")) {
