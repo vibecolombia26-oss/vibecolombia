@@ -18,7 +18,7 @@ public class WebController {
     // ============================================================
     // CONFIGURACIÓN DE CATEGORÍAS
     // ============================================================
-    private static final String CATEGORIA_DEFAULT = "Todos";
+    private static final String CATEGORIA_DEFAULT = "Calzado";
 
     public WebController(ProductoRepository productoRepository, ResenaRepository resenaRepository) {
         this.productoRepository = productoRepository;
