@@ -618,14 +618,11 @@
 <!-- ============ NAVBAR ============ -->
 <nav class="navbar">
     <span class="nav-flag">🇨🇴</span>
-    <a href="/?categoria=Todos" class="nav-link" th:classappend="${categoriaActiva == 'Todos' ? 'active' : ''}">✨ Todo</a>
     <a th:each="cat : ${categorias}"
        th:href="@{'/?categoria=' + ${cat}}"
        class="nav-link"
        th:classappend="${categoriaActiva == cat ? 'active' : ''}"
        th:text="${cat}">Categoría</a>
-    <a href="/seguimiento" class="nav-link">🔍 Seguimiento</a>
-    <a href="/carrito" class="nav-link cart-nav-link">🛒 <span id="cartCount">0</span></a>
 
     <div class="theme-toggle-container">
         <label class="theme-toggle">
