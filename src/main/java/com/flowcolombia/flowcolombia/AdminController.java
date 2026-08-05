@@ -55,35 +55,364 @@ public class AdminController {
     // ============================================================
     // PEDIDOS - CON NOTIFICACIONES Y ORDENAMIENTO
     // ============================================================
-    @GetMapping("/pedidos")
-    public String pedidos(@RequestParam String key,
-                          @RequestParam(required = false) String estado,
-                          Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
+    package com.flowcolombia.flowcolombia;
 
-        // Obtener pedidos ordenados (más recientes primero)
-        List<Pedido> pedidos;
-        if (estado != null && !estado.isEmpty()) {
-            pedidos = pedidoRepository.findByEstadoOrderByFechaDesc(estado);
-        } else {
-            pedidos = pedidoRepository.findAllByOrderByFechaDesc();
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+    @Controller
+    @RequestMapping("/admin")
+    public class AdminController {
+
+        private final ProductoRepository productoRepository;
+        private final PedidoRepository pedidoRepository;
+        private final MensajeRepository mensajeRepository;
+        private final ResenaRepository resenaRepository;
+        private String adminPassword = "FlowColombia2026*";
+
+        public AdminController(ProductoRepository productoRepository,
+                               PedidoRepository pedidoRepository,
+                               MensajeRepository mensajeRepository,
+                               ResenaRepository resenaRepository) {
+            this.productoRepository = productoRepository;
+            this.pedidoRepository = pedidoRepository;
+            this.mensajeRepository = mensajeRepository;
+            this.resenaRepository = resenaRepository;
         }
 
-        // Contar pedidos por estado (para notificaciones)
-        long pendientes = pedidoRepository.countByEstado("Pendiente");
-        long procesando = pedidoRepository.countByEstado("Procesando");
-        long enviados = pedidoRepository.countByEstado("Enviado");
-        long entregados = pedidoRepository.countByEstado("Entregado");
+        // ============================================================
+        // LOGIN
+        // ============================================================
+        @GetMapping("/login")
+        public String login() { return "admin-login"; }
 
-        model.addAttribute("pedidos", pedidos);
-        model.addAttribute("key", key);
-        model.addAttribute("estadoSeleccionado", estado);
-        model.addAttribute("pendientes", pendientes);
-        model.addAttribute("procesando", procesando);
-        model.addAttribute("enviados", enviados);
-        model.addAttribute("entregados", entregados);
+        @PostMapping("/login")
+        public String procesarLogin(@RequestParam String password, Model model) {
+            if (adminPassword.equals(password)) return "redirect:/admin/panel?key=" + password;
+            model.addAttribute("error", "Contraseña incorrecta");
+            return "admin-login";
+        }
 
-        return "admin-pedidos";
+        // ============================================================
+        // PANEL PRINCIPAL
+        // ============================================================
+        @GetMapping("/panel")
+        public String panel(@RequestParam String key, Model model) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            model.addAttribute("productos", productoRepository.findAll());
+            model.addAttribute("key", key);
+            return "admin-panel";
+        }
+
+        // ============================================================
+        // PEDIDOS - CON FILTROS Y SELECCIÓN
+        // ============================================================
+        @GetMapping("/pedidos")
+        public String pedidos(@RequestParam String key,
+                              @RequestParam(required = false) String estado,
+                              @RequestParam(required = false) Long seleccionado,
+                              Model model) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
+            // Obtener pedidos ordenados (más recientes primero)
+            List<Pedido> pedidos;
+            if (estado != null && !estado.isEmpty()) {
+                pedidos = pedidoRepository.findByEstadoOrderByFechaDesc(estado);
+            } else {
+                pedidos = pedidoRepository.findAllByOrderByFechaDesc();
+            }
+
+            // Obtener el pedido seleccionado (si existe)
+            Pedido pedidoSeleccionado = null;
+            if (seleccionado != null) {
+                pedidoSeleccionado = pedidoRepository.findById(seleccionado).orElse(null);
+                if (pedidoSeleccionado != null) {
+                    // Marcar como leído
+                    pedidoSeleccionado.setLeido(true);
+                    pedidoRepository.save(pedidoSeleccionado);
+                }
+            }
+
+            // Contar pedidos por estado (para notificaciones)
+            long pendientes = pedidoRepository.countByEstado("Pendiente");
+            long procesando = pedidoRepository.countByEstado("Procesando");
+            long enviados = pedidoRepository.countByEstado("Enviado");
+            long entregados = pedidoRepository.countByEstado("Entregado");
+
+            model.addAttribute("pedidos", pedidos);
+            model.addAttribute("key", key);
+            model.addAttribute("estadoSeleccionado", estado);
+            model.addAttribute("pendientes", pendientes);
+            model.addAttribute("procesando", procesando);
+            model.addAttribute("enviados", enviados);
+            model.addAttribute("entregados", entregados);
+            model.addAttribute("pedidoSeleccionado", pedidoSeleccionado);
+
+            return "admin-pedidos";
+        }
+
+        // ============================================================
+        // CHATS
+        // ============================================================
+        @GetMapping("/chats")
+        public String chats(@RequestParam String key, Model model) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            model.addAttribute("mensajes", mensajeRepository.findAll());
+            model.addAttribute("key", key);
+            return "admin-chats";
+        }
+
+        @PostMapping("/responder/{id}")
+        @ResponseBody
+        public Map<String, String> responder(@PathVariable Long id, @RequestParam String key, @RequestParam String respuesta) {
+            Map<String, String> result = new HashMap<>();
+            if (!adminPassword.equals(key)) { result.put("error", "No autorizado"); return result; }
+            Mensaje msgOriginal = mensajeRepository.findById(id).orElse(null);
+            if (msgOriginal != null) {
+                msgOriginal.setRespuesta(respuesta);
+                mensajeRepository.save(msgOriginal);
+                Mensaje respuestaMsg = new Mensaje();
+                respuestaMsg.setCodigoPedido(msgOriginal.getCodigoPedido());
+                respuestaMsg.setTelefono(msgOriginal.getTelefono());
+                respuestaMsg.setMensaje(respuesta);
+                respuestaMsg.setEsCliente(false);
+                respuestaMsg.setFecha(LocalDateTime.now());
+                mensajeRepository.save(respuestaMsg);
+                result.put("status", "OK");
+            }
+            return result;
+        }
+
+        // ============================================================
+        // CAMBIAR ESTADO DE PEDIDO
+        // ============================================================
+        @PostMapping("/cambiar-estado/{id}")
+        public String cambiarEstado(@PathVariable Long id, @RequestParam String key, @RequestParam String estado,
+                                    @RequestParam(required = false) String transportadora,
+                                    @RequestParam(required = false) String numeroGuia) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            Pedido pedido = pedidoRepository.findById(id).orElse(null);
+            if (pedido != null) {
+                pedido.setEstado(estado);
+                if (transportadora != null) pedido.setTransportadora(transportadora);
+                if (numeroGuia != null) pedido.setNumeroGuia(numeroGuia);
+                pedidoRepository.save(pedido);
+            }
+            return "redirect:/admin/pedidos?key=" + key;
+        }
+
+        // ============================================================
+        // GESTIÓN DE PRODUCTOS
+        // ============================================================
+        @GetMapping("/nuevo")
+        public String nuevoProducto(@RequestParam String key, Model model) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            model.addAttribute("producto", new Producto());
+            model.addAttribute("key", key);
+            model.addAttribute("resenas", new ArrayList<>());
+            return "admin-form";
+        }
+
+        @GetMapping("/editar/{id}")
+        public String editarProducto(@PathVariable Long id, @RequestParam String key, Model model) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            Producto producto = productoRepository.findById(id).orElse(null);
+            model.addAttribute("producto", producto);
+            model.addAttribute("key", key);
+
+            if (producto != null) {
+                model.addAttribute("resenas", resenaRepository.findByProductoId(producto.getId()));
+            } else {
+                model.addAttribute("resenas", new ArrayList<>());
+            }
+            return "admin-form";
+        }
+
+        @PostMapping("/guardar")
+        public String guardarProducto(@ModelAttribute Producto producto,
+                                      @RequestParam String key,
+                                      @RequestParam(required = false) String imagen1File,
+                                      @RequestParam(required = false) String imagen2File,
+                                      @RequestParam(required = false) String imagen3File,
+                                      @RequestParam(required = false) String imagen4File,
+                                      @RequestParam(required = false) String imagen5File,
+                                      @RequestParam(required = false) String imagen6File,
+                                      @RequestParam(required = false) String coloresInput,
+                                      @RequestParam(required = false) String tallasInput,
+                                      @RequestParam(required = false) Boolean tieneColor,
+                                      @RequestParam(required = false) Boolean tieneTalla,
+                                      RedirectAttributes redirect) {
+
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
+            System.out.println("=========================================");
+            System.out.println("Guardando producto: " + producto.getNombre());
+            System.out.println("ID: " + producto.getId());
+            System.out.println("tieneColor: " + tieneColor);
+            System.out.println("tieneTalla: " + tieneTalla);
+            System.out.println("Colores: " + coloresInput);
+            System.out.println("Tallas: " + tallasInput);
+            System.out.println("=========================================");
+
+            // 1. Guardar URLs de imágenes
+            if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
+            if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
+            if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
+            if (imagen4File != null && !imagen4File.isEmpty()) producto.setImagen4(imagen4File);
+            if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
+            if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
+
+            // 2. Mantener imágenes existentes si no se cambian
+            if (producto.getId() != null) {
+                Producto existente = productoRepository.findById(producto.getId()).orElse(null);
+                if (existente != null) {
+                    if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
+                    if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
+                    if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
+                    if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
+                    if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
+                    if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
+                }
+            }
+
+            // 3. Guardar variaciones (color y talla)
+            producto.setTieneColor(tieneColor != null && tieneColor);
+            producto.setTieneTalla(tieneTalla != null && tieneTalla);
+
+            // Construir variacionesDisponibles según los valores de colores y tallas
+            String coloresStr = (coloresInput != null && !coloresInput.trim().isEmpty())
+                    ? coloresInput.replace("\\s*,\\s*", ", ") : "";
+            String tallasStr = (tallasInput != null && !tallasInput.trim().isEmpty())
+                    ? tallasInput.replace("\\s*,\\s*", ", ") : "";
+
+            if (coloresStr.isEmpty() && tallasStr.isEmpty()) {
+                producto.setVariacionesDisponibles("|");
+            } else {
+                producto.setVariacionesDisponibles(coloresStr + "|" + tallasStr);
+            }
+
+            // 4. Guardar producto
+            productoRepository.save(producto);
+            redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
+            return "redirect:/admin/panel?key=" + key;
+        }
+
+        @GetMapping("/eliminar/{id}")
+        public String eliminarProducto(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            resenaRepository.deleteByProductoId(id);
+            productoRepository.deleteById(id);
+            redirect.addFlashAttribute("mensaje", "Producto eliminado!");
+            return "redirect:/admin/panel?key=" + key;
+        }
+
+        @GetMapping("/eliminar-pedido/{id}")
+        public String eliminarPedido(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+            pedidoRepository.deleteById(id);
+            redirect.addFlashAttribute("mensaje", "Pedido eliminado!");
+            return "redirect:/admin/pedidos?key=" + key;
+        }
+
+        // ============================================================
+        // GESTIÓN DE RESEÑAS
+        // ============================================================
+        @PostMapping("/guardar-resena")
+        public String guardarResena(@RequestParam String key,
+                                    @RequestParam Long productoId,
+                                    @RequestParam String nombreCliente,
+                                    @RequestParam Integer calificacion,
+                                    @RequestParam String comentario,
+                                    @RequestParam(required = false) String imagenUrl,
+                                    RedirectAttributes redirect) {
+
+            System.out.println("=========================================");
+            System.out.println("📝 RECIBIENDO RESEÑA:");
+            System.out.println("  Key: " + key);
+            System.out.println("  Producto ID: " + productoId);
+            System.out.println("  Cliente: " + nombreCliente);
+            System.out.println("  Calificación: " + calificacion);
+            System.out.println("  Comentario: " + comentario);
+            System.out.println("  Imagen URL: " + imagenUrl);
+            System.out.println("=========================================");
+
+            if (!adminPassword.equals(key)) {
+                System.out.println("❌ Contraseña incorrecta");
+                return "redirect:/admin/login";
+            }
+
+            Producto producto = productoRepository.findById(productoId).orElse(null);
+            if (producto == null) {
+                System.out.println("❌ Producto no encontrado con ID: " + productoId);
+                redirect.addFlashAttribute("mensaje", "❌ Producto no encontrado");
+                return "redirect:/admin/panel?key=" + key;
+            }
+
+            try {
+                Resena resena = new Resena();
+                resena.setProducto(producto);
+                resena.setNombreCliente(nombreCliente);
+                resena.setCalificacion(calificacion);
+                resena.setComentario(comentario);
+                resena.setImagenUrl(imagenUrl);
+                resena.setFecha(LocalDateTime.now());
+                resena.setAprobado(true);
+
+                Resena saved = resenaRepository.save(resena);
+                System.out.println("✅ Reseña guardada con ID: " + saved.getId());
+
+                redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
+                return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
+
+            } catch (Exception e) {
+                System.err.println("❌ Error al guardar reseña: " + e.getMessage());
+                e.printStackTrace();
+                redirect.addFlashAttribute("mensaje", "❌ Error al guardar la reseña: " + e.getMessage());
+                return "redirect:/admin/editar/" + productoId + "?key=" + key;
+            }
+        }
+
+        @GetMapping("/eliminar-resena/{id}")
+        public String eliminarResena(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
+            if (!adminPassword.equals(key)) return "redirect:/admin/login";
+
+            Resena resena = resenaRepository.findById(id).orElse(null);
+            if (resena != null) {
+                Long productoId = resena.getProducto().getId();
+                resenaRepository.deleteById(id);
+                redirect.addFlashAttribute("mensaje", "Reseña eliminada");
+                return "redirect:/admin/editar/" + productoId + "?key=" + key;
+            }
+            redirect.addFlashAttribute("mensaje", "Reseña no encontrada");
+            return "redirect:/admin/panel?key=" + key;
+        }
+
+        // ============================================================
+        // MARCAR PEDIDO COMO LEÍDO (API)
+        // ============================================================
+        @PostMapping("/marcar-leido/{id}")
+        @ResponseBody
+        public Map<String, String> marcarLeido(@PathVariable Long id, @RequestParam String key) {
+            Map<String, String> response = new HashMap<>();
+            if (!adminPassword.equals(key)) {
+                response.put("error", "No autorizado");
+                return response;
+            }
+            Pedido pedido = pedidoRepository.findById(id).orElse(null);
+            if (pedido != null) {
+                pedido.setLeido(true);
+                pedidoRepository.save(pedido);
+                response.put("status", "OK");
+            } else {
+                response.put("error", "Pedido no encontrado");
+            }
+            return response;
+        }
     }
 
     // ============================================================
