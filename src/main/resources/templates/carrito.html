@@ -146,7 +146,6 @@
         <div class="form-row">
             <div class="form-group full"><label>Nombre completo *</label><input type="text" id="nombreCliente" placeholder="Tu nombre completo" required></div>
             <div class="form-group"><label>Teléfono *</label><input type="tel" id="telefono" placeholder="3001234567" required></div>
-            <div class="form-group"><label>Correo electrónico</label><input type="email" id="email" placeholder="tucorreo@email.com"></div>
         </div>
         <div class="form-row">
             <div class="form-group">
@@ -314,7 +313,6 @@
     function completarOrden() {
         const nombre = document.getElementById('nombreCliente').value.trim();
         const telefono = document.getElementById('telefono').value.trim();
-        const email = document.getElementById('email').value.trim();
         const departamento = document.getElementById('departamento').value;
         const ciudad = document.getElementById('ciudad').value;
         const direccion = document.getElementById('direccion').value.trim();
@@ -347,14 +345,13 @@
         const pedido = {
             nombreCliente: nombre,
             telefono: telefono,
-            email: email,
             departamento: departamento,
             ciudad: ciudad,
             direccion: direccion,
             notas: notas,
             tienda: 'FLOW COLOMBIA',
             productos: productosTexto,
-            total: Number(total),  // ← FORZAR QUE SEA NÚMERO
+            total: total,
             metodoPago: 'Contra entrega'
         };
 

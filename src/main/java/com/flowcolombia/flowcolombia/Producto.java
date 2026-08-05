@@ -108,6 +108,12 @@ public class Producto {
     public String getVariacionesDisponibles() { return variacionesDisponibles; }
     public void setVariacionesDisponibles(String variacionesDisponibles) { this.variacionesDisponibles = variacionesDisponibles; }
 
+    public Boolean getTieneColor() { return tieneColor; }
+    public void setTieneColor(Boolean tieneColor) { this.tieneColor = tieneColor; }
+
+    public Boolean getTieneTalla() { return tieneTalla; }
+    public void setTieneTalla(Boolean tieneTalla) { this.tieneTalla = tieneTalla; }
+
     public List<Resena> getResenas() { return resenas; }
     public void setResenas(List<Resena> resenas) { this.resenas = resenas; }
 
@@ -121,13 +127,6 @@ public class Producto {
                 .mapToInt(Resena::getCalificacion)
                 .average()
                 .orElse(0.0);
-
-        public Boolean getTieneColor() { return tieneColor; }
-        public void setTieneColor(Boolean tieneColor) { this.tieneColor = tieneColor; }
-
-        public Boolean getTieneTalla() { return tieneTalla; }
-        public void setTieneTalla(Boolean tieneTalla) { this.tieneTalla = tieneTalla; }
-
     }
 
     public Long getCantidadResenas() {
