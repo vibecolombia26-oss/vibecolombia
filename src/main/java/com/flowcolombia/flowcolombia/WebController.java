@@ -110,20 +110,30 @@ public class WebController {
         Producto producto = productoRepository.findById(id).orElse(null);
 
         if (producto == null) {
-            System.out.println("❌ Producto no encontrado con ID: " + id);
+            System.out.println("❌ Producto NO encontrado con ID: " + id);
             return "redirect:/?error=Producto no encontrado";
         }
 
         System.out.println("✅ Producto encontrado: " + producto.getNombre());
+        System.out.println("   Imagen1: " + producto.getImagen1());
+        System.out.println("   Precio: " + producto.getPrecio());
+
+        // Forzar datos de prueba si el producto está vacío
+        if (producto.getImagen1() == null) {
+            System.out.println("⚠️ Imagen1 es NULL, asignando imagen de prueba");
+            producto.setImagen1("https://res.cloudinary.com/bcpwhn6o/image/upload/v1783699365/1780606143WhatsApp_Image_2026-06-04_at_3.18.44_PM_hygiom.jpg");
+        }
 
         optimizarImagenes(producto);
 
-        // Cargar reseñas del producto
         List<Resena> resenas = resenaRepository.findByProductoIdAndAprobadoTrueOrderByFechaDesc(id);
         model.addAttribute("resenas", resenas);
         model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
         model.addAttribute("totalResenas", producto.getCantidadResenas());
         model.addAttribute("producto", producto);
+
+        // 🔥 LOG DE VERIFICACIÓN FINAL
+        System.out.println("📤 Producto enviado a la vista: " + producto.getNombre());
 
         return "producto-detalle";
     }
