@@ -17,7 +17,6 @@
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
 
-        /* ============ CARRUSEL ============ */
         .imagenes-container { position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.3); }
         .imagenes-slider { display: flex; transition: transform 0.5s ease; touch-action: pan-y; }
         .imagenes-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; }
@@ -35,7 +34,6 @@
         .imagen-secundaria:hover { border-color: #ffd700; transform: scale(1.05); }
         .imagen-secundaria.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
-        /* ============ INFO DEL PRODUCTO ============ */
         .info-section { padding: 20px 20px 25px; }
         .nombre { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
         .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -50,7 +48,6 @@
         .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.7rem; text-transform: uppercase; }
         .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.75rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
 
-        /* ============ DROPDOWNS ============ */
         .dropdown-container { margin: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
         .dropdown-header:hover { color: #ff00ff; }
@@ -65,7 +62,6 @@
         .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
 
-        /* ============ VARIACIONES ============ */
         .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 15px 0; }
         .variaciones h3 { color: #ff00ff; margin-bottom: 10px; font-size: 1.1rem; }
         .variacion-row { display: flex; gap: 15px; flex-wrap: wrap; }
@@ -73,7 +69,6 @@
         .variacion-group label { color: #00ffff; font-size: 0.75rem; display: block; margin-bottom: 4px; }
         .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.9rem; }
 
-        /* ============ CONVERTIDOR DE TALLAS ============ */
         .tallas-container { margin: 15px 0; }
         .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 18px; }
         .tallas-card h3 { color: #ffd700; font-size: 1.1rem; margin-bottom: 4px; }
@@ -103,28 +98,12 @@
         .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.75rem; }
         .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
 
-        /* ============ POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ============ */
-        .dropdown-container.politica-tallas {
-            margin: 10px 0;
-        }
-        .dropdown-container.politica-tallas .dropdown-content ul li {
-            padding: 5px 0;
-            font-size: 0.85rem;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-        .dropdown-container.politica-tallas .dropdown-content ul li::before {
-            content: "✦ ";
-            color: #ff00ff;
-        }
-        .dropdown-container.politica-tallas .dropdown-content ul li a {
-            color: #00ffff;
-            text-decoration: none;
-        }
-        .dropdown-container.politica-tallas .dropdown-content ul li a:hover {
-            text-decoration: underline;
-        }
+        .dropdown-container.politica-tallas { margin: 10px 0; }
+        .dropdown-container.politica-tallas .dropdown-content ul li { padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .dropdown-container.politica-tallas .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
+        .dropdown-container.politica-tallas .dropdown-content ul li a { color: #00ffff; text-decoration: none; }
+        .dropdown-container.politica-tallas .dropdown-content ul li a:hover { text-decoration: underline; }
 
-        /* ============ RESEÑAS ============ */
         .resenas-section { margin: 20px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
         .resenas-header h3 { color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
@@ -142,128 +121,40 @@
         .resena-item .imagen-resena img { width: 100%; border-radius: 8px; }
         .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; font-size: 0.9rem; }
 
-        /* ============ SELLOS DE CONFIANZA (AL FINAL) ============ */
-        .sellos-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 15px 0 10px;
-            padding: 12px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .sello-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            color: #aaa;
-        }
+        .sellos-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 15px 0 10px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .sello-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #aaa; }
         .sello-item .icono { font-size: 1.3rem; }
         .sello-item .texto { color: #ccc; }
         .sello-item .texto strong { color: #fff; }
 
-        /* ============ CANTIDAD Y ACCIONES ============ */
-        .cantidad-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin: 15px 0 10px;
-            padding: 12px;
-            background: rgba(0,255,255,0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0,255,255,0.2);
-            flex-wrap: wrap;
-        }
+        .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 15px 0 10px; padding: 12px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
         .cantidad-row label { font-size: 0.85rem; }
-        .qty-btn {
-            background: transparent;
-            color: #ff00ff;
-            border: 1px solid #ff00ff;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
         .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
-        .qty-input {
-            width: 50px;
-            text-align: center;
-            background: #111;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 6px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
+        .qty-input { width: 50px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 6px; border-radius: 6px; font-size: 0.9rem; }
         .subtotal-display { color: #00ffff; font-weight: 700; font-size: 0.9rem; }
 
-        .acciones {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 5px;
-        }
-        .btn-carrito {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(45deg, #ff00ff, #cc00cc);
-            color: #fff;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
+        .acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
+        .btn-carrito { width: 100%; padding: 14px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
         .btn-carrito:active { transform: scale(0.97); }
-        .btn-contraentrega {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
+        .btn-contraentrega { width: 100%; padding: 14px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
         .btn-contraentrega:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 30px rgba(0,255,255,0.3); transform: scale(1.02); }
         .btn-contraentrega:active { transform: scale(0.97); }
 
-        .banner-pago {
-            background: rgba(255,0,255,0.05);
-            border: 1px solid rgba(255,0,255,0.2);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            margin-top: 12px;
-        }
+        .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 12px; text-align: center; margin-top: 12px; }
         .banner-pago .icono { font-size: 2rem; }
         .banner-pago h3 { color: #ffd700; font-size: 1rem; }
         .banner-pago p { color: #aaa; font-size: 0.85rem; }
 
         .footer-mini { text-align: center; padding: 15px; margin-top: 15px; color: #ffd700; font-size: 0.7rem; letter-spacing: 2px; }
 
-        /* ============ WHATSAPP FLOTANTE ============ */
-        @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
         .whatsapp-float { position: fixed; bottom: 90px; left: 20px; z-index: 999; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); animation: pulseColombia 2s infinite; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
         .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
 
-        /* ============ MODO CLARO ============ */
+        @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
+
         body.light-mode .descripcion { color: #444; }
         body.light-mode .tallas-card { background: rgba(255,255,255,0.9); border-color: #ff00ff; }
         body.light-mode .tallas-conversor { background: rgba(0,0,0,0.05); }
@@ -283,22 +174,11 @@
         body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li { color: #555; border-bottom: 1px solid rgba(0,0,0,0.05); }
         body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li a { color: #0088cc; }
 
-        /* ================================================================ */
-        /* AJUSTE DE WHATSAPP EN MÓVIL */
-        /* ================================================================ */
         @media (max-width: 600px) {
-            .whatsapp-float {
-                bottom: 160px !important;
-                z-index: 9999 !important;
-                width: 48px;
-                height: 48px;
-            }
+            .whatsapp-float { bottom: 160px !important; z-index: 9999 !important; width: 48px; height: 48px; }
             #cartFloat { z-index: 9998 !important; }
         }
 
-        /* ================================================================ */
-        /* RESPONSIVE */
-        /* ================================================================ */
         @media (max-width: 768px) {
             .container { padding: 12px; }
             .info-section { padding: 15px 15px 20px; }
@@ -471,6 +351,23 @@
                 </div>
             </div>
 
+            <!-- ======== POLÍTICA DE CAMBIO DE TALLAS ======== -->
+            <div class="dropdown-container politica-tallas">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <ul>
+                        <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
+                        <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
+                        <li>El cambio está sujeto a disponibilidad de inventario.</li>
+                        <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
+                        <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
+                    </ul>
+                </div>
+            </div>
+
             <!-- ======== VARIACIONES ======== -->
             <div class="variaciones" th:if="${producto.tieneColor or producto.tieneTalla}">
                 <h3>🎨 Personaliza tu producto</h3>
@@ -558,23 +455,6 @@
                         </ul>
                     </div>
                 </div>
-
-                <!-- ======== POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ======== -->
-                <div class="dropdown-container politica-tallas">
-                    <div class="dropdown-header" onclick="toggleDropdown(this)">
-                        <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
-                        <span class="arrow">▼</span>
-                    </div>
-                    <div class="dropdown-content">
-                        <ul>
-                            <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
-                            <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
-                            <li>El cambio está sujeto a disponibilidad de inventario.</li>
-                            <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
-                            <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
 
             <!-- ======== RESEÑAS ======== -->
@@ -657,26 +537,21 @@
 <script>
     var precioBase = 0;
 
-    // Inicializar correctamente el precio base y el subtotal
     document.addEventListener('DOMContentLoaded', function() {
-        // Obtener el precio del elemento con clase .precio
         var precioElement = document.querySelector('.precio');
         if (precioElement) {
             var textoPrecio = precioElement.textContent.trim();
-            // Limpiar caracteres no numéricos (mantener solo dígitos y punto decimal)
             var numeroLimpio = textoPrecio.replace(/[^0-9,]/g, '').replace(',', '.');
             var precioNumerico = parseFloat(numeroLimpio);
             if (!isNaN(precioNumerico)) {
                 precioBase = precioNumerico;
             } else {
-                // Fallback: intentar con otro formato (ej. "$96.000")
                 var soloNumeros = textoPrecio.replace(/[^0-9]/g, '');
                 if (soloNumeros.length > 0) {
                     precioBase = parseInt(soloNumeros, 10);
                 }
             }
         }
-        // Actualizar el subtotal inicial
         actualizarSubtotal();
     });
 
