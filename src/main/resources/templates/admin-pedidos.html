@@ -14,11 +14,9 @@
         .btn-back { padding: 10px 20px; border-radius: 25px; text-decoration: none; color: #00ffff; border: 1px solid #00ffff; background: transparent; transition: all 0.3s; }
         .btn-back:hover { background: rgba(0,255,255,0.1); }
 
-        /* PANEL DE DOS COLUMNAS */
         .pedidos-layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; height: calc(100vh - 200px); min-height: 500px; }
         @media (max-width: 768px) { .pedidos-layout { grid-template-columns: 1fr; height: auto; } }
 
-        /* ===== COLUMNA IZQUIERDA: LISTA DE PEDIDOS ===== */
         .pedidos-lista {
             background: rgba(20,20,20,0.8);
             border: 2px solid #ff00ff;
@@ -79,7 +77,6 @@
         .estado-enviado { background: rgba(0,255,255,0.15); color: #00ffff; }
         .estado-entregado { background: rgba(76,175,80,0.2); color: #4CAF50; }
 
-        /* Notificación de pedido NO LEÍDO */
         .pedido-item .no-leido {
             width: 10px;
             height: 10px;
@@ -93,7 +90,6 @@
             50% { opacity: 0.5; transform: scale(0.8); }
         }
 
-        /* ===== COLUMNA DERECHA: DETALLE DEL PEDIDO ===== */
         .pedido-detalle {
             background: rgba(20,20,20,0.8);
             border: 2px solid #ff00ff;
@@ -128,7 +124,6 @@
 
         .pedido-item.leido .no-leido { display: none; }
 
-        /* ===== SCROLLBAR ===== */
         .pedidos-scroll::-webkit-scrollbar { width: 6px; }
         .pedidos-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
         .pedidos-scroll::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 10px; }
@@ -141,15 +136,11 @@
 </head>
 <body>
 <div class="container">
-    <!-- HEADER -->
     <div class="header">
         <h1>📋 Gestión de Pedidos</h1>
-        <div>
-            <a href="/admin/panel?key=FlowColombia2026*" class="btn-back">← Volver al panel</a>
-        </div>
+        <a th:href="@{/admin/panel(key=${key})}" class="btn-back">← Volver al panel</a>
     </div>
 
-    <!-- LAYOUT DE DOS COLUMNAS -->
     <div class="pedidos-layout">
 
         <!-- ===== COLUMNA IZQUIERDA: LISTA ===== -->
@@ -181,14 +172,13 @@
                 <div th:each="pedido : ${pedidos}" class="pedido-item"
                      th:data-id="${pedido.id}"
                      onclick="seleccionarPedido(${pedido.id})"
-                     th:classappend="${pedido.id == pedidoSeleccionado ? 'active' : ''}">
+                     th:classappend="${pedido.id == pedidoSeleccionado.id ? 'active' : ''}">
                     <div class="info">
                         <div class="nombre" th:text="${pedido.nombreCliente}">Cliente</div>
                         <div class="codigo" th:text="${pedido.codigo}">COD-123</div>
                         <div class="fecha" th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</div>
                     </div>
                     <span class="estado-badge" th:classappend="'estado-' + ${#strings.toLowerCase(pedido.estado)}" th:text="${pedido.estado}">Estado</span>
-                    <!-- NOTIFICACIÓN DE NO LEÍDO (se puede manejar con un campo 'leido' en Pedido) -->
                     <span class="no-leido" th:if="${pedido.leido == null or !pedido.leido}" title="Pedido nuevo"></span>
                 </div>
             </div>
@@ -196,34 +186,39 @@
 
         <!-- ===== COLUMNA DERECHA: DETALLE ===== -->
         <div class="pedido-detalle" id="detallePedido">
+            <!-- SI NO HAY PEDIDO SELECCIONADO -->
             <div th:if="${pedidoSeleccionado == null}" class="empty">
                 <span class="icono">👆</span>
                 <p>Selecciona un pedido de la lista para ver los detalles</p>
             </div>
-            <div th:if="${pedidoSeleccionado != null}" th:each="pedido : ${pedidos}" th:if="${pedido.id == pedidoSeleccionado}">
+
+            <!-- SI HAY PEDIDO SELECCIONADO (USAR DIRECTAMENTE pedidoSeleccionado) -->
+            <div th:if="${pedidoSeleccionado != null}">
                 <div class="detalle-header">
-                    <span class="codigo"># <span th:text="${pedido.codigo}">COD-123</span></span>
-                    <span class="fecha" th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                    <span class="codigo"># <span th:text="${pedidoSeleccionado.codigo}">COD-123</span></span>
+                    <span class="fecha" th:text="${#temporals.format(pedidoSeleccionado.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</span>
                 </div>
                 <div class="detalle-grid">
-                    <div class="detalle-item"><div class="label">Cliente</div><div class="value" th:text="${pedido.nombreCliente}">Nombre</div></div>
-                    <div class="detalle-item"><div class="label">Teléfono</div><div class="value" th:text="${pedido.telefono}">Teléfono</div></div>
-                    <div class="detalle-item"><div class="label">Dirección</div><div class="value" th:text="${pedido.direccion} + ', ' + ${pedido.ciudad} + ', ' + ${pedido.departamento}">Dirección</div></div>
-                    <div class="detalle-item"><div class="label">Total</div><div class="value" style="color:#00ffff; font-weight:900;">$<span th:text="${#numbers.formatDecimal(pedido.total, 0, 'COMMA', 0, 'POINT')}">0</span></div></div>
+                    <div class="detalle-item"><div class="label">Cliente</div><div class="value" th:text="${pedidoSeleccionado.nombreCliente}">Nombre</div></div>
+                    <div class="detalle-item"><div class="label">Teléfono</div><div class="value" th:text="${pedidoSeleccionado.telefono}">Teléfono</div></div>
+                    <div class="detalle-item"><div class="label">Dirección</div><div class="value" th:text="${pedidoSeleccionado.direccion} + ', ' + ${pedidoSeleccionado.ciudad} + ', ' + ${pedidoSeleccionado.departamento}">Dirección</div></div>
+                    <div class="detalle-item"><div class="label">Total</div><div class="value" style="color:#00ffff; font-weight:900;">$<span th:text="${#numbers.formatDecimal(pedidoSeleccionado.total, 0, 'COMMA', 0, 'POINT')}">0</span></div></div>
                 </div>
-                <div class="detalle-productos" th:text="${pedido.productos}">Productos</div>
+                <div class="detalle-productos" th:text="${pedidoSeleccionado.productos}">Productos</div>
                 <div class="detalle-item" style="margin-bottom:10px;">
                     <div class="label">Estado actual</div>
-                    <div class="value" th:text="${pedido.estado}" style="font-weight:600; color:#ffd700;">Estado</div>
+                    <div class="value" th:text="${pedidoSeleccionado.estado}" style="font-weight:600; color:#ffd700;">Estado</div>
                 </div>
                 <div class="detalle-acciones">
-                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <!-- PROCESAR -->
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" style="display:inline;">
                         <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Procesando">
-                        <button type="submit" class="btn-accion btn-procesar" th:if="${pedido.estado == 'Pendiente'}">🔄 Procesar</button>
+                        <button type="submit" class="btn-accion btn-procesar" th:if="${pedidoSeleccionado.estado == 'Pendiente'}">🔄 Procesar</button>
                     </form>
 
-                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" class="form-envio" th:if="${pedido.estado == 'Procesando'}">
+                    <!-- ENVIAR -->
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" class="form-envio" th:if="${pedidoSeleccionado.estado == 'Procesando'}">
                         <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Enviado">
                         <select name="transportadora" required>
@@ -234,47 +229,43 @@
                             <option>TCC</option>
                             <option>Droppi</option>
                         </select>
-                        <input type="text" name="numeroGuia" placeholder="N° Guía" required style="padding:8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff;">
+                        <input type="text" name="numeroGuia" placeholder="N° Guía" required>
                         <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
                     </form>
 
-                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                    <!-- ENTREGAR -->
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" style="display:inline;">
                         <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Entregado">
-                        <button type="submit" class="btn-accion btn-entregar" th:if="${pedido.estado == 'Enviado'}">✅ Entregado</button>
+                        <button type="submit" class="btn-accion btn-entregar" th:if="${pedidoSeleccionado.estado == 'Enviado'}">✅ Entregado</button>
                     </form>
 
-                    <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedido.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">🗑️ Eliminar</a>
+                    <!-- ELIMINAR -->
+                    <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">🗑️ Eliminar</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SCRIPT PARA SELECCIONAR PEDIDO -->
-<!-- ============================================================ -->
 <script>
-    // Obtener el ID del pedido seleccionado desde el modelo (si existe)
-    var pedidoSeleccionadoId = /*[[${pedidoSeleccionado}]]*/ null;
+    // Obtener el ID del pedido seleccionado (si existe)
+    var pedidoSeleccionado = /*[[${pedidoSeleccionado}]]*/ null;
+    var pedidoSeleccionadoId = pedidoSeleccionado ? pedidoSeleccionado.id : null;
 
     function seleccionarPedido(id) {
-        // Construir la URL con el parámetro 'seleccionado'
         var url = new URL(window.location.href);
         url.searchParams.set('seleccionado', id);
         window.location.href = url.toString();
     }
 
-    // Marcar el pedido como "leído" al seleccionarlo (se puede usar localStorage o backend)
     document.addEventListener('DOMContentLoaded', function() {
-        // Si hay un pedido seleccionado, lo marcamos como leído visualmente
         if (pedidoSeleccionadoId) {
             var items = document.querySelectorAll('.pedido-item');
             items.forEach(function(item) {
                 var itemId = parseInt(item.dataset.id);
                 if (itemId === pedidoSeleccionadoId) {
                     item.classList.add('leido');
-                    // Aquí podrías hacer un fetch al backend para marcar como leído
                 }
             });
         }
