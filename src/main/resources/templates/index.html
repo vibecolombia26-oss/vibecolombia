@@ -737,10 +737,10 @@
     // Partículas
     const p = document.getElementById('particulas');
     const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (let i=0;i<35;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*4+2; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*18+12)+'s;animation-delay:'+Math.random()*15+'s;'; p.appendChild(el); }
+    for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula'; const t=Math.random()*4+2; const co=colores[Math.floor(Math.random()*colores.length)]; el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+co+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px '+co+';animation-duration:'+(Math.random()*18+12)+'s;animation-delay:'+Math.random()*15+'s;'; p.appendChild(el); }
 
     const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵','🫘','🌮'];
-    for (let i=0;i<15;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; p.appendChild(el); }
+    for (let i=0;i<8;i++) { const el=document.createElement('div'); el.className='particula-emoji'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)]; el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;animation-delay:'+Math.random()*20+'s;'; p.appendChild(el); }
 
     // Estrellas
     function crearEstrellas() {

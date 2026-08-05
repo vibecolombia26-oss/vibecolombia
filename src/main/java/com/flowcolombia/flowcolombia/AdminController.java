@@ -151,7 +151,8 @@ public class AdminController {
                                   @RequestParam(required = false) String imagen6File,
                                   @RequestParam(required = false) String coloresInput,
                                   @RequestParam(required = false) String tallasInput,
-                                  @RequestParam(required = false) String variacionesDisponibles,
+                                  @RequestParam(required = false) Boolean tieneColor,
+                                  @RequestParam(required = false) Boolean tieneTalla,
                                   RedirectAttributes redirect) {
 
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
@@ -159,11 +160,13 @@ public class AdminController {
         System.out.println("=========================================");
         System.out.println("Guardando producto: " + producto.getNombre());
         System.out.println("ID: " + producto.getId());
+        System.out.println("tieneColor: " + tieneColor);
+        System.out.println("tieneTalla: " + tieneTalla);
         System.out.println("Colores: " + coloresInput);
         System.out.println("Tallas: " + tallasInput);
         System.out.println("=========================================");
 
-        // Guardar URLs de imágenes
+        // 1. Guardar URLs de imágenes
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
         if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
@@ -171,7 +174,7 @@ public class AdminController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // Mantener imágenes existentes
+        // 2. Mantener imágenes existentes si no se cambian
         if (producto.getId() != null) {
             Producto existente = productoRepository.findById(producto.getId()).orElse(null);
             if (existente != null) {
@@ -184,18 +187,27 @@ public class AdminController {
             }
         }
 
-        // Guardar variaciones
-        if (coloresInput != null || tallasInput != null) {
-            String coloresStr = coloresInput != null ? coloresInput.replace("\\s*,\\s*", ", ") : "";
-            String tallasStr = tallasInput != null ? tallasInput.replace("\\s*,\\s*", ", ") : "";
-            String variacionesStr = coloresStr + "|" + tallasStr;
-            producto.setVariacionesDisponibles(variacionesStr);
-        } else if (variacionesDisponibles != null) {
-            producto.setVariacionesDisponibles(variacionesDisponibles);
+        // 3. Guardar variaciones (color y talla)
+        // Si los checkboxes no vienen en la petición, se consideran false
+        producto.setTieneColor(tieneColor != null && tieneColor);
+        producto.setTieneTalla(tieneTalla != null && tieneTalla);
+
+        // Construir variacionesDisponibles según los valores de colores y tallas
+        String coloresStr = (coloresInput != null && !coloresInput.trim().isEmpty())
+                ? coloresInput.replace("\\s*,\\s*", ", ") : "";
+        String tallasStr = (tallasInput != null && !tallasInput.trim().isEmpty())
+                ? tallasInput.replace("\\s*,\\s*", ", ") : "";
+
+        // Si no hay colores ni tallas, guardamos "|" (vacío)
+        if (coloresStr.isEmpty() && tallasStr.isEmpty()) {
+            producto.setVariacionesDisponibles("|");
+        } else {
+            producto.setVariacionesDisponibles(coloresStr + "|" + tallasStr);
         }
 
+        // 4. Guardar producto en base de datos
         productoRepository.save(producto);
-        redirect.addFlashAttribute("mensaje", "Producto guardado correctamente!");
+        redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         return "redirect:/admin/panel?key=" + key;
     }
 

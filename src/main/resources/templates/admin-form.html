@@ -135,26 +135,26 @@
         <div class="form-section">
             <h2>🎨 Variaciones</h2>
             <div class="form-group checkbox-group">
-                <input type="checkbox" id="tieneVariaciones" name="tieneVariaciones" th:checked="${producto.tieneVariaciones}" value="true">
-                <label for="tieneVariaciones">Este producto tiene variaciones (colores, tallas, etc.)</label>
+                <input type="checkbox" id="tieneColor" name="tieneColor" th:checked="${producto.tieneColor}" value="true">
+                <label for="tieneColor">Este producto tiene variación de COLOR</label>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="tieneTalla" name="tieneTalla" th:checked="${producto.tieneTalla}" value="true">
+                <label for="tieneTalla">Este producto tiene variación de TALLA</label>
             </div>
 
-            <div id="variacionesCampos" th:style="${producto.tieneVariaciones ? 'display:block;' : 'display:none;'}">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Colores disponibles</label>
-                        <input type="text" id="coloresInput" name="coloresInput"
-                               th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ','), ', ')}"
-                               placeholder="Ej: Rojo, Azul, Verde, Negro">
-                        <small style="color:#666;">Separa los colores con comas (ej: Rojo, Azul, Negro)</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Tallas disponibles</label>
-                        <input type="text" id="tallasInput" name="tallasInput"
-                               th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ','), ', ')}"
-                               placeholder="Ej: S, M, L, XL">
-                        <small style="color:#666;">Separa las tallas con comas (ej: S, M, L, XL)</small>
-                    </div>
+            <div id="camposColores" th:style="${producto.tieneColor ? 'display:block;' : 'display:none;'}">
+                <div class="form-group">
+                    <label>Colores disponibles</label>
+                    <input type="text" id="coloresInput" name="coloresInput" th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ','), ', ')}" placeholder="Ej: Rojo, Azul, Negro">
+                    <small style="color:#666;">Separa los colores con comas</small>
+                </div>
+            </div>
+            <div id="camposTallas" th:style="${producto.tieneTalla ? 'display:block;' : 'display:none;'}">
+                <div class="form-group">
+                    <label>Tallas disponibles</label>
+                    <input type="text" id="tallasInput" name="tallasInput" th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ','), ', ')}" placeholder="Ej: S, M, L">
+                    <small style="color:#666;">Separa las tallas con comas</small>
                 </div>
             </div>
         </div>
@@ -229,18 +229,13 @@
 
 <script>
     // ============================================================
-    // MOSTRAR/OCULTAR CAMPOS DE VARIACIONES
+    // MOSTRAR/OCULTAR CAMPOS DE COLOR Y TALLA
     // ============================================================
-    document.getElementById('tieneVariaciones').addEventListener('change', function() {
-        const campos = document.getElementById('variacionesCampos');
-        if (this.checked) {
-            campos.style.display = 'block';
-        } else {
-            campos.style.display = 'none';
-            // Limpiar campos cuando se desactiva
-            document.getElementById('coloresInput').value = '';
-            document.getElementById('tallasInput').value = '';
-        }
+    document.getElementById('tieneColor').addEventListener('change', function() {
+        document.getElementById('camposColores').style.display = this.checked ? 'block' : 'none';
+    });
+    document.getElementById('tieneTalla').addEventListener('change', function() {
+        document.getElementById('camposTallas').style.display = this.checked ? 'block' : 'none';
     });
 
     // ============================================================

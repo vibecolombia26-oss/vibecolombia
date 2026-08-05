@@ -37,6 +37,8 @@ public class Producto {
 
     private Boolean tieneVariaciones = false;
     private String variacionesDisponibles; // Formato: "color1,color2|talla1,talla2"
+    private Boolean tieneColor = false;
+    private Boolean tieneTalla = false;
 
     // ============================================================
     // RELACIÓN CON RESEÑAS
@@ -119,6 +121,13 @@ public class Producto {
                 .mapToInt(Resena::getCalificacion)
                 .average()
                 .orElse(0.0);
+
+        public Boolean getTieneColor() { return tieneColor; }
+        public void setTieneColor(Boolean tieneColor) { this.tieneColor = tieneColor; }
+
+        public Boolean getTieneTalla() { return tieneTalla; }
+        public void setTieneTalla(Boolean tieneTalla) { this.tieneTalla = tieneTalla; }
+
     }
 
     public Long getCantidadResenas() {

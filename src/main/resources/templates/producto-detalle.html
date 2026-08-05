@@ -471,28 +471,11 @@
                 </div>
             </div>
 
-            <!-- ======== POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ======== -->
-            <div class="dropdown-container politica-tallas">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="dropdown-content">
-                    <ul>
-                        <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
-                        <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
-                        <li>El cambio está sujeto a disponibilidad de inventario.</li>
-                        <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
-                        <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
-                    </ul>
-                </div>
-            </div>
-
             <!-- ======== VARIACIONES ======== -->
-            <div class="variaciones" th:if="${producto.tieneVariaciones}">
+            <div class="variaciones" th:if="${producto.tieneColor or producto.tieneTalla}">
                 <h3>🎨 Personaliza tu producto</h3>
                 <div class="variacion-row">
-                    <div class="variacion-group">
+                    <div class="variacion-group" th:if="${producto.tieneColor}">
                         <label>Color</label>
                         <select id="colorSelect">
                             <option value="">Seleccionar</option>
@@ -501,7 +484,7 @@
                             </th:block>
                         </select>
                     </div>
-                    <div class="variacion-group">
+                    <div class="variacion-group" th:if="${producto.tieneTalla}">
                         <label>Talla</label>
                         <select id="tallaSelect">
                             <option value="">Seleccionar</option>
@@ -514,7 +497,7 @@
             </div>
 
             <!-- ======== CONVERTIDOR DE TALLAS ======== -->
-            <div class="tallas-container" th:if="${producto.tieneVariaciones}">
+            <div class="tallas-container" th:if="${producto.tieneTalla}">
                 <div class="tallas-card">
                     <h3>👟 Guía de tallas</h3>
                     <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
@@ -572,6 +555,23 @@
                             <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
                             <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
                             <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ======== POLÍTICA DE CAMBIO DE TALLAS (DROPDOWN) ======== -->
+                <div class="dropdown-container politica-tallas">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content">
+                        <ul>
+                            <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
+                            <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
+                            <li>El cambio está sujeto a disponibilidad de inventario.</li>
+                            <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
+                            <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
                         </ul>
                     </div>
                 </div>
@@ -851,8 +851,8 @@
         var nombre = document.querySelector('.nombre').textContent.trim();
         var imagen = document.getElementById('imgPrincipal')?.src || '';
         var cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        var color = document.getElementById('colorSelect')?.value || '';
-        var talla = document.getElementById('tallaSelect')?.value || '';
+        var color = document.getElementById('colorSelect') ? document.getElementById('colorSelect').value : '';
+        var talla = document.getElementById('tallaSelect') ? document.getElementById('tallaSelect').value : '';
         var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
         var existe = false;
