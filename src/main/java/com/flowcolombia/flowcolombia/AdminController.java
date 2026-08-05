@@ -53,13 +53,36 @@ public class AdminController {
     }
 
     // ============================================================
-    // PEDIDOS
+    // PEDIDOS - CON NOTIFICACIONES Y ORDENAMIENTO
     // ============================================================
     @GetMapping("/pedidos")
-    public String pedidos(@RequestParam String key, Model model) {
+    public String pedidos(@RequestParam String key,
+                          @RequestParam(required = false) String estado,
+                          Model model) {
         if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        model.addAttribute("pedidos", pedidoRepository.findAll());
+
+        // Obtener pedidos ordenados (más recientes primero)
+        List<Pedido> pedidos;
+        if (estado != null && !estado.isEmpty()) {
+            pedidos = pedidoRepository.findByEstadoOrderByFechaDesc(estado);
+        } else {
+            pedidos = pedidoRepository.findAllByOrderByFechaDesc();
+        }
+
+        // Contar pedidos por estado (para notificaciones)
+        long pendientes = pedidoRepository.countByEstado("Pendiente");
+        long procesando = pedidoRepository.countByEstado("Procesando");
+        long enviados = pedidoRepository.countByEstado("Enviado");
+        long entregados = pedidoRepository.countByEstado("Entregado");
+
+        model.addAttribute("pedidos", pedidos);
         model.addAttribute("key", key);
+        model.addAttribute("estadoSeleccionado", estado);
+        model.addAttribute("pendientes", pendientes);
+        model.addAttribute("procesando", procesando);
+        model.addAttribute("enviados", enviados);
+        model.addAttribute("entregados", entregados);
+
         return "admin-pedidos";
     }
 
@@ -188,7 +211,6 @@ public class AdminController {
         }
 
         // 3. Guardar variaciones (color y talla)
-        // Si los checkboxes no vienen en la petición, se consideran false
         producto.setTieneColor(tieneColor != null && tieneColor);
         producto.setTieneTalla(tieneTalla != null && tieneTalla);
 
@@ -198,14 +220,12 @@ public class AdminController {
         String tallasStr = (tallasInput != null && !tallasInput.trim().isEmpty())
                 ? tallasInput.replace("\\s*,\\s*", ", ") : "";
 
-        // Si no hay colores ni tallas, guardamos "|" (vacío)
         if (coloresStr.isEmpty() && tallasStr.isEmpty()) {
             producto.setVariacionesDisponibles("|");
         } else {
             producto.setVariacionesDisponibles(coloresStr + "|" + tallasStr);
         }
 
-        // 4. Guardar producto en base de datos
         productoRepository.save(producto);
         redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         return "redirect:/admin/panel?key=" + key;
@@ -240,7 +260,6 @@ public class AdminController {
                                 @RequestParam(required = false) String imagenUrl,
                                 RedirectAttributes redirect) {
 
-        // 🔍 LOGS DE DEPURACIÓN
         System.out.println("=========================================");
         System.out.println("📝 RECIBIENDO RESEÑA:");
         System.out.println("  Key: " + key);
@@ -251,13 +270,11 @@ public class AdminController {
         System.out.println("  Imagen URL: " + imagenUrl);
         System.out.println("=========================================");
 
-        // Validar contraseña
         if (!adminPassword.equals(key)) {
             System.out.println("❌ Contraseña incorrecta");
             return "redirect:/admin/login";
         }
 
-        // Buscar producto
         Producto producto = productoRepository.findById(productoId).orElse(null);
         if (producto == null) {
             System.out.println("❌ Producto no encontrado con ID: " + productoId);
@@ -265,7 +282,6 @@ public class AdminController {
             return "redirect:/admin/panel?key=" + key;
         }
 
-        // Crear y guardar reseña
         try {
             Resena resena = new Resena();
             resena.setProducto(producto);
@@ -280,8 +296,6 @@ public class AdminController {
             System.out.println("✅ Reseña guardada con ID: " + saved.getId());
 
             redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
-
-            // 🔥 REDIRIGIR A LA PÁGINA PÚBLICA DEL PRODUCTO
             return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
 
         } catch (Exception e) {
@@ -305,5 +319,27 @@ public class AdminController {
         }
         redirect.addFlashAttribute("mensaje", "Reseña no encontrada");
         return "redirect:/admin/panel?key=" + key;
+    }
+
+    // ============================================================
+    // MARCAR PEDIDO COMO LEÍDO
+    // ============================================================
+    @PostMapping("/marcar-leido/{id}")
+    @ResponseBody
+    public Map<String, String> marcarLeido(@PathVariable Long id, @RequestParam String key) {
+        Map<String, String> response = new HashMap<>();
+        if (!adminPassword.equals(key)) {
+            response.put("error", "No autorizado");
+            return response;
+        }
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        if (pedido != null) {
+            pedido.setLeido(true);
+            pedidoRepository.save(pedido);
+            response.put("status", "OK");
+        } else {
+            response.put("error", "Pedido no encontrado");
+        }
+        return response;
     }
 }

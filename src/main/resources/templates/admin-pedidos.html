@@ -3,104 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos - FLOW COLOMBIA</title>
+    <title>Pedidos - FLOW COLOMBIA Admin</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
-        .container { max-width:1100px; margin:0 auto; padding:20px; }
-        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
-        .header h1 { font-size:1.5rem; color:#ff00ff; }
-        .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; }
-        .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
-        .btn-back:hover { background:rgba(0,255,255,0.1); }
-        .pedido-card { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:20px; margin-bottom:20px; }
-        .pedido-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px solid #333; }
-        .pedido-id { color:#ff00ff; font-weight:600; }
-        .estado { padding:5px 15px; border-radius:20px; font-size:0.8rem; font-weight:600; text-transform:uppercase; }
-        .estado-pendiente { background:rgba(255,193,7,0.15); color:#ffc107; }
-        .estado-procesando { background:rgba(33,150,243,0.15); color:#2196F3; }
-        .estado-enviado { background:rgba(0,255,255,0.15); color:#00ffff; }
-        .estado-entregado { background:rgba(0,255,0,0.15); color:#4CAF50; }
-        .pedido-body { display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:0.9rem; }
-        .label { color:#888; } .value { color:#fff; }
-        .pedido-productos { grid-column:1/-1; background:#111; padding:15px; border-radius:8px; white-space:pre-line; }
-        .acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; align-items:center; }
-        .btn-accion { padding:8px 16px; border-radius:20px; font-size:0.75rem; text-decoration:none; font-weight:600; cursor:pointer; border:none; text-transform:uppercase; display:inline-block; transition:all 0.3s; }
-        .btn-accion:hover { transform:scale(1.05); }
-        .btn-procesar { background:#2196F3; color:#fff; }
-        .btn-enviar { background:#00ffff; color:#000; }
-        .btn-entregar { background:#ff00ff; color:#fff; }
-        .btn-eliminar { background:#ff0044; color:#fff; }
-        .guia-info { background:rgba(0,255,255,0.05); border:1px solid #00ffff; border-radius:8px; padding:10px; margin-top:10px; }
-        .envio-form { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-        .envio-form input, .envio-form select { padding:8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 20px; background: rgba(20,20,20,0.8); border: 2px solid #ff00ff; border-radius: 16px; }
+        .header h1 { font-size: 1.5rem; color: #ff00ff; }
+        .btn-back { padding: 10px 20px; border-radius: 25px; text-decoration: none; color: #00ffff; border: 1px solid #00ffff; background: transparent; transition: all 0.3s; }
+        .btn-back:hover { background: rgba(0,255,255,0.1); }
+
+        /* PANEL DE DOS COLUMNAS */
+        .pedidos-layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; height: calc(100vh - 200px); min-height: 500px; }
+        @media (max-width: 768px) { .pedidos-layout { grid-template-columns: 1fr; height: auto; } }
+
+        /* ===== COLUMNA IZQUIERDA: LISTA DE PEDIDOS ===== */
+        .pedidos-lista {
+            background: rgba(20,20,20,0.8);
+            border: 2px solid #ff00ff;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .pedidos-lista-header {
+            padding: 15px 20px;
+            background: rgba(255,0,255,0.1);
+            border-bottom: 1px solid rgba(255,0,255,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pedidos-lista-header h3 { color: #ff00ff; font-size: 1rem; }
+        .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filtro-btn { padding: 4px 12px; border-radius: 15px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; cursor: pointer; transition: all 0.3s; }
+        .filtro-btn:hover, .filtro-btn.active { background: rgba(255,0,255,0.15); border-color: #ff00ff; color: #fff; }
+        .filtro-btn .badge { background: #ff00ff; color: #fff; border-radius: 50%; padding: 0 6px; font-size: 0.6rem; margin-left: 4px; }
+
+        .pedidos-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px;
+        }
+        .pedido-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pedido-item:hover { background: rgba(255,0,255,0.08); border-color: rgba(255,0,255,0.2); }
+        .pedido-item.active { background: rgba(255,0,255,0.12); border-color: #ff00ff; border-left: 3px solid #ff00ff; }
+
+        .pedido-item .info .nombre { font-weight: 600; color: #fff; font-size: 0.9rem; }
+        .pedido-item .info .codigo { color: #888; font-size: 0.7rem; }
+        .pedido-item .info .fecha { color: #666; font-size: 0.65rem; }
+
+        .pedido-item .estado-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .estado-pendiente { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .estado-procesando { background: rgba(33,150,243,0.2); color: #2196F3; }
+        .estado-enviado { background: rgba(0,255,255,0.15); color: #00ffff; }
+        .estado-entregado { background: rgba(76,175,80,0.2); color: #4CAF50; }
+
+        /* Notificación de pedido NO LEÍDO */
+        .pedido-item .no-leido {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff00ff;
+            flex-shrink: 0;
+            animation: pulseNotif 1.5s infinite;
+        }
+        @keyframes pulseNotif {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ===== COLUMNA DERECHA: DETALLE DEL PEDIDO ===== */
+        .pedido-detalle {
+            background: rgba(20,20,20,0.8);
+            border: 2px solid #ff00ff;
+            border-radius: 16px;
+            padding: 25px;
+            overflow-y: auto;
+        }
+        .pedido-detalle .empty { text-align: center; color: #666; padding: 60px 20px; }
+        .pedido-detalle .empty .icono { font-size: 3rem; display: block; margin-bottom: 10px; }
+
+        .detalle-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .detalle-header .codigo { color: #ff00ff; font-weight: 700; font-size: 1.2rem; }
+        .detalle-header .fecha { color: #666; font-size: 0.8rem; }
+
+        .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .detalle-item { background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; }
+        .detalle-item .label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
+        .detalle-item .value { color: #fff; font-size: 0.9rem; }
+
+        .detalle-productos { background: rgba(255,255,255,0.02); border-radius: 8px; padding: 15px; margin-bottom: 15px; white-space: pre-line; font-size: 0.85rem; color: #ccc; }
+
+        .detalle-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .btn-accion { padding: 10px 20px; border-radius: 25px; border: none; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; }
+        .btn-accion:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255,0,255,0.3); }
+        .btn-procesar { background: #2196F3; color: #fff; }
+        .btn-enviar { background: #00ffff; color: #000; }
+        .btn-entregar { background: #ff00ff; color: #fff; }
+        .btn-eliminar { background: #ff0044; color: #fff; }
+
+        .form-envio { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+        .form-envio input, .form-envio select { padding: 8px 12px; background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; }
+
+        .pedido-item.leido .no-leido { display: none; }
+
+        /* ===== SCROLLBAR ===== */
+        .pedidos-scroll::-webkit-scrollbar { width: 6px; }
+        .pedidos-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .pedidos-scroll::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .detalle-grid { grid-template-columns: 1fr; }
+            .pedidos-lista { max-height: 400px; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- HEADER -->
     <div class="header">
-        <h1>📋 Pedidos FLOW COLOMBIA</h1>
+        <h1>📋 Gestión de Pedidos</h1>
         <div>
-            <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Productos</a>
-            <a th:href="@{/admin/chats(key=${key})}" class="btn btn-back" style="margin-left:10px;">💬 Chats</a>
+            <a href="/admin/panel?key=FlowColombia2026*" class="btn-back">← Volver al panel</a>
         </div>
     </div>
-    <div th:if="${pedidos.isEmpty()}"><p style="text-align:center;color:#666;padding:40px;">No hay pedidos aún</p></div>
-    <div th:each="pedido : ${pedidos}">
-        <div class="pedido-card">
-            <div class="pedido-header">
-                <div><span class="pedido-id">#<span th:text="${pedido.codigo}"></span></span></div>
-                <span class="estado estado-pendiente" th:if="${pedido.estado=='Pendiente'}">Pendiente</span>
-                <span class="estado estado-procesando" th:if="${pedido.estado=='Procesando'}">Procesando</span>
-                <span class="estado estado-enviado" th:if="${pedido.estado=='Enviado'}">Enviado</span>
-                <span class="estado estado-entregado" th:if="${pedido.estado=='Entregado'}">Entregado</span>
-            </div>
-            <div class="pedido-body">
-                <div><span class="label">Cliente:</span> <span class="value" th:text="${pedido.nombreCliente}"></span></div>
-                <div><span class="label">Teléfono:</span> <span class="value" th:text="${pedido.telefono}"></span></div>
-                <div><span class="label">Dirección:</span> <span class="value" th:text="${pedido.direccion+', '+pedido.ciudad+', '+pedido.departamento}"></span></div>
-                <div class="pedido-productos"><strong style="color:#ff00ff;">Productos:</strong><br><span th:text="${pedido.productos}"></span></div>
-                <div style="text-align:right;"><span class="label">Total:</span> <span style="color:#00ffff;font-weight:700;">$<span th:text="${#numbers.formatDecimal(pedido.total,0,'COMMA',0,'POINT')}"></span></span></div>
-            </div>
-            <div class="guia-info" th:if="${pedido.transportadora!=null}">
-                🚚 <strong th:text="${pedido.transportadora}"></strong> | 📋 <span th:text="${pedido.numeroGuia}"></span>
-            </div>
-            <div class="acciones">
-                <!-- Botón PROCESAR (POST) -->
-                <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" th:if="${pedido.estado=='Pendiente'}">
-                    <input type="hidden" name="key" th:value="${key}">
-                    <input type="hidden" name="estado" value="Procesando">
-                    <button type="submit" class="btn-accion btn-procesar">🔄 Procesar</button>
-                </form>
 
-                <!-- Formulario ENVIAR (POST) -->
-                <form class="envio-form" th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" th:if="${pedido.estado=='Procesando'}">
-                    <input type="hidden" name="key" th:value="${key}">
-                    <input type="hidden" name="estado" value="Enviado">
-                    <select name="transportadora" required>
-                        <option value="">Transportadora...</option>
-                        <option>Veloces</option>
-                        <option>Envia</option>
-                        <option>Interrapidísimo</option>
-                        <option>TCC</option>
-                        <option>Droppi</option>
-                    </select>
-                    <input type="text" name="numeroGuia" placeholder="Guía" required>
-                    <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
-                </form>
+    <!-- LAYOUT DE DOS COLUMNAS -->
+    <div class="pedidos-layout">
 
-                <!-- Botón ENTREGADO (POST) -->
-                <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" th:if="${pedido.estado=='Enviado'}">
-                    <input type="hidden" name="key" th:value="${key}">
-                    <input type="hidden" name="estado" value="Entregado">
-                    <button type="submit" class="btn-accion btn-entregar">✅ Entregado</button>
-                </form>
+        <!-- ===== COLUMNA IZQUIERDA: LISTA ===== -->
+        <div class="pedidos-lista">
+            <div class="pedidos-lista-header">
+                <h3>📦 Pedidos</h3>
+                <div class="filtros">
+                    <a th:href="@{/admin/pedidos(key=${key})}" class="filtro-btn" th:classappend="${estadoSeleccionado == null ? 'active' : ''}">
+                        Todos <span class="badge" th:text="${#lists.size(pedidos)}">0</span>
+                    </a>
+                    <a th:href="@{/admin/pedidos(key=${key}, estado='Pendiente')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Pendiente' ? 'active' : ''}">
+                        ⏳ <span class="badge" th:text="${pendientes}">0</span>
+                    </a>
+                    <a th:href="@{/admin/pedidos(key=${key}, estado='Procesando')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Procesando' ? 'active' : ''}">
+                        🔄 <span class="badge" th:text="${procesando}">0</span>
+                    </a>
+                    <a th:href="@{/admin/pedidos(key=${key}, estado='Enviado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Enviado' ? 'active' : ''}">
+                        📦 <span class="badge" th:text="${enviados}">0</span>
+                    </a>
+                    <a th:href="@{/admin/pedidos(key=${key}, estado='Entregado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Entregado' ? 'active' : ''}">
+                        ✅ <span class="badge" th:text="${entregados}">0</span>
+                    </a>
+                </div>
+            </div>
+            <div class="pedidos-scroll" id="listaPedidos">
+                <div th:if="${pedidos.isEmpty()}" style="text-align:center; color:#666; padding:40px;">
+                    🕊️ No hay pedidos
+                </div>
+                <div th:each="pedido : ${pedidos}" class="pedido-item"
+                     th:data-id="${pedido.id}"
+                     onclick="seleccionarPedido(${pedido.id})"
+                     th:classappend="${pedido.id == pedidoSeleccionado ? 'active' : ''}">
+                    <div class="info">
+                        <div class="nombre" th:text="${pedido.nombreCliente}">Cliente</div>
+                        <div class="codigo" th:text="${pedido.codigo}">COD-123</div>
+                        <div class="fecha" th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                    </div>
+                    <span class="estado-badge" th:classappend="'estado-' + ${#strings.toLowerCase(pedido.estado)}" th:text="${pedido.estado}">Estado</span>
+                    <!-- NOTIFICACIÓN DE NO LEÍDO (se puede manejar con un campo 'leido' en Pedido) -->
+                    <span class="no-leido" th:if="${pedido.leido == null or !pedido.leido}" title="Pedido nuevo"></span>
+                </div>
+            </div>
+        </div>
 
-                <!-- Botón ELIMINAR (GET - ya está bien) -->
-                <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedido.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido definitivamente?')">🗑️ Eliminar</a>
+        <!-- ===== COLUMNA DERECHA: DETALLE ===== -->
+        <div class="pedido-detalle" id="detallePedido">
+            <div th:if="${pedidoSeleccionado == null}" class="empty">
+                <span class="icono">👆</span>
+                <p>Selecciona un pedido de la lista para ver los detalles</p>
+            </div>
+            <div th:if="${pedidoSeleccionado != null}" th:each="pedido : ${pedidos}" th:if="${pedido.id == pedidoSeleccionado}">
+                <div class="detalle-header">
+                    <span class="codigo"># <span th:text="${pedido.codigo}">COD-123</span></span>
+                    <span class="fecha" th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                </div>
+                <div class="detalle-grid">
+                    <div class="detalle-item"><div class="label">Cliente</div><div class="value" th:text="${pedido.nombreCliente}">Nombre</div></div>
+                    <div class="detalle-item"><div class="label">Teléfono</div><div class="value" th:text="${pedido.telefono}">Teléfono</div></div>
+                    <div class="detalle-item"><div class="label">Dirección</div><div class="value" th:text="${pedido.direccion} + ', ' + ${pedido.ciudad} + ', ' + ${pedido.departamento}">Dirección</div></div>
+                    <div class="detalle-item"><div class="label">Total</div><div class="value" style="color:#00ffff; font-weight:900;">$<span th:text="${#numbers.formatDecimal(pedido.total, 0, 'COMMA', 0, 'POINT')}">0</span></div></div>
+                </div>
+                <div class="detalle-productos" th:text="${pedido.productos}">Productos</div>
+                <div class="detalle-item" style="margin-bottom:10px;">
+                    <div class="label">Estado actual</div>
+                    <div class="value" th:text="${pedido.estado}" style="font-weight:600; color:#ffd700;">Estado</div>
+                </div>
+                <div class="detalle-acciones">
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <input type="hidden" name="key" th:value="${key}">
+                        <input type="hidden" name="estado" value="Procesando">
+                        <button type="submit" class="btn-accion btn-procesar" th:if="${pedido.estado == 'Pendiente'}">🔄 Procesar</button>
+                    </form>
+
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" class="form-envio" th:if="${pedido.estado == 'Procesando'}">
+                        <input type="hidden" name="key" th:value="${key}">
+                        <input type="hidden" name="estado" value="Enviado">
+                        <select name="transportadora" required>
+                            <option value="">Transportadora...</option>
+                            <option>Interrapidísimo</option>
+                            <option>Envia</option>
+                            <option>Veloces</option>
+                            <option>TCC</option>
+                            <option>Droppi</option>
+                        </select>
+                        <input type="text" name="numeroGuia" placeholder="N° Guía" required style="padding:8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff;">
+                        <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
+                    </form>
+
+                    <form th:action="@{/admin/cambiar-estado/{id}(id=${pedido.id})}" method="post" style="display:inline;">
+                        <input type="hidden" name="key" th:value="${key}">
+                        <input type="hidden" name="estado" value="Entregado">
+                        <button type="submit" class="btn-accion btn-entregar" th:if="${pedido.estado == 'Enviado'}">✅ Entregado</button>
+                    </form>
+
+                    <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedido.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">🗑️ Eliminar</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- SCRIPT PARA SELECCIONAR PEDIDO -->
+<!-- ============================================================ -->
+<script>
+    // Obtener el ID del pedido seleccionado desde el modelo (si existe)
+    var pedidoSeleccionadoId = /*[[${pedidoSeleccionado}]]*/ null;
+
+    function seleccionarPedido(id) {
+        // Construir la URL con el parámetro 'seleccionado'
+        var url = new URL(window.location.href);
+        url.searchParams.set('seleccionado', id);
+        window.location.href = url.toString();
+    }
+
+    // Marcar el pedido como "leído" al seleccionarlo (se puede usar localStorage o backend)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Si hay un pedido seleccionado, lo marcamos como leído visualmente
+        if (pedidoSeleccionadoId) {
+            var items = document.querySelectorAll('.pedido-item');
+            items.forEach(function(item) {
+                var itemId = parseInt(item.dataset.id);
+                if (itemId === pedidoSeleccionadoId) {
+                    item.classList.add('leido');
+                    // Aquí podrías hacer un fetch al backend para marcar como leído
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>
