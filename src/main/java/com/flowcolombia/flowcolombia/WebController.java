@@ -23,6 +23,9 @@ public class WebController {
         this.resenaService = resenaService;
     }
 
+    // ============================================================
+    // PÁGINA PRINCIPAL
+    // ============================================================
     @GetMapping("/")
     public String home(@RequestParam(required = false) String categoria, Model model) {
         List<String> categoriasDisponibles = productoService.listarCategorias();
@@ -58,6 +61,9 @@ public class WebController {
         return "index";
     }
 
+    // ============================================================
+    // OPTIMIZACIÓN DE IMÁGENES
+    // ============================================================
     private void optimizarImagenes(Producto p) {
         if (p == null) return;
         String[] imagenes = {p.getImagen1(), p.getImagen2(), p.getImagen3(), p.getImagen4(), p.getImagen5(), p.getImagen6()};
@@ -72,6 +78,9 @@ public class WebController {
         }
     }
 
+    // ============================================================
+    // DETALLE DE PRODUCTO
+    // ============================================================
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
         try {
@@ -102,10 +111,44 @@ public class WebController {
         }
     }
 
-    @GetMapping("/carrito") public String carrito() { return "carrito"; }
-    @GetMapping("/envios") public String envios() { return "envios"; }
-    @GetMapping("/seguimiento") public String seguimiento() { return "seguimiento"; }
-    @GetMapping("/privacidad") public String privacidad() { return "privacidad"; }
-    @GetMapping("/terminos") public String terminos() { return "terminos"; }
-    @GetMapping("/contacto") public String contacto() { return "contacto"; }
+    // ============================================================
+    // OTRAS PÁGINAS
+    // ============================================================
+    @GetMapping("/carrito")
+    public String carrito() {
+        return "carrito";
+    }
+
+    @GetMapping("/envios")
+    public String envios() {
+        return "envios";
+    }
+
+    @GetMapping("/seguimiento")
+    public String seguimiento() {
+        return "seguimiento";
+    }
+
+    @GetMapping("/privacidad")
+    public String privacidad() {
+        return "privacidad";
+    }
+
+    @GetMapping("/terminos")
+    public String terminos() {
+        return "terminos";
+    }
+
+    @GetMapping("/contacto")
+    public String contacto() {
+        return "contacto";
+    }
+
+    // ============================================================
+    // 🔥 ADMIN LOGIN (ESTE ES EL QUE FALTABA)
+    // ============================================================
+    @GetMapping("/admin-login")
+    public String adminLogin() {
+        return "admin-login";
+    }
 }
