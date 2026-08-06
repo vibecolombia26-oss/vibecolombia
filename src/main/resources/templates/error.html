@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - FLOW COLOMBIA</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0a0a0a; color:#fff; font-family:'Segoe UI',system-ui,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; text-align:center; }
+        .error-box { max-width:500px; padding:40px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:20px; }
+        .error-box h1 { font-size:4rem; color:#ff00ff; }
+        .error-box h2 { margin:20px 0; }
+        .error-box p { color:#aaa; margin:10px 0; }
+        .btn { display:inline-block; padding:10px 25px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border-radius:25px; text-decoration:none; margin-top:20px; }
+    </style>
+</head>
+<body>
+<div class="error-box">
+    <h1>😵</h1>
+    <h2 th:text="${message}">Algo salió mal</h2>
+    <p th:text="${detail}">Detalle del error</p>
+    <a href="/" class="btn">Volver al inicio</a>
+</div>
+</body>
+</html>

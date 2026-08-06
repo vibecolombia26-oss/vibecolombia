@@ -1,34 +1,36 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - FLOW COLOMBIA</title>
+    <title>Admin Login - FLOW COLOMBIA</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .login-container { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 20px; padding: 40px; width: 400px; text-align: center; box-shadow: 0 0 40px rgba(255,0,255,0.3); }
-        h1 { font-size: 1.8rem; font-weight: 900; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700, #ff00ff); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease infinite; }
-        @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .subtitle { color: #ffd700; font-size: 0.85rem; margin-bottom: 30px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 0.95rem; }
-        input:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.3); }
-        button { width: 100%; padding: 15px; margin-top: 15px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
-        button:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); }
-        .error { color: #ff4444; margin-top: 15px; font-size: 0.85rem; }
-        .flag { font-size: 2rem; margin-bottom: 10px; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0a0a0a; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif; }
+        .login-box { background:rgba(20,20,20,0.9); border:2px solid #ff00ff; border-radius:20px; padding:40px; width:100%; max-width:400px; box-shadow:0 0 40px rgba(255,0,255,0.2); }
+        h1 { color:#ff00ff; text-align:center; margin-bottom:10px; }
+        .subtitle { color:#888; text-align:center; margin-bottom:30px; }
+        input { width:100%; padding:12px; background:#111; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; margin-bottom:15px; }
+        input:focus { outline:none; border-color:#ff00ff; }
+        button { width:100%; padding:14px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:25px; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; }
+        button:hover { box-shadow:0 0 30px rgba(255,0,255,0.4); transform:scale(1.02); }
+        .error { color:#ff4444; text-align:center; margin-top:10px; }
+        .flag { text-align:center; margin-top:20px; color:#ffd700; font-size:0.8rem; }
     </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="flag">🇨🇴</div>
-    <h1>FLOW COLOMBIA</h1>
-    <p class="subtitle">Panel Administrativo</p>
-    <form method="post" action="/admin/login">
+<div class="login-box">
+    <h1>🔒 Admin</h1>
+    <p class="subtitle">FLOW COLOMBIA</p>
+    <form th:action="@{/admin/login}" method="post">
+        <!-- 🔥 CSRF token -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Ingresar</button>
-        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <p class="error" th:if="${param.error != null}" style="color:#ff4444; text-align:center; margin-top:10px;">Contraseña incorrecta</p>
+        <p class="error" th:if="${param.logout != null}" style="color:#00ff00; text-align:center; margin-top:10px;">Sesión cerrada</p>
     </form>
+    <div class="flag">🇨🇴 Hecho en Colombia con orgullo</div>
 </div>
 </body>
 </html>

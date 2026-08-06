@@ -12,83 +12,59 @@ import java.util.*;
 @RequestMapping("/admin")
 public class AdminController {
 
-    private final ProductoRepository productoRepository;
-    private final PedidoRepository pedidoRepository;
-    private final MensajeRepository mensajeRepository;
-    private final ResenaRepository resenaRepository;
-    private String adminPassword = "FlowColombia2026*";
+    private final ProductoService productoService;
+    private final PedidoService pedidoService;
+    private final ResenaService resenaService;
+    private final MensajeService mensajeService;
 
-    public AdminController(ProductoRepository productoRepository,
-                           PedidoRepository pedidoRepository,
-                           MensajeRepository mensajeRepository,
-                           ResenaRepository resenaRepository) {
-        this.productoRepository = productoRepository;
-        this.pedidoRepository = pedidoRepository;
-        this.mensajeRepository = mensajeRepository;
-        this.resenaRepository = resenaRepository;
-    }
-
-    // ============================================================
-    // LOGIN
-    // ============================================================
-    @GetMapping("/login")
-    public String login() { return "admin-login"; }
-
-    @PostMapping("/login")
-    public String procesarLogin(@RequestParam String password, Model model) {
-        if (adminPassword.equals(password)) return "redirect:/admin/panel?key=" + password;
-        model.addAttribute("error", "Contraseña incorrecta");
-        return "admin-login";
+    public AdminController(ProductoService productoService,
+                           PedidoService pedidoService,
+                           ResenaService resenaService,
+                           MensajeService mensajeService) {
+        this.productoService = productoService;
+        this.pedidoService = pedidoService;
+        this.resenaService = resenaService;
+        this.mensajeService = mensajeService;
     }
 
     // ============================================================
     // PANEL PRINCIPAL
     // ============================================================
     @GetMapping("/panel")
-    public String panel(@RequestParam String key, Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        model.addAttribute("productos", productoRepository.findAll());
-        model.addAttribute("key", key);
+    public String panel(Model model) {
+        model.addAttribute("productos", productoService.listarTodos());
         return "admin-panel";
     }
 
     // ============================================================
-    // PEDIDOS - CON FILTROS Y SELECCIÓN
+    // PEDIDOS
     // ============================================================
     @GetMapping("/pedidos")
-    public String pedidos(@RequestParam String key,
-                          @RequestParam(required = false) String estado,
+    public String pedidos(@RequestParam(required = false) String estado,
                           @RequestParam(required = false) Long seleccionado,
                           Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-
-        // Obtener pedidos ordenados (más recientes primero)
         List<Pedido> pedidos;
         if (estado != null && !estado.isEmpty()) {
-            pedidos = pedidoRepository.findByEstadoOrderByFechaDesc(estado);
+            pedidos = pedidoService.listarPorEstado(estado);
         } else {
-            pedidos = pedidoRepository.findAllByOrderByFechaDesc();
+            pedidos = pedidoService.listarTodosOrdenados();
         }
 
-        // Obtener el pedido seleccionado (si existe)
         Pedido pedidoSeleccionado = null;
         if (seleccionado != null) {
-            pedidoSeleccionado = pedidoRepository.findById(seleccionado).orElse(null);
+            pedidoSeleccionado = pedidoService.obtenerPorId(seleccionado);
             if (pedidoSeleccionado != null) {
-                // Marcar como leído
                 pedidoSeleccionado.setLeido(true);
-                pedidoRepository.save(pedidoSeleccionado);
+                pedidoService.guardar(pedidoSeleccionado);
             }
         }
 
-        // Contar pedidos por estado (para notificaciones)
-        long pendientes = pedidoRepository.countByEstado("Pendiente");
-        long procesando = pedidoRepository.countByEstado("Procesando");
-        long enviados = pedidoRepository.countByEstado("Enviado");
-        long entregados = pedidoRepository.countByEstado("Entregado");
+        long pendientes = pedidoService.contarPorEstado("Pendiente");
+        long procesando = pedidoService.contarPorEstado("Procesando");
+        long enviados = pedidoService.contarPorEstado("Enviado");
+        long entregados = pedidoService.contarPorEstado("Entregado");
 
         model.addAttribute("pedidos", pedidos);
-        model.addAttribute("key", key);
         model.addAttribute("estadoSeleccionado", estado);
         model.addAttribute("pendientes", pendientes);
         model.addAttribute("procesando", procesando);
@@ -103,29 +79,27 @@ public class AdminController {
     // CHATS
     // ============================================================
     @GetMapping("/chats")
-    public String chats(@RequestParam String key, Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        model.addAttribute("mensajes", mensajeRepository.findAll());
-        model.addAttribute("key", key);
+    public String chats(Model model) {
+        model.addAttribute("mensajes", mensajeService.listarTodos());
         return "admin-chats";
     }
 
     @PostMapping("/responder/{id}")
     @ResponseBody
-    public Map<String, String> responder(@PathVariable Long id, @RequestParam String key, @RequestParam String respuesta) {
+    public Map<String, String> responder(@PathVariable Long id, @RequestParam String respuesta) {
         Map<String, String> result = new HashMap<>();
-        if (!adminPassword.equals(key)) { result.put("error", "No autorizado"); return result; }
-        Mensaje msgOriginal = mensajeRepository.findById(id).orElse(null);
+        Mensaje msgOriginal = mensajeService.obtenerPorId(id);
         if (msgOriginal != null) {
             msgOriginal.setRespuesta(respuesta);
-            mensajeRepository.save(msgOriginal);
+            mensajeService.guardar(msgOriginal);
+
             Mensaje respuestaMsg = new Mensaje();
             respuestaMsg.setCodigoPedido(msgOriginal.getCodigoPedido());
             respuestaMsg.setTelefono(msgOriginal.getTelefono());
             respuestaMsg.setMensaje(respuesta);
             respuestaMsg.setEsCliente(false);
             respuestaMsg.setFecha(LocalDateTime.now());
-            mensajeRepository.save(respuestaMsg);
+            mensajeService.guardar(respuestaMsg);
             result.put("status", "OK");
         }
         return result;
@@ -135,50 +109,40 @@ public class AdminController {
     // CAMBIAR ESTADO DE PEDIDO
     // ============================================================
     @PostMapping("/cambiar-estado/{id}")
-    public String cambiarEstado(@PathVariable Long id, @RequestParam String key, @RequestParam String estado,
+    public String cambiarEstado(@PathVariable Long id,
+                                @RequestParam String estado,
                                 @RequestParam(required = false) String transportadora,
                                 @RequestParam(required = false) String numeroGuia) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        Pedido pedido = pedidoService.obtenerPorId(id);
         if (pedido != null) {
             pedido.setEstado(estado);
             if (transportadora != null) pedido.setTransportadora(transportadora);
             if (numeroGuia != null) pedido.setNumeroGuia(numeroGuia);
-            pedidoRepository.save(pedido);
+            pedidoService.guardar(pedido);
         }
-        return "redirect:/admin/pedidos?key=" + key;
+        return "redirect:/admin/pedidos";
     }
 
     // ============================================================
     // GESTIÓN DE PRODUCTOS
     // ============================================================
     @GetMapping("/nuevo")
-    public String nuevoProducto(@RequestParam String key, Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
+    public String nuevoProducto(Model model) {
         model.addAttribute("producto", new Producto());
-        model.addAttribute("key", key);
         model.addAttribute("resenas", new ArrayList<>());
         return "admin-form";
     }
 
     @GetMapping("/editar/{id}")
-    public String editarProducto(@PathVariable Long id, @RequestParam String key, Model model) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        Producto producto = productoRepository.findById(id).orElse(null);
+    public String editarProducto(@PathVariable Long id, Model model) {
+        Producto producto = productoService.obtenerPorId(id);
         model.addAttribute("producto", producto);
-        model.addAttribute("key", key);
-
-        if (producto != null) {
-            model.addAttribute("resenas", resenaRepository.findByProductoId(producto.getId()));
-        } else {
-            model.addAttribute("resenas", new ArrayList<>());
-        }
+        model.addAttribute("resenas", resenaService.listarPorProducto(id));
         return "admin-form";
     }
 
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto,
-                                  @RequestParam String key,
                                   @RequestParam(required = false) String imagen1File,
                                   @RequestParam(required = false) String imagen2File,
                                   @RequestParam(required = false) String imagen3File,
@@ -191,17 +155,6 @@ public class AdminController {
                                   @RequestParam(required = false) Boolean tieneTalla,
                                   RedirectAttributes redirect) {
 
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-
-        System.out.println("=========================================");
-        System.out.println("Guardando producto: " + producto.getNombre());
-        System.out.println("ID: " + producto.getId());
-        System.out.println("tieneColor: " + tieneColor);
-        System.out.println("tieneTalla: " + tieneTalla);
-        System.out.println("Colores: " + coloresInput);
-        System.out.println("Tallas: " + tallasInput);
-        System.out.println("=========================================");
-
         // 1. Guardar URLs de imágenes
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
@@ -212,7 +165,7 @@ public class AdminController {
 
         // 2. Mantener imágenes existentes si no se cambian
         if (producto.getId() != null) {
-            Producto existente = productoRepository.findById(producto.getId()).orElse(null);
+            Producto existente = productoService.obtenerPorId(producto.getId());
             if (existente != null) {
                 if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
                 if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
@@ -223,15 +176,12 @@ public class AdminController {
             }
         }
 
-        // 3. Guardar variaciones (color y talla)
+        // 3. Guardar variaciones
         producto.setTieneColor(tieneColor != null && tieneColor);
         producto.setTieneTalla(tieneTalla != null && tieneTalla);
 
-        // Construir variacionesDisponibles según los valores de colores y tallas
-        String coloresStr = (coloresInput != null && !coloresInput.trim().isEmpty())
-                ? coloresInput.replace("\\s*,\\s*", ", ") : "";
-        String tallasStr = (tallasInput != null && !tallasInput.trim().isEmpty())
-                ? tallasInput.replace("\\s*,\\s*", ", ") : "";
+        String coloresStr = (coloresInput != null && !coloresInput.trim().isEmpty()) ? coloresInput.replace("\\s*,\\s*", ", ") : "";
+        String tallasStr = (tallasInput != null && !tallasInput.trim().isEmpty()) ? tallasInput.replace("\\s*,\\s*", ", ") : "";
 
         if (coloresStr.isEmpty() && tallasStr.isEmpty()) {
             producto.setVariacionesDisponibles("|");
@@ -239,120 +189,67 @@ public class AdminController {
             producto.setVariacionesDisponibles(coloresStr + "|" + tallasStr);
         }
 
-        productoRepository.save(producto);
+        productoService.guardar(producto);
         redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
-        return "redirect:/admin/panel?key=" + key;
+        return "redirect:/admin/panel";
     }
 
     @GetMapping("/eliminar/{id}")
-    public String eliminarProducto(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        resenaRepository.deleteByProductoId(id);
-        productoRepository.deleteById(id);
+    public String eliminarProducto(@PathVariable Long id, RedirectAttributes redirect) {
+        resenaService.eliminarPorProducto(id);
+        productoService.eliminar(id);
         redirect.addFlashAttribute("mensaje", "Producto eliminado!");
-        return "redirect:/admin/panel?key=" + key;
+        return "redirect:/admin/panel";
     }
 
     @GetMapping("/eliminar-pedido/{id}")
-    public String eliminarPedido(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-        pedidoRepository.deleteById(id);
+    public String eliminarPedido(@PathVariable Long id, RedirectAttributes redirect) {
+        pedidoService.eliminar(id);
         redirect.addFlashAttribute("mensaje", "Pedido eliminado!");
-        return "redirect:/admin/pedidos?key=" + key;
+        return "redirect:/admin/pedidos";
     }
 
     // ============================================================
     // GESTIÓN DE RESEÑAS
     // ============================================================
     @PostMapping("/guardar-resena")
-    public String guardarResena(@RequestParam String key,
-                                @RequestParam Long productoId,
+    public String guardarResena(@RequestParam Long productoId,
                                 @RequestParam String nombreCliente,
                                 @RequestParam Integer calificacion,
                                 @RequestParam String comentario,
                                 @RequestParam(required = false) String imagenUrl,
                                 RedirectAttributes redirect) {
 
-        System.out.println("=========================================");
-        System.out.println("📝 RECIBIENDO RESEÑA:");
-        System.out.println("  Key: " + key);
-        System.out.println("  Producto ID: " + productoId);
-        System.out.println("  Cliente: " + nombreCliente);
-        System.out.println("  Calificación: " + calificacion);
-        System.out.println("  Comentario: " + comentario);
-        System.out.println("  Imagen URL: " + imagenUrl);
-        System.out.println("=========================================");
-
-        if (!adminPassword.equals(key)) {
-            System.out.println("❌ Contraseña incorrecta");
-            return "redirect:/admin/login";
-        }
-
-        Producto producto = productoRepository.findById(productoId).orElse(null);
+        Producto producto = productoService.obtenerPorId(productoId);
         if (producto == null) {
-            System.out.println("❌ Producto no encontrado con ID: " + productoId);
             redirect.addFlashAttribute("mensaje", "❌ Producto no encontrado");
-            return "redirect:/admin/panel?key=" + key;
+            return "redirect:/admin/panel";
         }
 
-        try {
-            Resena resena = new Resena();
-            resena.setProducto(producto);
-            resena.setNombreCliente(nombreCliente);
-            resena.setCalificacion(calificacion);
-            resena.setComentario(comentario);
-            resena.setImagenUrl(imagenUrl);
-            resena.setFecha(LocalDateTime.now());
-            resena.setAprobado(true);
+        Resena resena = new Resena();
+        resena.setProducto(producto);
+        resena.setNombreCliente(nombreCliente);
+        resena.setCalificacion(calificacion);
+        resena.setComentario(comentario);
+        resena.setImagenUrl(imagenUrl);
+        resena.setFecha(LocalDateTime.now());
+        resena.setAprobado(true);
 
-            Resena saved = resenaRepository.save(resena);
-            System.out.println("✅ Reseña guardada con ID: " + saved.getId());
-
-            redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
-            return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
-
-        } catch (Exception e) {
-            System.err.println("❌ Error al guardar reseña: " + e.getMessage());
-            e.printStackTrace();
-            redirect.addFlashAttribute("mensaje", "❌ Error al guardar la reseña: " + e.getMessage());
-            return "redirect:/admin/editar/" + productoId + "?key=" + key;
-        }
+        resenaService.guardar(resena);
+        redirect.addFlashAttribute("mensaje", "✅ Reseña agregada correctamente");
+        return "redirect:/producto/" + productoId + "?resena=ok#resenasSection";
     }
 
     @GetMapping("/eliminar-resena/{id}")
-    public String eliminarResena(@PathVariable Long id, @RequestParam String key, RedirectAttributes redirect) {
-        if (!adminPassword.equals(key)) return "redirect:/admin/login";
-
-        Resena resena = resenaRepository.findById(id).orElse(null);
+    public String eliminarResena(@PathVariable Long id, RedirectAttributes redirect) {
+        Resena resena = resenaService.obtenerPorId(id);
         if (resena != null) {
             Long productoId = resena.getProducto().getId();
-            resenaRepository.deleteById(id);
+            resenaService.eliminar(id);
             redirect.addFlashAttribute("mensaje", "Reseña eliminada");
-            return "redirect:/admin/editar/" + productoId + "?key=" + key;
+            return "redirect:/admin/editar/" + productoId;
         }
         redirect.addFlashAttribute("mensaje", "Reseña no encontrada");
-        return "redirect:/admin/panel?key=" + key;
-    }
-
-    // ============================================================
-    // MARCAR PEDIDO COMO LEÍDO (API)
-    // ============================================================
-    @PostMapping("/marcar-leido/{id}")
-    @ResponseBody
-    public Map<String, String> marcarLeido(@PathVariable Long id, @RequestParam String key) {
-        Map<String, String> response = new HashMap<>();
-        if (!adminPassword.equals(key)) {
-            response.put("error", "No autorizado");
-            return response;
-        }
-        Pedido pedido = pedidoRepository.findById(id).orElse(null);
-        if (pedido != null) {
-            pedido.setLeido(true);
-            pedidoRepository.save(pedido);
-            response.put("status", "OK");
-        } else {
-            response.put("error", "Pedido no encontrado");
-        }
-        return response;
+        return "redirect:/admin/panel";
     }
 }
