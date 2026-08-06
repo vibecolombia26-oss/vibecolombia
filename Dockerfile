@@ -1,6 +1,6 @@
 FROM maven:3.9-eclipse-temurin-17-alpine AS build
 
-# Forzar invalidación de caché para los archivos de código
+# Este ARG fuerza que la caché de Docker se invalide en cada build
 ARG CACHE_BUST=20260806
 
 WORKDIR /app
