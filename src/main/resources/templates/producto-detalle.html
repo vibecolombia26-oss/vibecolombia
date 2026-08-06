@@ -1000,5 +1000,44 @@
         console.log('✅ Eventos reasignados');
     })();
 </script>
+<script>
+    (function() {
+        console.log('🔄 Forzando recarga de dropdowns...');
+        if (typeof toggleDropdown !== 'function') {
+            window.toggleDropdown = function(header) {
+                const content = header.nextElementSibling;
+                const isOpen = content.classList.contains('open');
+                document.querySelectorAll('.dropdown-content').forEach(c => c.classList.remove('open'));
+                document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
+                if (!isOpen) {
+                    content.classList.add('open');
+                    header.classList.add('active');
+                }
+            };
+            console.log('✅ toggleDropdown redefinida');
+        }
+        if (typeof toggleTallasTabla !== 'function') {
+            window.toggleTallasTabla = function(header) {
+                const content = header.nextElementSibling;
+                content.classList.toggle('open');
+                header.classList.toggle('active');
+            };
+            console.log('✅ toggleTallasTabla redefinida');
+        }
+        document.querySelectorAll('.dropdown-header').forEach(header => {
+            if (!header.getAttribute('data-fixed')) {
+                header.setAttribute('data-fixed', 'true');
+                header.onclick = function() { toggleDropdown(this); };
+            }
+        });
+        document.querySelectorAll('.tallas-dropdown-header').forEach(header => {
+            if (!header.getAttribute('data-fixed')) {
+                header.setAttribute('data-fixed', 'true');
+                header.onclick = function() { toggleTallasTabla(this); };
+            }
+        });
+        console.log('✅ Eventos reasignados');
+    })();
+</script>
 </body>
 </html>
