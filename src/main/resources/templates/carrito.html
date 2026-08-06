@@ -5,32 +5,235 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito - FLOW COLOMBIA</title>
     <style>
-        /* (Mantén tus estilos actuales) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #ff00ff; margin-bottom: 30px; font-size: 2rem; }
+        .btn-back { display: inline-block; color: #00ffff; text-decoration: none; padding: 8px 20px; border: 1px solid #00ffff; border-radius: 25px; margin-bottom: 20px; transition: 0.3s; }
+        .btn-back:hover { background: rgba(0,255,255,0.1); }
+        .carrito-vacio { text-align: center; padding: 60px 20px; color: #666; }
+        .carrito-vacio .icono { font-size: 4rem; display: block; margin-bottom: 15px; }
+        .carrito-item { background: rgba(20,20,20,0.8); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .carrito-item img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid #ff00ff; }
+        .carrito-item .info { flex: 1; }
+        .carrito-item .info .nombre { color: #fff; font-weight: 600; font-size: 1.1rem; }
+        .carrito-item .info .detalle { color: #888; font-size: 0.85rem; }
+        .carrito-item .info .precio { color: #00ffff; font-weight: 700; font-size: 1.2rem; }
+        .carrito-item .cantidad { display: flex; align-items: center; gap: 8px; }
+        .carrito-item .cantidad button { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        .carrito-item .cantidad button:hover { background: rgba(255,0,255,0.1); }
+        .carrito-item .cantidad span { color: #fff; font-weight: 600; min-width: 30px; text-align: center; }
+        .carrito-item .eliminar { background: #ff0044; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .carrito-item .eliminar:hover { box-shadow: 0 0 20px rgba(255,0,68,0.4); }
+        .resumen { background: rgba(20,20,20,0.9); border: 2px solid #ffd700; border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
+        .resumen .total { font-size: 2rem; color: #00ffff; font-weight: 900; }
+        .resumen .btn-pagar { display: inline-block; padding: 14px 40px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; text-decoration: none; }
+        .resumen .btn-pagar:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+
+        /* Confirmación */
+        #confirmacionPedido { display: none; background: rgba(0,255,0,0.08); border: 2px solid #00ff00; border-radius: 16px; padding: 30px; margin-top: 20px; text-align: center; }
+        #confirmacionPedido h2 { color: #00ff00; font-size: 1.8rem; }
+        #confirmacionPedido .codigo { color: #ffd700; font-size: 1.5rem; font-weight: 900; display: block; margin: 10px 0; }
+        #confirmacionPedido .btn { display: inline-block; margin-top: 15px; padding: 10px 30px; background: #ff00ff; color: #fff; border-radius: 25px; text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .carrito-item { flex-direction: column; text-align: center; }
+            .carrito-item .cantidad { justify-content: center; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    <a href="/" class="btn-back">← Seguir comprando</a>
     <h1>🛒 Carrito de compras</h1>
-    <div id="carritoContenido">
-        <!-- Aquí se renderiza el carrito desde localStorage -->
-    </div>
-    <!-- 🔥 Confirmación de pedido (aparece después de comprar) -->
-    <div id="confirmacionPedido" style="display:none; background:rgba(0,255,0,0.1); border:2px solid #00ff00; padding:20px; border-radius:12px; margin-top:20px;">
-        <h2 style="color:#00ff00;">✅ ¡Pedido realizado con éxito!</h2>
-        <p>Tu código de seguimiento es: <strong id="codigoSeguimiento" style="color:#ffd700;"></strong></p>
-        <p>Recibirás un correo con los detalles de tu pedido.</p>
+
+    <div id="carritoContenido"></div>
+
+    <!-- Confirmación de pedido -->
+    <div id="confirmacionPedido">
+        <h2>✅ ¡Pedido realizado con éxito!</h2>
+        <p>Tu código de seguimiento es:</p>
+        <span class="codigo" id="codigoSeguimiento">---</span>
+        <p>Te llegará un correo con los detalles.</p>
         <a href="/" class="btn">Seguir comprando</a>
     </div>
 </div>
+
 <script>
-    // (Tu lógica actual del carrito)
-    // Al finalizar la compra, muestra la confirmación:
+    // ============================================================
+    // CARRITO COMPLETO
+    // ============================================================
+
+    // Obtener carrito desde localStorage
+    function obtenerCarrito() {
+        try {
+            return JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    // Guardar carrito en localStorage
+    function guardarCarrito(carrito) {
+        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+    }
+
+    // Renderizar carrito
+    function renderizarCarrito() {
+        const contenedor = document.getElementById('carritoContenido');
+        const carrito = obtenerCarrito();
+
+        if (carrito.length === 0) {
+            contenedor.innerHTML = `
+                <div class="carrito-vacio">
+                    <span class="icono">🛒</span>
+                    <p>Tu carrito está vacío</p>
+                    <a href="/" style="color:#ff00ff;">Explorar productos</a>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+
+        carrito.forEach((item, index) => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            const subtotal = precio * cantidad;
+            total += subtotal;
+
+            html += `
+                <div class="carrito-item">
+                    <img src="${item.imagen || ''}" alt="${item.nombre || 'Producto'}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
+                    <div class="info">
+                        <div class="nombre">${item.nombre || 'Producto'}</div>
+                        <div class="detalle">${item.color ? 'Color: ' + item.color : ''} ${item.talla ? '| Talla: ' + item.talla : ''}</div>
+                        <div class="precio">$${subtotal.toLocaleString('es-CO')}</div>
+                    </div>
+                    <div class="cantidad">
+                        <button onclick="cambiarCantidad(${index}, -1)">−</button>
+                        <span>${cantidad}</span>
+                        <button onclick="cambiarCantidad(${index}, 1)">+</button>
+                    </div>
+                    <button class="eliminar" onclick="eliminarProducto(${index})">🗑️</button>
+                </div>
+            `;
+        });
+
+        html += `
+            <div class="resumen">
+                <p style="color:#aaa;">Total</p>
+                <div class="total">$${total.toLocaleString('es-CO')}</div>
+                <button class="btn-pagar" onclick="realizarPedido()">💵 Pagar contra entrega</button>
+                <p style="color:#666; font-size:0.8rem; margin-top:8px;">Recibes, revisas y pagas al recibir</p>
+            </div>
+        `;
+
+        contenedor.innerHTML = html;
+    }
+
+    // Cambiar cantidad
+    function cambiarCantidad(index, delta) {
+        const carrito = obtenerCarrito();
+        if (index < 0 || index >= carrito.length) return;
+        const nuevaCantidad = (Number(carrito[index].cantidad) || 1) + delta;
+        if (nuevaCantidad < 1) return;
+        carrito[index].cantidad = nuevaCantidad;
+        guardarCarrito(carrito);
+        renderizarCarrito();
+    }
+
+    // Eliminar producto
+    function eliminarProducto(index) {
+        const carrito = obtenerCarrito();
+        if (index < 0 || index >= carrito.length) return;
+        carrito.splice(index, 1);
+        guardarCarrito(carrito);
+        renderizarCarrito();
+    }
+
+    // Realizar pedido (envía al backend)
+    function realizarPedido() {
+        const carrito = obtenerCarrito();
+        if (carrito.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+
+        const total = carrito.reduce((sum, item) => sum + (Number(item.precio) || 0) * (Number(item.cantidad) || 1), 0);
+
+        // Mostrar formulario de datos de envío
+        const cliente = prompt('Nombre completo:');
+        if (!cliente) return;
+        const telefono = prompt('Teléfono:');
+        if (!telefono) return;
+        const email = prompt('Correo electrónico (opcional):') || '';
+        const departamento = prompt('Departamento:');
+        if (!departamento) return;
+        const ciudad = prompt('Ciudad:');
+        if (!ciudad) return;
+        const direccion = prompt('Dirección de entrega:');
+        if (!direccion) return;
+        const notas = prompt('Notas adicionales (opcional):') || '';
+
+        const productosTexto = carrito.map(item =>
+            `${item.nombre} x${item.cantidad} - $${(Number(item.precio)*Number(item.cantidad)).toLocaleString('es-CO')}`
+        ).join('\n');
+
+        const pedido = {
+            nombreCliente: cliente,
+            telefono: telefono,
+            email: email,
+            departamento: departamento,
+            ciudad: ciudad,
+            direccion: direccion,
+            notas: notas,
+            tienda: 'FlowColombia',
+            productos: productosTexto,
+            total: total,
+            metodoPago: 'Contra entrega'
+        };
+
+        // Enviar al backend
+        fetch('/api/pedido', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'OK') {
+                    mostrarConfirmacion(data.codigo);
+                    localStorage.removeItem('carritoFlowColombia');
+                    renderizarCarrito();
+                } else {
+                    alert('Error al procesar el pedido');
+                }
+            })
+            .catch(err => {
+                alert('Error de conexión. Intenta de nuevo.');
+                console.error(err);
+            });
+    }
+
+    // Mostrar confirmación
     function mostrarConfirmacion(codigo) {
         document.getElementById('confirmacionPedido').style.display = 'block';
         document.getElementById('codigoSeguimiento').textContent = codigo;
-        // Limpiar carrito
-        localStorage.removeItem('carritoFlowColombia');
+        // Ocultar carrito
+        document.getElementById('carritoContenido').innerHTML = '';
+        // Scroll al inicio
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', renderizarCarrito);
+
+    // Re-renderizar si cambia el carrito en otra pestaña
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'carritoFlowColombia') renderizarCarrito();
+    });
 </script>
 </body>
 </html>
