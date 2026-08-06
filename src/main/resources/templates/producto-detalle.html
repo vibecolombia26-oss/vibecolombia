@@ -957,17 +957,6 @@
         });
     });
 
-    const originalAgregar2 = window.agregarAlCarrito;
-    if (originalAgregar2) {
-        window.agregarAlCarrito = function(nombre, precio, imagen) {
-            let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-            carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
-            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-            actualizarBarraCarrito();
-            mostrarToast(`${nombre} agregado al carrito`, '🛒');
-            actualizarContador();
-        };
-    }
 </script>
 
 </body>
