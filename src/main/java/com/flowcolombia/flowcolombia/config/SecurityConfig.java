@@ -1,5 +1,6 @@
 package com.flowcolombia.flowcolombia.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,11 +12,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${admin.password:FlowColombia2026*}")
+    private String adminPassword;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -25,9 +28,10 @@ public class SecurityConfig {
                         .disable()
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/producto/**", "/carrito/**", "/envios", "/seguimiento", "/privacidad", "/terminos", "/contacto").permitAll()
+                        .requestMatchers("/", "/producto/**", "/carrito/**", "/envios", "/seguimiento",
+                                "/privacidad", "/terminos", "/contacto", "/api/**").permitAll()
                         .requestMatchers("/admin/login", "/admin-login").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -39,7 +43,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .logoutUrl("/logout")
                         .logoutSuccessUrl("/admin-login?logout=true")
                         .permitAll()
                 );
@@ -52,12 +56,11 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔥 NUEVO: Usuario admin en memoria
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder().encode("FlowColombia2026*"))
+                .password(passwordEncoder().encode(adminPassword))
                 .roles("ADMIN")
                 .build();
         return new InMemoryUserDetailsManager(admin);

@@ -28,4 +28,16 @@ public class EmailService {
         request.setBody(mail.build());
         sg.api(request);
     }
+
+    // 🔥 Método para enviar confirmación de pedido
+    public void enviarConfirmacion(String destinatario, String codigoPedido, String productos, Double total) throws IOException {
+        String asunto = "✅ Confirmación de pedido - FLOW COLOMBIA";
+        String contenido = "<h2>¡Gracias por tu compra!</h2>"
+                + "<p><strong>Código de seguimiento:</strong> " + codigoPedido + "</p>"
+                + "<p><strong>Productos:</strong><br>" + (productos != null ? productos.replace("\n", "<br>") : "N/A") + "</p>"
+                + "<p><strong>Total:</strong> $" + (total != null ? total : 0) + "</p>"
+                + "<p>Recibirás tu pedido en 3-5 días hábiles.</p>"
+                + "<p>🇨🇴 FLOW COLOMBIA</p>";
+        enviarCorreo(destinatario, asunto, contenido);
+    }
 }

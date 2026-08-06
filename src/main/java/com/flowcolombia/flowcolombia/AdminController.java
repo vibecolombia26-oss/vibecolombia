@@ -1,5 +1,9 @@
 package com.flowcolombia.flowcolombia;
 
+import com.flowcolombia.flowcolombia.service.ProductoService;
+import com.flowcolombia.flowcolombia.service.PedidoService;
+import com.flowcolombia.flowcolombia.service.ResenaService;
+import com.flowcolombia.flowcolombia.service.MensajeService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,18 +31,12 @@ public class AdminController {
         this.mensajeService = mensajeService;
     }
 
-    // ============================================================
-    // PANEL PRINCIPAL
-    // ============================================================
     @GetMapping("/panel")
     public String panel(Model model) {
         model.addAttribute("productos", productoService.listarTodos());
         return "admin-panel";
     }
 
-    // ============================================================
-    // PEDIDOS
-    // ============================================================
     @GetMapping("/pedidos")
     public String pedidos(@RequestParam(required = false) String estado,
                           @RequestParam(required = false) Long seleccionado,
@@ -75,9 +73,6 @@ public class AdminController {
         return "admin-pedidos";
     }
 
-    // ============================================================
-    // CHATS
-    // ============================================================
     @GetMapping("/chats")
     public String chats(Model model) {
         model.addAttribute("mensajes", mensajeService.listarTodos());
@@ -105,9 +100,6 @@ public class AdminController {
         return result;
     }
 
-    // ============================================================
-    // CAMBIAR ESTADO DE PEDIDO
-    // ============================================================
     @PostMapping("/cambiar-estado/{id}")
     public String cambiarEstado(@PathVariable Long id,
                                 @RequestParam String estado,
@@ -123,9 +115,6 @@ public class AdminController {
         return "redirect:/admin/pedidos";
     }
 
-    // ============================================================
-    // GESTIÓN DE PRODUCTOS
-    // ============================================================
     @GetMapping("/nuevo")
     public String nuevoProducto(Model model) {
         model.addAttribute("producto", new Producto());
@@ -155,7 +144,6 @@ public class AdminController {
                                   @RequestParam(required = false) Boolean tieneTalla,
                                   RedirectAttributes redirect) {
 
-        // 1. Guardar URLs de imágenes
         if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
         if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
         if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
@@ -163,7 +151,6 @@ public class AdminController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // 2. Mantener imágenes existentes si no se cambian
         if (producto.getId() != null) {
             Producto existente = productoService.obtenerPorId(producto.getId());
             if (existente != null) {
@@ -176,7 +163,6 @@ public class AdminController {
             }
         }
 
-        // 3. Guardar variaciones
         producto.setTieneColor(tieneColor != null && tieneColor);
         producto.setTieneTalla(tieneTalla != null && tieneTalla);
 
@@ -209,9 +195,6 @@ public class AdminController {
         return "redirect:/admin/pedidos";
     }
 
-    // ============================================================
-    // GESTIÓN DE RESEÑAS
-    // ============================================================
     @PostMapping("/guardar-resena")
     public String guardarResena(@RequestParam Long productoId,
                                 @RequestParam String nombreCliente,

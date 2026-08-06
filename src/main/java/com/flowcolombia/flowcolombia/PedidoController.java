@@ -20,7 +20,6 @@ public class PedidoController {
     @PostMapping("/api/pedido")
     @ResponseBody
     public Map<String, String> guardarPedido(@RequestBody Pedido pedido) {
-        // 🔍 LOGS DE DEPURACIÓN
         System.out.println("=========================================");
         System.out.println("📦 NUEVO PEDIDO RECIBIDO:");
         System.out.println("  Cliente: " + pedido.getNombreCliente());
@@ -29,34 +28,35 @@ public class PedidoController {
         System.out.println("  Productos: " + pedido.getProductos());
         System.out.println("=========================================");
 
-        // Establecer valores por defecto
         pedido.setEstado("Pendiente");
         pedido.setCodigo("FLOW-" + System.currentTimeMillis());
         pedido.setFecha(LocalDateTime.now());
 
-        // ✅ Asegurar que el total no sea null
         if (pedido.getTotal() == null) {
             System.out.println("⚠️ Total es NULL, asignando 0.0");
             pedido.setTotal(0.0);
         }
 
-        // ✅ Asegurar que productos no sea null
         if (pedido.getProductos() == null || pedido.getProductos().isEmpty()) {
             System.out.println("⚠️ Productos está vacío");
             pedido.setProductos("Productos no especificados");
         }
 
-        // Guardar el pedido
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
         System.out.println("✅ Pedido guardado con ID: " + pedidoGuardado.getId());
         System.out.println("   Total guardado: " + pedidoGuardado.getTotal());
         System.out.println("   Productos guardados: " + pedidoGuardado.getProductos());
         System.out.println("=========================================");
 
-        // Enviar correo si hay email
+        // 🔥 CORREGIDO: Ahora pasamos el código del pedido (no el nombre)
         if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
             try {
-                emailService.enviarConfirmacion(pedido.getEmail(), pedido.getNombreCliente(), pedido.getProductos(), pedido.getTotal());
+                emailService.enviarConfirmacion(
+                        pedido.getEmail(),
+                        pedido.getCodigo(),        // <-- Código de seguimiento
+                        pedido.getProductos(),
+                        pedido.getTotal()
+                );
             } catch (Exception e) {
                 System.err.println("❌ Error al enviar correo: " + e.getMessage());
             }

@@ -1,5 +1,7 @@
 package com.flowcolombia.flowcolombia;
 
+import com.flowcolombia.flowcolombia.service.ProductoService;
+import com.flowcolombia.flowcolombia.service.ResenaService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 public class WebController {
@@ -38,7 +39,6 @@ public class WebController {
             productosFiltrados = productoService.listarPorCategoria(CATEGORIA_DEFAULT);
         }
 
-        // Optimizar imágenes
         for (Producto p : productosFiltrados) {
             optimizarImagenes(p);
         }
@@ -80,7 +80,6 @@ public class WebController {
                 return "redirect:/?error=Producto no encontrado";
             }
 
-            // Validar campos nulos
             if (producto.getTieneColor() == null) producto.setTieneColor(false);
             if (producto.getTieneTalla() == null) producto.setTieneTalla(false);
             if (producto.getTieneVariaciones() == null) producto.setTieneVariaciones(false);
@@ -103,7 +102,6 @@ public class WebController {
         }
     }
 
-    // Otras rutas...
     @GetMapping("/carrito") public String carrito() { return "carrito"; }
     @GetMapping("/envios") public String envios() { return "envios"; }
     @GetMapping("/seguimiento") public String seguimiento() { return "seguimiento"; }
