@@ -5,194 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito - FLOW COLOMBIA</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 25px; border: 1px solid #00ffff; border-radius: 30px; margin-bottom: 25px; transition: 0.3s; font-weight: 500; }
-        .back-btn:hover { background: rgba(0,255,255,0.08); box-shadow: 0 0 20px rgba(0,255,255,0.2); }
-        h1 { text-align: center; color: #ff00ff; font-size: 2.4rem; letter-spacing: 2px; margin-bottom: 10px; }
-        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+        .container { max-width:1000px; margin:0 auto; padding:20px; }
+        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; }
+        .header h1 { color:#ff00ff; font-size:2rem; }
+        .btn-back { padding:8px 20px; border:1px solid #00ffff; border-radius:25px; color:#00ffff; text-decoration:none; transition:0.3s; }
+        .btn-back:hover { background:rgba(0,255,255,0.1); }
 
-        /* ======== CARRITO VACÍO ======== */
-        .carrito-vacio { text-align: center; padding: 80px 20px; color: #666; }
-        .carrito-vacio .icono { font-size: 5rem; display: block; margin-bottom: 15px; }
-        .carrito-vacio a { color: #ff00ff; text-decoration: none; border: 1px solid #ff00ff; padding: 10px 30px; border-radius: 30px; display: inline-block; margin-top: 15px; transition: 0.3s; }
-        .carrito-vacio a:hover { background: rgba(255,0,255,0.08); }
+        .carrito-vacio { text-align:center; padding:60px 20px; color:#666; }
+        .carrito-vacio .icono { font-size:4rem; display:block; margin-bottom:15px; }
 
-        /* ======== LISTA DE PRODUCTOS ======== */
-        .productos-lista { margin-bottom: 30px; }
-        .producto-item { background: rgba(20,20,20,0.8); border: 1px solid rgba(255,0,255,0.2); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; transition: 0.3s; }
-        .producto-item:hover { border-color: #ff00ff; background: rgba(255,0,255,0.04); }
-        .producto-item img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 2px solid #333; }
-        .producto-item .info { flex: 1; min-width: 150px; }
-        .producto-item .info .nombre { color: #fff; font-weight: 700; font-size: 1.1rem; }
-        .producto-item .info .detalle { color: #888; font-size: 0.8rem; margin-top: 2px; }
-        .producto-item .info .precio { color: #00ffff; font-weight: 700; font-size: 1.2rem; margin-top: 4px; }
-        .producto-item .cantidad { display: flex; align-items: center; gap: 8px; }
-        .producto-item .cantidad button { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
-        .producto-item .cantidad button:hover { background: rgba(255,0,255,0.12); box-shadow: 0 0 15px rgba(255,0,255,0.2); }
-        .producto-item .cantidad span { color: #fff; font-weight: 600; min-width: 30px; text-align: center; font-size: 1.1rem; }
-        .producto-item .btn-eliminar { background: transparent; color: #ff0044; border: 1px solid #ff0044; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-weight: 500; }
-        .producto-item .btn-eliminar:hover { background: rgba(255,0,68,0.15); box-shadow: 0 0 20px rgba(255,0,68,0.3); }
+        .carrito-item { background:rgba(20,20,20,0.8); border:1px solid rgba(255,0,255,0.2); border-radius:16px; padding:15px; margin-bottom:15px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; transition:0.3s; }
+        .carrito-item:hover { border-color:#ff00ff; box-shadow:0 0 20px rgba(255,0,255,0.1); }
+        .carrito-item img { width:80px; height:80px; border-radius:10px; object-fit:cover; border:2px solid rgba(255,0,255,0.3); }
+        .carrito-item .info { flex:1; min-width:150px; }
+        .carrito-item .info .nombre { color:#fff; font-weight:700; font-size:1.1rem; }
+        .carrito-item .info .detalle { color:#888; font-size:0.85rem; margin:4px 0; }
+        .carrito-item .info .precio { color:#00ffff; font-weight:700; font-size:1.2rem; }
+        .carrito-item .cantidad { display:flex; align-items:center; gap:10px; }
+        .carrito-item .cantidad button { background:transparent; color:#ff00ff; border:1px solid #ff00ff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.1rem; transition:0.3s; }
+        .carrito-item .cantidad button:hover { background:rgba(255,0,255,0.15); box-shadow:0 0 15px rgba(255,0,255,0.3); }
+        .carrito-item .cantidad span { color:#fff; font-weight:600; min-width:30px; text-align:center; font-size:1.1rem; }
+        .carrito-item .eliminar { background:#ff0044; color:#fff; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; transition:0.3s; font-weight:600; }
+        .carrito-item .eliminar:hover { box-shadow:0 0 25px rgba(255,0,68,0.5); transform:scale(1.05); }
 
-        /* ======== RESUMEN ======== */
-        .resumen { background: rgba(20,20,20,0.9); border: 2px solid #ffd700; border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 30px; }
-        .resumen .total-label { color: #aaa; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
-        .resumen .total { font-size: 2.6rem; color: #00ffff; font-weight: 900; text-shadow: 0 0 30px rgba(0,255,255,0.3); }
-        .resumen .btn-pagar { display: inline-block; padding: 14px 50px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 8px; text-decoration: none; }
-        .resumen .btn-pagar:hover { transform: scale(1.04); box-shadow: 0 0 40px rgba(255,215,0,0.5); }
+        .resumen { background:rgba(20,20,20,0.95); border:2px solid #ffd700; border-radius:16px; padding:25px; margin-top:25px; text-align:center; }
+        .resumen .total-label { color:#aaa; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; }
+        .resumen .total { font-size:2.5rem; color:#00ffff; font-weight:900; text-shadow:0 0 30px rgba(0,255,255,0.3); }
+        .btn-pagar { display:inline-block; padding:14px 50px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:30px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:0.3s; margin-top:15px; }
+        .btn-pagar:hover { transform:scale(1.05); box-shadow:0 0 40px rgba(255,215,0,0.5); }
 
-        /* ======== FORMULARIO DE PAGO (contra entrega) ======== */
-        .form-pago { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 16px; padding: 30px; margin-top: 20px; display: none; }
-        .form-pago h2 { color: #ffd700; margin-bottom: 20px; text-align: center; font-size: 1.6rem; border-bottom: 1px solid rgba(255,215,0,0.15); padding-bottom: 12px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group.full { grid-column: 1 / -1; }
-        .form-group label { display: block; margin-bottom: 5px; color: #00ffff; font-weight: 600; font-size: 0.85rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 1rem; transition: 0.3s; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.15); }
-        .form-group textarea { resize: vertical; min-height: 70px; }
-        .form-group .btn-enviar { width: 100%; padding: 14px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 8px; }
-        .form-group .btn-enviar:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
-        .form-group .btn-cancelar { width: 100%; padding: 12px; background: transparent; color: #ff0044; border: 1px solid #ff0044; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 6px; }
-        .form-group .btn-cancelar:hover { background: rgba(255,0,68,0.08); }
+        .form-pago { display:none; background:rgba(20,20,20,0.95); border:2px solid #ff00ff; border-radius:16px; padding:30px; margin-top:20px; text-align:left; }
+        .form-pago.active { display:block; animation:slideDown 0.4s ease; }
+        @keyframes slideDown { 0% { opacity:0; transform:translateY(-20px); } 100% { opacity:1; transform:translateY(0); } }
+        .form-pago h2 { color:#ff00ff; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .form-group { margin-bottom:15px; }
+        .form-group.full { grid-column:1/-1; }
+        .form-group label { display:block; margin-bottom:5px; color:#00ffff; font-weight:600; font-size:0.85rem; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px; background:#111; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; transition:0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#ff00ff; box-shadow:0 0 15px rgba(255,0,255,0.2); }
+        .form-group textarea { resize:vertical; min-height:80px; }
+        .btn-enviar { width:100%; padding:14px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:30px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:0.3s; margin-top:10px; }
+        .btn-enviar:hover { box-shadow:0 0 30px rgba(255,0,255,0.5); transform:scale(1.02); }
+        .btn-enviar:disabled { opacity:0.6; cursor:not-allowed; }
 
-        /* ======== CONFIRMACIÓN ======== */
-        #confirmacionPedido { display: none; background: rgba(0,255,0,0.06); border: 2px solid #00ff00; border-radius: 16px; padding: 35px; margin-top: 20px; text-align: center; }
-        #confirmacionPedido h2 { color: #00ff00; font-size: 1.8rem; }
-        #confirmacionPedido .codigo { color: #ffd700; font-size: 1.8rem; font-weight: 900; display: block; margin: 12px 0; letter-spacing: 3px; }
-        #confirmacionPedido .btn { display: inline-block; margin-top: 15px; padding: 12px 35px; background: #ff00ff; color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; transition: 0.3s; }
-        #confirmacionPedido .btn:hover { box-shadow: 0 0 30px rgba(255,0,255,0.4); transform: scale(1.04); }
+        #confirmacionPedido { display:none; background:rgba(0,255,0,0.08); border:2px solid #00ff00; border-radius:16px; padding:30px; margin-top:25px; text-align:center; }
+        #confirmacionPedido h2 { color:#00ff00; font-size:1.8rem; }
+        #confirmacionPedido .codigo { color:#ffd700; font-size:1.8rem; font-weight:900; display:block; margin:10px 0; letter-spacing:2px; }
+        #confirmacionPedido .btn { display:inline-block; margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border-radius:25px; text-decoration:none; font-weight:700; }
 
-        /* ======== RESPONSIVE ======== */
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
-            .producto-item { flex-direction: column; text-align: center; }
-            .producto-item .cantidad { justify-content: center; }
-            .resumen .total { font-size: 2rem; }
-            h1 { font-size: 1.8rem; }
+        .error-msg { color:#ff4444; font-size:0.85rem; margin-top:5px; display:none; }
+
+        @media (max-width:768px) {
+            .form-row { grid-template-columns:1fr; }
+            .carrito-item { flex-direction:column; text-align:center; }
+            .carrito-item .cantidad { justify-content:center; }
+            .header h1 { font-size:1.5rem; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <a href="/" class="back-btn">← Seguir comprando</a>
-    <h1>🛒 Carrito</h1>
-    <p class="subtitle">Revisa tus productos y completa el formulario para finalizar tu compra</p>
-
-    <!-- ======== LISTA DE PRODUCTOS ======== -->
-    <div id="carritoContenido" class="productos-lista"></div>
-
-    <!-- ======== RESUMEN ======== -->
-    <div id="resumenContainer" class="resumen" style="display:none;">
-        <div class="total-label">Total a pagar</div>
-        <div class="total" id="totalCarrito">$0</div>
-        <button class="btn-pagar" id="btnMostrarFormulario">📝 Completar datos de envío</button>
-        <p style="color:#666; font-size:0.8rem; margin-top:6px;">💵 Pago contra entrega: pagas al recibir tu pedido</p>
+    <div class="header">
+        <h1>🛒 Carrito de compras</h1>
+        <a href="/" class="btn-back">← Seguir comprando</a>
     </div>
 
-    <!-- ======== FORMULARIO DE ENVÍO ======== -->
-    <div id="formularioPago" class="form-pago">
+    <div id="carritoContenido"></div>
+
+    <div class="form-pago" id="formPago">
         <h2>📦 Datos de envío</h2>
-        <form id="pedidoForm">
+        <form id="checkoutForm">
             <div class="form-row">
-                <div class="form-group"><label>Nombres *</label><input type="text" id="nombres" required placeholder="Ej: María José"></div>
-                <div class="form-group"><label>Apellidos *</label><input type="text" id="apellidos" required placeholder="Ej: Rodríguez Pérez"></div>
+                <div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required></div>
+                <div class="form-group"><label>Apellido *</label><input type="text" id="apellido" required></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Teléfono *</label><input type="tel" id="telefono" required placeholder="Ej: 3123456789"></div>
-                <div class="form-group"><label>Correo electrónico</label><input type="email" id="email" placeholder="Ej: cliente@email.com"></div>
+                <div class="form-group"><label>Celular *</label><input type="tel" id="celular" required></div>
+                <!-- 🔥 ELIMINADO: campo de correo electrónico -->
             </div>
             <div class="form-row">
                 <div class="form-group"><label>Departamento *</label>
-                    <select id="departamento" required onchange="cargarMunicipios()">
+                    <select id="departamento" required>
                         <option value="">Selecciona...</option>
-                        <!-- Los departamentos se cargan con JS -->
                     </select>
                 </div>
-                <div class="form-group"><label>Ciudad / Municipio *</label>
+                <div class="form-group"><label>Municipio *</label>
                     <select id="municipio" required>
-                        <option value="">Selecciona...</option>
+                        <option value="">Primero selecciona un departamento</option>
                     </select>
                 </div>
             </div>
-            <div class="form-group full"><label>Dirección de entrega *</label><input type="text" id="direccion" required placeholder="Ej: Calle 123 # 45-67, Barrio El Poblado"></div>
-            <div class="form-group full"><label>Notas adicionales</label><textarea id="notas" placeholder="Ej: Entregar al portero, piso 3, dejar en recepción..."></textarea></div>
-            <div class="form-row">
-                <div class="form-group"><label>Talla</label>
-                    <select id="tallaSelect">
-                        <option value="">No aplica</option>
-                        <option value="S">S</option><option value="M">M</option><option value="L">L</option>
-                        <option value="XL">XL</option><option value="35">35</option><option value="36">36</option>
-                        <option value="37">37</option><option value="38">38</option><option value="39">39</option>
-                        <option value="40">40</option><option value="41">41</option><option value="42">42</option>
-                        <option value="43">43</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Color</label>
-                    <select id="colorSelect">
-                        <option value="">No aplica</option>
-                        <option value="Blanco">Blanco</option><option value="Negro">Negro</option>
-                        <option value="Rojo">Rojo</option><option value="Azul">Azul</option>
-                        <option value="Verde">Verde</option><option value="Amarillo">Amarillo</option>
-                        <option value="Gris">Gris</option><option value="Beige">Beige</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group full">
-                <button type="submit" class="btn-enviar">💵 Confirmar pedido (Contra entrega)</button>
-                <button type="button" class="btn-cancelar" id="btnCancelarFormulario">Cancelar</button>
-            </div>
+            <div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" required></div>
+            <div class="form-group full"><label>Notas adicionales</label><textarea id="notas" placeholder="Ej: Piso, código de acceso, referencias..."></textarea></div>
+            <div class="error-msg" id="formError">⚠️ Por favor completa todos los campos obligatorios.</div>
+            <button type="submit" class="btn-enviar" id="btnEnviarPedido">💵 Confirmar pedido</button>
         </form>
     </div>
 
-    <!-- ======== CONFIRMACIÓN ======== -->
     <div id="confirmacionPedido">
         <h2>✅ ¡Pedido realizado con éxito!</h2>
         <p>Tu código de seguimiento es:</p>
         <span class="codigo" id="codigoSeguimiento">---</span>
-        <p style="color:#aaa;">Recibirás un correo con los detalles de tu pedido.</p>
+        <p>Te llegará un correo con los detalles.</p>
         <a href="/" class="btn">Seguir comprando</a>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // DATOS DE COLOMBIA (Departamentos y Municipios)
+    // DEPARTAMENTOS Y MUNICIPIOS DE COLOMBIA (completo)
     // ============================================================
-    const municipiosPorDepartamento = {
-        "Amazonas": ["Leticia", "Puerto Nariño"],
-        "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Rionegro", "Turbo", "Apartadó", "Caucasia", "Carepa", "Chigorodó", "Yarumal", "Santa Fe de Antioquia", "Jardín", "Sonsón", "El Carmen de Viboral", "Marinilla", "La Ceja", "Copacabana", "Girardota", "Barbosa", "Sabaneta", "Caldas", "La Estrella", "El Santuario", "San Vicente"],
-        "Arauca": ["Arauca", "Saravena", "Fortul", "Tame", "Arauquita"],
-        "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Galapa", "Puerto Colombia", "Sabanagrande", "Santo Tomás", "Sabanalarga", "Campo de la Cruz", "Ponedera", "Suan", "Usiacurí"],
-        "Bogotá": ["Bogotá"],
-        "Bolívar": ["Cartagena", "Magangué", "Calamar", "Turbaco", "Arjona", "El Carmen de Bolívar", "San Juan Nepomuceno", "Mompós", "Santa Rosa", "Zambrano", "Ciclón", "Mariquita", "San Pablo", "Simití"],
-        "Boyacá": ["Tunja", "Sogamoso", "Duitama", "Chiquinquirá", "Paipa", "Nobsa", "Moniquirá", "Villa de Leyva", "San Pedro de Urabá", "Oicatá", "Cómbita", "Motavita", "Soracá"],
-        "Caldas": ["Manizales", "Pereira", "Armenia", "Chinchiná", "Villamaría", "Salamina", "Neira", "Riosucio", "Anserma", "Pácora", "La Dorada", "Marmato"],
-        "Caquetá": ["Florencia", "San Vicente del Caguán", "Cartagena del Chairá", "La Montañita", "El Doncello", "Puerto Rico", "Solano", "Milán"],
-        "Casanare": ["Yopal", "Aguazul", "Paz de Ariporo", "Támara", "Orocué", "Monterrey", "Maní", "Recetor", "Chámeza"],
-        "Cauca": ["Popayán", "Santander de Quilichao", "Patía", "Puerto Tejada", "Timbío", "Corinto", "Miranda", "Suárez", "Caloto", "Toribío", "Páez", "Guapi", "Totoró"],
-        "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi", "Bosconia", "El Paso", "La Jagua de Ibirico", "San Alberto", "Becerril", "La Gloria"],
-        "Chocó": ["Quibdó", "Istmina", "Tadó", "Certegui", "Nuquí", "Bahía Solano", "Acandí", "Riosucio"],
-        "Córdoba": ["Montería", "Lorica", "Cereté", "Ciénaga de Oro", "Sahagún", "San Antero", "Tierralta", "Valencia", "Planeta Rica", "Puerto Escondido", "San Pelayo"],
-        "Cundinamarca": ["Bogotá", "Soacha", "Fusagasugá", "Zipaquirá", "Chía", "Cajicá", "Sibaté", "Mosquera", "Funza", "Madrid", "Tocancipá", "Gachancipá", "Tenjo", "Tabio", "Nemocón", "Sesquilé", "Cota", "La Vega", "Villeta", "Anapoima", "Agua de Dios", "Girardot", "Melgar"],
-        "La Guajira": ["Riohacha", "Maicao", "Uribia", "Manáure", "San Juan del Cesar", "Villanueva", "La Jagua del Pilar", "Urumita", "Hatonuevo"],
-        "Guaviare": ["San José del Guaviare", "El Retorno", "Calamar"],
-        "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata", "Campoalegre", "Gigante", "San Agustín", "Acevedo", "Palermo", "Tello"],
-        "Magdalena": ["Santa Marta", "Ciénaga", "Aracataca", "Fundación", "Cerro de San Antonio", "El Banco", "Plato", "Santa Ana", "Pivijay", "Salamina"],
-        "Meta": ["Villavicencio", "Acacías", "Granada", "San Martín", "Cumaral", "Guamal", "Puerto Gaitán", "Puerto López", "Fuente de Oro", "Castilla La Nueva", "San Carlos de Guaroa"],
-        "Nariño": ["Pasto", "Ipiales", "Tumaco", "San Andrés de Tumaco", "La Unión", "Linares", "El Tablón de Gómez", "Buesaco", "Chachagüí", "Tangua", "Consacá", "Guaitarilla", "Cumbal", "Puerres"],
-        "Norte de Santander": ["Cúcuta", "Ocaña", "Villa del Rosario", "Los Patios", "El Zulia", "Pamplona", "San José de Cúcuta", "Tibú", "Sardinata", "Chinácota", "Bochalema"],
-        "Putumayo": ["Mocoa", "Puerto Asís", "Orito", "Valle del Guamuéz", "San Miguel", "Colón", "Santiago"],
-        "Quindío": ["Armenia", "Calarcá", "La Tebaida", "Montenegro", "Quimbaya", "Salento", "Buenavista", "Circasia", "Génova", "Pijao"],
-        "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Belén de Umbría", "Apía", "Quinchía", "Pueblo Rico"],
-        "San Andrés": ["San Andrés", "Providencia"],
-        "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "San Gil", "Barrancabermeja", "Socorro", "El Carmen de Chucurí", "Lebrija", "Puerto Wilches", "Sabana de Torres", "Málaga", "Oiba", "Cepitá"],
-        "Sucre": ["Sincelejo", "Corozal", "Sampués", "San Benito Abad", "Santo Domingo", "Caimito", "La Unión", "Tolú", "Coveñas", "Sabanas"],
-        "Tolima": ["Ibagué", "Espinal", "Melgar", "Chaparral", "El Guamo", "Flandes", "Purificación", "Saldaña", "San Luis", "Honda", "Mariquita", "Lérida", "Venadillo"],
-        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Buga", "Yumbo", "Jamundí", "Candelaria", "Florida", "Pradera", "Roldanillo", "Zarzal", "Sevilla", "La Unión", "Caicedonia", "Dagua", "Restrepo"],
-        "Vaupés": ["Mitú"],
-        "Vichada": ["Puerto Carreño", "La Primavera", "Cumaribo"]
+    const colombia = {
+        "Amazonas": ["Leticia", "Puerto Nariño", "El Encanto", "La Chorrera", "La Pedrera", "Mirití-Paraná", "Tarapacá"],
+        "Antioquia": ["Medellín", "Abejorral", "Abriaquí", "Alejandría", "Amagá", "Amalfi", "Andes", "Angelópolis", "Angostura", "Anorí", "Anzá", "Apartadó", "Arboletes", "Argelia", "Armenia", "Barbosa", "Belmira", "Bello", "Betania", "Betulia", "Briceño", "Buriticá", "Cáceres", "Caicedo", "Caldas", "Campamento", "Cañasgordas", "Caracolí", "Caramanta", "Carepa", "Carolina", "Caucasia", "Chigorodó", "Cisneros", "Ciudad Bolívar", "Cocorná", "Concepción", "Concordia", "Copacabana", "Dabeiba", "Don Matías", "Ebéjico", "El Bagre", "El Carmen de Viboral", "El Santuario", "Entrerríos", "Envigado", "Fredonia", "Frontino", "Giraldo", "Girardota", "Gómez Plata", "Granada", "Guadalupe", "Guarne", "Guatapé", "Heliconia", "Hispania", "Itagüí", "Ituango", "Jardín", "Jericó", "La Ceja", "La Estrella", "La Unión", "Liborina", "Maceo", "Marinilla", "Montebello", "Murindó", "Mutatá", "Nariño", "Nechí", "Necoclí", "Olaya", "Peñol", "Peque", "Pueblorrico", "Puerto Berrío", "Puerto Nare", "Puerto Triunfo", "Remedios", "Retiro", "Rionegro", "Sabanalarga", "Sabaneta", "Salgar", "San Andrés", "San Carlos", "San Francisco", "San Jerónimo", "San José de la Montaña", "San Juan de Urabá", "San Luis", "San Pedro", "San Pedro de Urabá", "San Rafael", "San Roque", "San Vicente", "Santa Bárbara", "Santa Rosa de Osos", "Santo Domingo", "Segovia", "Sonsón", "Sopetrán", "Támesis", "Tarazá", "Tarso", "Titiribí", "Toledo", "Turbo", "Uramita", "Urrao", "Valdivia", "Valparaíso", "Vegachí", "Venecia", "Vigía del Fuerte", "Yalí", "Yarumal", "Yolombó", "Yondó", "Zaragoza"],
+        "Arauca": ["Arauca", "Arauquita", "Cravo Norte", "Fortul", "Puerto Rondón", "Saravena", "Tame"],
+        "Atlántico": ["Barranquilla", "Baranoa", "Campo de la Cruz", "Candelaria", "Galapa", "Juan de Acosta", "Luruaco", "Malambo", "Manatí", "Palmar de Varela", "Piojó", "Polonuevo", "Ponedera", "Puerto Colombia", "Repelón", "Sabanagrande", "Sabanalarga", "Santa Lucía", "Santo Tomás", "Soledad", "Suán", "Tubará", "Usiacurí"],
+        "Bolívar": ["Cartagena", "Achí", "Altos del Rosario", "Arenal", "Arjona", "Arroyohondo", "Calamar", "Cantagallo", "Cicuco", "Córdoba", "Clemencia", "El Carmen de Bolívar", "El Guamo", "El Peñón", "Hatillo de Loba", "Magangué", "Mahates", "Margarita", "María la Baja", "Mompox", "Montecristo", "Morales", "Norosí", "Pinillos", "Regidor", "Río Viejo", "San Cristóbal", "San Estanislao", "San Fernando", "San Jacinto", "San Jacinto del Cauca", "San Juan Nepomuceno", "San Martín de Loba", "San Pablo", "Santa Catalina", "Santa Rosa", "Santa Rosa del Sur", "Simití", "Soplaviento", "Talaigua Nuevo", "Tiquisio", "Turbaco", "Turbaná", "Villanueva", "Zambrano"],
+        "Boyacá": ["Tunja", "Almeida", "Aquitania", "Arcabuco", "Belén", "Berbeo", "Betéitiva", "Boavita", "Boyacá", "Briceño", "Buenavista", "Busbanzá", "Caldas", "Campohermoso", "Cerinza", "Chinavita", "Chiquinquirá", "Chíquiza", "Chiscas", "Chita", "Chitaraque", "Chivatá", "Chivor", "Ciénega", "Cómbita", "Coper", "Corrales", "Covarachía", "Cubará", "Cucaita", "Cuítiva", "Duitama", "El Cocuy", "El Espino", "Firavitoba", "Floresta", "Gachantivá", "Gámeza", "Garagoa", "Guacamayas", "Guateque", "Guayatá", "Güicán", "Iza", "Jenesano", "Jericó", "La Capilla", "La Uvita", "La Victoria", "Labranzagrande", "Macanal", "Maripí", "Miraflores", "Mongua", "Monguí", "Moniquirá", "Motavita", "Muzo", "Nobsa", "Nuevo Colón", "Oicatá", "Otanche", "Pachavita", "Páez", "Paipa", "Pajarito", "Panqueva", "Pauna", "Paya", "Paz de Río", "Pesca", "Pisba", "Puerto Boyacá", "Quípama", "Ramiriquí", "Ráquira", "Rondón", "Saboyá", "Sáchica", "Samacá", "San Eduardo", "San José de Pare", "San Luis de Gaceno", "San Mateo", "San Miguel de Sema", "San Pablo de Borbur", "Santa María", "Santa Rosa de Viterbo", "Santa Sofía", "Santana", "Sativanorte", "Sativasur", "Siachoque", "Socha", "Socotá", "Sogamoso", "Somondoco", "Sora", "Soracá", "Sotaquirá", "Susacón", "Sutamarchán", "Sutatenza", "Tasco", "Tenza", "Tibaná", "Tibasosa", "Tinjacá", "Tipacoque", "Toca", "Tópaga", "Tota", "Tununguá", "Turmequé", "Tuta", "Tutazá", "Umbita", "Ventaquemada", "Villa de Leyva", "Viracachá", "Zetaquirá"],
+        "Caldas": ["Manizales", "Aguadas", "Anserma", "Aranzazu", "Belalcázar", "Chinchiná", "Filadelfia", "La Dorada", "La Merced", "Manzanares", "Marmato", "Marquetalia", "Marulanda", "Neira", "Norcasia", "Pácora", "Palestina", "Pensilvania", "Riosucio", "Risaralda", "Salamina", "Samaná", "San José", "Supía", "Victoria", "Villamaría", "Viterbo"],
+        "Caquetá": ["Florencia", "Albania", "Belén de los Andaquíes", "Cartagena del Chairá", "Curillo", "El Doncello", "El Paujil", "La Montañita", "Milán", "Morelia", "Puerto Rico", "San José del Fragua", "San Vicente del Caguán", "Solano", "Solita", "Valparaíso"],
+        "Casanare": ["Yopal", "Aguazul", "Chámeza", "Hato Corozal", "La Salina", "Maní", "Monterrey", "Nunchía", "Orocué", "Paz de Ariporo", "Pore", "Recetor", "Sabanalarga", "Sácama", "San Luis de Palenque", "Támara", "Tauramena", "Trinidad", "Villanueva"],
+        "Cauca": ["Popayán", "Almaguer", "Argelia", "Balboa", "Bolívar", "Buenos Aires", "Cajibío", "Caldono", "Caloto", "Corinto", "El Tambo", "Florencia", "Guachené", "Guapi", "Inzá", "Jambaló", "La Sierra", "La Vega", "López de Micay", "Mercaderes", "Miranda", "Morales", "Padilla", "Páez", "Patía", "Piamonte", "Piendamó", "Puerto Tejada", "Puracé", "Rosas", "San Sebastián", "Santa Rosa", "Silvia", "Sotará", "Suárez", "Sucre", "Timbío", "Timbiquí", "Toribío", "Totoró", "Villa Rica"],
+        "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi", "Astrea", "Becerril", "Bosconia", "Chimichagua", "Chiriguaná", "Curumaní", "El Copey", "El Paso", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico", "Manaure", "Pailitas", "Pelaya", "Pueblo Bello", "Río de Oro", "Robles", "San Alberto", "San Diego", "San Martín", "Tamalameque"],
+        "Chocó": ["Quibdó", "Acandí", "Alto Baudó", "Atrato", "Bagadó", "Bahía Solano", "Bajo Baudó", "Belén de Bajirá", "Bojayá", "Cantón de San Pablo", "Carmen del Darién", "Certegui", "Condoto", "El Carmen de Atrato", "El Litoral del San Juan", "Istmina", "Juradó", "Lloró", "Medio Atrato", "Medio Baudó", "Medio San Juan", "Nóvita", "Nuquí", "Río Iró", "Río Quito", "Riosucio", "San José del Palmar", "Sipí", "Tadó", "Unguía", "Unión Panamericana"],
+        "Córdoba": ["Montería", "Ayapel", "Buenavista", "Canalete", "Cereté", "Chimá", "Chinú", "Ciénaga de Oro", "Cotorra", "La Apartada", "Lorica", "Los Córdobas", "Momil", "Montelíbano", "Moñitos", "Planeta Rica", "Pueblo Nuevo", "Puerto Escondido", "Puerto Libertador", "Purísima", "Sahagún", "San Andrés de Sotavento", "San Antero", "San Bernardo del Viento", "San Carlos", "San Pelayo", "Santa Cruz de Lorica", "Tierralta", "Tuchín", "Valencia"],
+        "Cundinamarca": ["Bogotá", "Agua de Dios", "Albán", "Anapoima", "Anolaima", "Apulo", "Arbeláez", "Beltrán", "Bituima", "Bojacá", "Cabrera", "Cachipay", "Cajicá", "Caparrapí", "Cáqueza", "Carmen de Carupa", "Chaguaní", "Chía", "Chipaque", "Choachí", "Chocontá", "Cogua", "Cota", "Cucunubá", "El Colegio", "El Peñón", "El Rosal", "Facatativá", "Fómeque", "Fosca", "Funza", "Fúquene", "Fusagasugá", "Gachala", "Gachancipá", "Gachetá", "Gama", "Girardot", "Granada", "Guachetá", "Guaduas", "Guasca", "Guataquí", "Guatavita", "Guayabal de Síquima", "Guayabetal", "Gutiérrez", "Jerusalén", "Junín", "La Calera", "La Mesa", "La Palma", "La Peña", "La Vega", "Lenguazaque", "Machetá", "Madrid", "Manta", "Medina", "Mosquera", "Nariño", "Nemocón", "Nilo", "Nimaima", "Nocaima", "Pacho", "Paime", "Pandi", "Paratebueno", "Pasca", "Puerto Salgar", "Pulí", "Quebradanegra", "Quetame", "Quipile", "Rafael Reyes", "Ricaurte", "San Antonio del Tequendama", "San Bernardo", "San Cayetano", "San Francisco", "San Juan de Rioseco", "Sasaima", "Sesquilé", "Sibaté", "Silvania", "Simijaca", "Soacha", "Sopó", "Subachoque", "Suesca", "Supatá", "Susa", "Sutatausa", "Tabio", "Tausa", "Tena", "Tenjo", "Tibacuy", "Tibirita", "Tocaima", "Tocancipá", "Topaipí", "Ubalá", "Ubaque", "Vianí", "Villagómez", "Villapinzón", "Villeta", "Viotá", "Yacopí", "Zipacón", "Zipaquirá"],
+        "Guainía": ["Inírida", "Barrancominas", "Cacahual", "La Guadalupe", "Mapiripana", "Morichal", "Pana Pana", "Puerto Colombia", "San Felipe"],
+        "Guaviare": ["San José del Guaviare", "Calamar", "El Retorno", "Miraflores"],
+        "Huila": ["Neiva", "Acevedo", "Agrado", "Aipe", "Algeciras", "Altamira", "Baraya", "Campoalegre", "Colombia", "Elías", "Garzón", "Gigante", "Guadalupe", "Hobo", "Íquira", "Isnos", "La Argentina", "La Plata", "Nátaga", "Oporapa", "Paicol", "Palermo", "Palestina", "Pital", "Pitalito", "Rivera", "Saladoblanco", "San Agustín", "Santa María", "Suaza", "Tarqui", "Tello", "Teruel", "Tesalia", "Timaná", "Villavieja", "Yaguará"],
+        "La Guajira": ["Riohacha", "Albania", "Barrancas", "Dibulla", "Distracción", "El Molino", "Fonseca", "Hatonuevo", "La Jagua del Pilar", "Maicao", "Manaure", "San Juan del Cesar", "Uribia", "Urumita", "Villanueva"],
+        "Magdalena": ["Santa Marta", "Algarrobo", "Aracataca", "Ariguaní", "Cerro de San Antonio", "Chibolo", "Ciénaga", "Concordia", "El Banco", "El Piñón", "El Retén", "Fundación", "Guamal", "Nueva Granada", "Pedraza", "Pijiño del Carmen", "Pivijay", "Plato", "Pueblo Viejo", "Remolino", "Sabanas de San Ángel", "Salamina", "San Sebastián de Buenavista", "San Zenón", "Santa Ana", "Santa Bárbara de Pinto", "Sitionuevo", "Tenerife", "Zapayán", "Zona Bananera"],
+        "Meta": ["Villavicencio", "Acacías", "Barranca de Upía", "Cabuyaro", "Castilla la Nueva", "Cumaral", "El Calvario", "El Castillo", "El Dorado", "Fuente de Oro", "Granada", "Guamal", "La Macarena", "Lejanías", "Mapiripán", "Mesetas", "Puerto Concordia", "Puerto Gaitán", "Puerto Lleras", "Puerto López", "Puerto Rico", "Restrepo", "San Carlos de Guaroa", "San Juan de Arama", "San Juanito", "San Martín", "Uribe", "Vista Hermosa"],
+        "Nariño": ["Pasto", "Albán", "Aldana", "Ancuyá", "Arboleda", "Barbacoas", "Belén", "Buesaco", "Colón", "Consacá", "Contadero", "Córdoba", "Cuaspud", "Cumbal", "Cumbitara", "Chachagüí", "El Charco", "El Peñol", "El Rosario", "El Tablón", "El Tambo", "Francisco Pizarro", "Gualmatán", "Guaitarilla", "Guachucal", "Guayabal", "Iles", "Imués", "Ipiales", "La Cruz", "La Florida", "La Llanada", "La Tola", "La Unión", "Leiva", "Linares", "Los Andes", "Magüí Payán", "Mallama", "Mosquera", "Nariño", "Olaya Herrera", "Ospina", "Policarpa", "Potosí", "Providencia", "Puerres", "Pupiales", "Ricaurte", "Roberto Payán", "Samaniego", "San Andrés de Tumaco", "San Bernardo", "San Lorenzo", "San Pablo", "San Pedro de Cartago", "Sandoná", "Santa Bárbara", "Santacruz", "Sapuyes", "Taminango", "Tangua", "Túquerres", "Yacuanquer"],
+        "Norte de Santander": ["Cúcuta", "Ábrego", "Arboledas", "Bochalema", "Bucarasica", "Cáchira", "Cácota", "Chinácota", "Chitagá", "Convención", "Cucutilla", "Durania", "El Carmen", "El Tarra", "El Zulia", "Gramalote", "Hacarí", "Herrán", "La Esperanza", "La Playa", "Labateca", "Los Patios", "Lourdes", "Mutiscua", "Ocaña", "Pamplona", "Pamplonita", "Puerto Santander", "Ragonvalia", "Salazar", "San Calixto", "San Cayetano", "Santiago", "Sardinata", "Silos", "Teorama", "Tibú", "Toledo", "Villa Caro", "Villa del Rosario"],
+        "Putumayo": ["Mocoa", "Colón", "Orito", "Puerto Asís", "Puerto Caicedo", "Puerto Guzmán", "Puerto Leguízamo", "San Francisco", "San Miguel", "Santiago", "Sibundoy", "Valle del Guamuez", "Villagarzón"],
+        "Quindío": ["Armenia", "Buenavista", "Calarcá", "Circasia", "Córdoba", "Filandia", "Génova", "La Tebaida", "Montenegro", "Pijao", "Quimbaya", "Salento"],
+        "Risaralda": ["Pereira", "Apía", "Balboa", "Belén de Umbría", "Dosquebradas", "Guática", "La Celia", "La Virginia", "Marsella", "Mistrató", "Pueblo Rico", "Quinchía", "Santa Rosa de Cabal", "Santuario"],
+        "San Andrés y Providencia": ["San Andrés", "Providencia"],
+        "Santander": ["Bucaramanga", "Aguada", "Albania", "Aratoca", "Barbosa", "Barichara", "Barrancabermeja", "Betulia", "Bolívar", "Cabrera", "California", "Capitanejo", "Carcasí", "Cepitá", "Cerrito", "Charalá", "Charta", "Chima", "Chipatá", "Cimitarra", "Concepción", "Confines", "Contratación", "Coromoro", "Curití", "El Carmen de Chucurí", "El Guacamayo", "El Peñón", "El Playón", "Encino", "Enciso", "Florián", "Floridablanca", "Galán", "Gámbita", "Girón", "Guaca", "Guadalupe", "Guapotá", "Guavatá", "Güepsa", "Hato", "Jesús María", "Jordán", "La Belleza", "La Paz", "Landázuri", "Lebrija", "Los Santos", "Macaravita", "Málaga", "Matanza", "Mogotes", "Molagavita", "Ocamonte", "Oiba", "Onzaga", "Palmar", "Palmas del Socorro", "Páramo", "Piedecuesta", "Pinchote", "Puente Nacional", "Puerto Parra", "Puerto Wilches", "Rionegro", "Sabana de Torres", "San Andrés", "San Benito", "San Gil", "San Joaquín", "San José de Miranda", "San Miguel", "San Vicente de Chucurí", "Santa Bárbara", "Santa Helena del Opón", "Simacota", "Socorro", "Suaita", "Sucre", "Suratá", "Tona", "Valle de San José", "Vélez", "Vetas", "Villanueva", "Zapatoca"],
+        "Sucre": ["Sincelejo", "Buenavista", "Caimito", "Colosó", "Corozal", "Coveñas", "Chalán", "El Roble", "Galeras", "Guaranda", "La Unión", "Los Palmitos", "Majagual", "Morroa", "Ovejas", "Palmito", "Sampués", "San Benito Abad", "San Juan de Betulia", "San Marcos", "San Onofre", "San Pedro", "Tolú", "Tolú Viejo"],
+        "Tolima": ["Ibagué", "Alpujarra", "Alvarado", "Ambalema", "Anzoátegui", "Armero", "Ataco", "Cajamarca", "Carmen de Apicalá", "Casabianca", "Chaparral", "Coello", "Coyaima", "Cunday", "Dolores", "El Espinal", "Falan", "Flandes", "Fresno", "Guamo", "Herveo", "Honda", "Icononzo", "Lérida", "Líbano", "Mariquita", "Melgar", "Murillo", "Natagaima", "Ortega", "Palocabildo", "Piedras", "Planadas", "Prado", "Purificación", "Rioblanco", "Roncesvalles", "Rovira", "Saldaña", "San Antonio", "San Luis", "Santa Isabel", "Suárez", "Valle de San Juan", "Venadillo", "Villahermosa", "Villarrica"],
+        "Valle del Cauca": ["Cali", "Alcalá", "Andalucía", "Ansermanuevo", "Argelia", "Bolívar", "Buenaventura", "Bugalagrande", "Caicedonia", "Calima", "Candelaria", "Cartago", "Dagua", "El Águila", "El Cairo", "El Cerrito", "El Dovio", "Florida", "Ginebra", "Guacarí", "Jamundí", "La Cumbre", "La Unión", "La Victoria", "Obando", "Palmira", "Pradera", "Restrepo", "Riofrío", "Roldanillo", "San Pedro", "Sevilla", "Toro", "Trujillo", "Tuluá", "Ulloa", "Versalles", "Vijes", "Yotoco", "Yumbo", "Zarzal"],
+        "Vaupés": ["Mitú", "Carurú", "Pacoa", "Taraira", "Papunahua", "Yavaraté"],
+        "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo"]
     };
 
     // ============================================================
@@ -211,14 +169,23 @@
         localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
     }
 
+    // 🔥 formatear precio con soporte para valores en miles (ej: 99 -> 99,000)
     function formatearPrecio(valor) {
-        return Number(valor).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+        let num = Number(valor);
+        if (isNaN(num)) return '0';
+        if (num < 1000 && num > 0) num = num * 1000;
+        return num.toLocaleString('es-CO');
+    }
+
+    function obtenerPrecioReal(valor) {
+        let num = Number(valor);
+        if (isNaN(num)) return 0;
+        if (num < 1000 && num > 0) num = num * 1000;
+        return num;
     }
 
     function renderizarCarrito() {
         const contenedor = document.getElementById('carritoContenido');
-        const resumen = document.getElementById('resumenContainer');
-        const totalSpan = document.getElementById('totalCarrito');
         const carrito = obtenerCarrito();
 
         if (carrito.length === 0) {
@@ -226,10 +193,10 @@
                 <div class="carrito-vacio">
                     <span class="icono">🛒</span>
                     <p>Tu carrito está vacío</p>
-                    <a href="/">Explorar productos</a>
+                    <a href="/" style="color:#ff00ff;">Explorar productos</a>
                 </div>
             `;
-            resumen.style.display = 'none';
+            document.getElementById('formPago').classList.remove('active');
             return;
         }
 
@@ -237,46 +204,54 @@
         let total = 0;
 
         carrito.forEach((item, index) => {
-            const precio = Number(item.precio) || 0;
+            const precioReal = obtenerPrecioReal(item.precio);
             const cantidad = Number(item.cantidad) || 1;
-            const subtotal = precio * cantidad;
+            const subtotal = precioReal * cantidad;
             total += subtotal;
-            const nombre = item.nombre || 'Producto';
-            const img = item.imagen || 'https://via.placeholder.com/80?text=Producto';
+
+            // 🔥 Mostrar talla y color si existen
             const detalles = [];
-            if (item.color) detalles.push('Color: ' + item.color);
-            if (item.talla) detalles.push('Talla: ' + item.talla);
-            const detalleStr = detalles.length ? detalles.join(' | ') : '';
+            if (item.color) detalles.push('🎨 Color: ' + item.color);
+            if (item.talla) detalles.push('👟 Talla: ' + item.talla);
+            const detalleTexto = detalles.length ? '| ' + detalles.join(' ') : '';
 
             html += `
-                <div class="producto-item" data-index="${index}">
-                    <img src="${img}" alt="${nombre}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
+                <div class="carrito-item">
+                    <img src="${item.imagen || ''}" alt="${item.nombre || 'Producto'}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
                     <div class="info">
-                        <div class="nombre">${nombre}</div>
-                        ${detalleStr ? `<div class="detalle">${detalleStr}</div>` : ''}
-                        <div class="precio">${formatearPrecio(subtotal)}</div>
+                        <div class="nombre">${item.nombre || 'Producto'}</div>
+                        <div class="detalle">${detalleTexto}</div>
+                        <div class="precio">$${formatearPrecio(subtotal)}</div>
                     </div>
                     <div class="cantidad">
                         <button onclick="cambiarCantidad(${index}, -1)">−</button>
                         <span>${cantidad}</span>
                         <button onclick="cambiarCantidad(${index}, 1)">+</button>
                     </div>
-                    <button class="btn-eliminar" onclick="eliminarProducto(${index})">🗑️</button>
+                    <button class="eliminar" onclick="eliminarProducto(${index})">🗑️</button>
                 </div>
             `;
         });
 
+        html += `
+            <div class="resumen">
+                <p class="total-label">Total</p>
+                <div class="total">$${formatearPrecio(total)}</div>
+                <button class="btn-pagar" onclick="mostrarFormulario()">💵 Pagar contra entrega</button>
+                <p style="color:#666; font-size:0.8rem; margin-top:8px;">Recibes, revisas y pagas al recibir</p>
+            </div>
+        `;
+
         contenedor.innerHTML = html;
-        totalSpan.textContent = formatearPrecio(total);
-        resumen.style.display = 'block';
+        document.getElementById('formPago').classList.remove('active');
     }
 
     function cambiarCantidad(index, delta) {
         const carrito = obtenerCarrito();
         if (index < 0 || index >= carrito.length) return;
-        const nueva = (Number(carrito[index].cantidad) || 1) + delta;
-        if (nueva < 1) return;
-        carrito[index].cantidad = nueva;
+        const nuevaCantidad = (Number(carrito[index].cantidad) || 1) + delta;
+        if (nuevaCantidad < 1) return;
+        carrito[index].cantidad = nuevaCantidad;
         guardarCarrito(carrito);
         renderizarCarrito();
     }
@@ -290,26 +265,35 @@
     }
 
     // ============================================================
-    // MUNICIPIOS
+    // FORMULARIO DE PAGO
     // ============================================================
+
+    function mostrarFormulario() {
+        const carrito = obtenerCarrito();
+        if (carrito.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+        document.getElementById('formPago').classList.add('active');
+        document.getElementById('formPago').scrollIntoView({ behavior: 'smooth' });
+    }
 
     function cargarDepartamentos() {
         const select = document.getElementById('departamento');
-        const deps = Object.keys(municipiosPorDepartamento).sort();
-        deps.forEach(dep => {
+        select.innerHTML = '<option value="">Selecciona...</option>';
+        Object.keys(colombia).sort().forEach(depto => {
             const opt = document.createElement('option');
-            opt.value = dep;
-            opt.textContent = dep;
+            opt.value = depto;
+            opt.textContent = depto;
             select.appendChild(opt);
         });
     }
 
-    function cargarMunicipios() {
-        const dep = document.getElementById('departamento').value;
+    function cargarMunicipios(departamento) {
         const select = document.getElementById('municipio');
         select.innerHTML = '<option value="">Selecciona...</option>';
-        if (dep && municipiosPorDepartamento[dep]) {
-            municipiosPorDepartamento[dep].forEach(mun => {
+        if (departamento && colombia[departamento]) {
+            colombia[departamento].sort().forEach(mun => {
                 const opt = document.createElement('option');
                 opt.value = mun;
                 opt.textContent = mun;
@@ -318,55 +302,48 @@
         }
     }
 
-    // ============================================================
-    // FORMULARIO
-    // ============================================================
-
-    document.getElementById('btnMostrarFormulario').addEventListener('click', function() {
-        const form = document.getElementById('formularioPago');
-        form.style.display = 'block';
-        form.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('departamento').addEventListener('change', function() {
+        cargarMunicipios(this.value);
     });
 
-    document.getElementById('btnCancelarFormulario').addEventListener('click', function() {
-        document.getElementById('formularioPago').style.display = 'none';
-    });
-
-    document.getElementById('pedidoForm').addEventListener('submit', function(e) {
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        const errorEl = document.getElementById('formError');
+        errorEl.style.display = 'none';
 
-        const nombres = document.getElementById('nombres').value.trim();
-        const apellidos = document.getElementById('apellidos').value.trim();
-        const telefono = document.getElementById('telefono').value.trim();
-        const email = document.getElementById('email').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const celular = document.getElementById('celular').value.trim();
         const departamento = document.getElementById('departamento').value;
         const municipio = document.getElementById('municipio').value;
         const direccion = document.getElementById('direccion').value.trim();
         const notas = document.getElementById('notas').value.trim();
-        const talla = document.getElementById('tallaSelect').value;
-        const color = document.getElementById('colorSelect').value;
 
-        if (!nombres || !apellidos || !telefono || !departamento || !municipio || !direccion) {
-            alert('Por favor, completa todos los campos obligatorios (*)');
+        if (!nombre || !apellido || !celular || !departamento || !municipio || !direccion) {
+            errorEl.style.display = 'block';
             return;
         }
 
         const carrito = obtenerCarrito();
-        if (carrito.length === 0) {
-            alert('El carrito está vacío');
-            return;
-        }
+        let total = 0;
+        carrito.forEach(item => {
+            total += obtenerPrecioReal(item.precio) * (Number(item.cantidad) || 1);
+        });
 
-        const total = carrito.reduce((sum, item) => sum + (Number(item.precio) || 0) * (Number(item.cantidad) || 1), 0);
-
-        const productosTexto = carrito.map(item =>
-            `${item.nombre} x${item.cantidad} - ${formatearPrecio((Number(item.precio)||0)*(Number(item.cantidad)||1))}`
-        ).join('\n');
+        const productosTexto = carrito.map(item => {
+            const precioReal = obtenerPrecioReal(item.precio);
+            const subtotal = precioReal * (Number(item.cantidad) || 1);
+            let detalle = `${item.nombre} x${item.cantidad}`;
+            if (item.color) detalle += ` (Color: ${item.color})`;
+            if (item.talla) detalle += ` (Talla: ${item.talla})`;
+            detalle += ` - $${formatearPrecio(subtotal)}`;
+            return detalle;
+        }).join('\n');
 
         const pedido = {
-            nombreCliente: `${nombres} ${apellidos}`,
-            telefono: telefono,
-            email: email || '',
+            nombreCliente: nombre + ' ' + apellido,
+            telefono: celular,
+            // 🔥 Sin email
             departamento: departamento,
             ciudad: municipio,
             direccion: direccion,
@@ -374,41 +351,42 @@
             tienda: 'FlowColombia',
             productos: productosTexto,
             total: total,
-            metodoPago: 'Contra entrega',
-            talla: talla || '',
-            color: color || ''
+            metodoPago: 'Contra entrega'
         };
+
+        const btn = document.getElementById('btnEnviarPedido');
+        btn.disabled = true;
+        btn.textContent = '⏳ Enviando...';
 
         fetch('/api/pedido', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
         })
-            .then(res => {
-                if (!res.ok) throw new Error('Error en el servidor');
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 if (data.status === 'OK') {
                     mostrarConfirmacion(data.codigo);
                     localStorage.removeItem('carritoFlowColombia');
                     renderizarCarrito();
-                    document.getElementById('formularioPago').style.display = 'none';
+                    document.getElementById('formPago').classList.remove('active');
                 } else {
-                    alert('Error al procesar el pedido: ' + (data.message || ''));
+                    alert('Error al procesar el pedido. Intenta de nuevo.');
                 }
             })
             .catch(err => {
-                alert('Error de conexión. Por favor, intenta de nuevo.');
+                alert('Error de conexión. Verifica tu internet.');
                 console.error(err);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = '💵 Confirmar pedido';
             });
     });
 
     function mostrarConfirmacion(codigo) {
         document.getElementById('confirmacionPedido').style.display = 'block';
         document.getElementById('codigoSeguimiento').textContent = codigo;
-        document.getElementById('resumenContainer').style.display = 'none';
-        document.getElementById('carritoContenido').innerHTML = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -419,9 +397,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         cargarDepartamentos();
         renderizarCarrito();
+        const depto = document.getElementById('departamento').value;
+        if (depto) cargarMunicipios(depto);
     });
 
-    window.addEventListener('storage', function(e) {
+    window.addEventListener('storage', (e) => {
         if (e.key === 'carritoFlowColombia') renderizarCarrito();
     });
 </script>
