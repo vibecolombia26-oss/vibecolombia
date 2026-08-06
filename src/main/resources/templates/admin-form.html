@@ -7,15 +7,18 @@
     <title th:if="${producto.id != null}">Editar Producto - FLOW COLOMBIA</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding-bottom:100px; }
         .container { max-width:900px; margin:0 auto; padding:20px; }
         .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
         .header h1 { font-size:1.5rem; color:#ff00ff; }
         .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; border:none; cursor:pointer; transition:all 0.3s; }
         .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
         .btn-back:hover { background:rgba(0,255,255,0.1); }
-        .btn-save { background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; }
+        .btn-save { background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; padding:14px 40px; font-size:1rem; }
         .btn-save:hover { box-shadow:0 0 30px rgba(255,0,255,0.4); transform:scale(1.02); }
+        .btn-save:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+        .btn-eliminar { background:#ff0044; color:#fff; border:none; padding:14px 30px; border-radius:25px; cursor:pointer; transition:all 0.3s; }
+        .btn-eliminar:hover { box-shadow:0 0 30px rgba(255,0,68,0.4); transform:scale(1.02); }
         .form-section { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:25px; margin-bottom:20px; }
         .form-section h2 { color:#ff00ff; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px; }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
@@ -29,12 +32,11 @@
         .form-group .checkbox-group { display:flex; align-items:center; gap:10px; margin-top:5px; }
         .form-group .checkbox-group input { width:auto; }
         .imagenes-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+        .imagen-preview { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+        .imagen-preview img { width:80px; height:80px; border-radius:8px; border:2px solid #333; object-fit:cover; }
         .btn-eliminar { background:#ff0044; color:#fff; border:none; padding:14px 30px; border-radius:25px; cursor:pointer; transition:all 0.3s; }
         .btn-eliminar:hover { box-shadow:0 0 30px rgba(255,0,68,0.4); transform:scale(1.02); }
 
-        /* ============================================================ */
-        /* SECCIÓN DE RESEÑAS */
-        /* ============================================================ */
         .resenas-section { margin-top:30px; border-top:2px solid #ff00ff; padding-top:20px; }
         .resumen-calificacion { display:flex; align-items:center; gap:15px; flex-wrap:wrap; background:rgba(255,215,0,0.05); padding:12px 20px; border-radius:12px; border:1px solid rgba(255,215,0,0.15); margin-bottom:15px; }
         .resumen-calificacion .label { color:#888; font-size:0.8rem; }
@@ -55,28 +57,77 @@
         .btn-guardar-resena { margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:25px; cursor:pointer; font-weight:700; transition:all 0.3s; }
         .btn-guardar-resena:hover { box-shadow:0 0 30px rgba(255,215,0,0.4); transform:scale(1.02); }
 
-        @media (max-width:600px){ .form-row,.imagenes-grid { grid-template-columns:1fr; } }
+        /* ===== BOTÓN DE GUARDAR FIJO ===== */
+        .acciones-fijas {
+            position: sticky;
+            bottom: 20px;
+            z-index: 100;
+            background: rgba(10,10,10,0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid #ff00ff;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            margin-top: 30px;
+        }
+
+        /* ===== TOAST DE NOTIFICACIÓN ===== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: rgba(20,20,20,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid #ff00ff;
+            border-radius: 12px;
+            padding: 15px 25px;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+        }
+        .toast.error { border-color: #ff0044; }
+        .toast.success { border-color: #00ff00; }
+        @keyframes slideIn {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width:600px){
+            .form-row, .imagenes-grid { grid-template-columns:1fr; }
+            .acciones-fijas { flex-direction:column; align-items:stretch; }
+            .btn-save, .btn-eliminar { width:100%; text-align:center; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- ===== TOAST ===== -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <div class="header">
         <h1 th:if="${producto.id == null}">➕ Nuevo Producto</h1>
         <h1 th:if="${producto.id != null}">✏️ Editar Producto</h1>
-        <div>
-            <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Volver</a>
-        </div>
+        <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Volver</a>
     </div>
 
     <!-- ============================================================ -->
-    <!-- FORMULARIO PRINCIPAL - CON ENCTYPE PARA MULTIPART -->
+    <!-- FORMULARIO PRINCIPAL -->
     <!-- ============================================================ -->
-    <form th:action="@{/admin/guardar(key=${key})}" method="post" enctype="multipart/form-data">
+    <form id="productoForm" th:action="@{/admin/guardar(key=${key})}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="id" th:value="${producto.id}">
 
-        <!-- ============================================================ -->
-        <!-- INFORMACIÓN BÁSICA -->
-        <!-- ============================================================ -->
+        <!-- ===== INFORMACIÓN BÁSICA ===== -->
         <div class="form-section">
             <h2>📋 Información básica</h2>
             <div class="form-row">
@@ -100,25 +151,22 @@
             <div class="form-group full"><label>Descripción larga (detalle)</label><textarea name="descripcionLarga" rows="4">[[${producto.descripcionLarga}]]</textarea></div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- IMÁGENES (URLs de Cloudinary) -->
-        <!-- ============================================================ -->
+        <!-- ===== IMÁGENES ===== -->
         <div class="form-section">
             <h2>🖼️ Imágenes (URLs de Cloudinary)</h2>
             <div class="imagenes-grid">
-                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..."></div>
-                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..."></div>
-                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="https://res.cloudinary.com/..."></div>
-                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="https://res.cloudinary.com/..."></div>
-                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="https://res.cloudinary.com/..."></div>
-                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..."></div>
+                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 0)"></div>
+                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 1)"></div>
+                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 2)"></div>
+                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 3)"></div>
+                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 4)"></div>
+                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 5)"></div>
             </div>
+            <div id="previewContainer" class="imagen-preview"></div>
             <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- ESPECIFICACIONES TÉCNICAS -->
-        <!-- ============================================================ -->
+        <!-- ===== ESPECIFICACIONES ===== -->
         <div class="form-section">
             <h2>⚙️ Especificaciones técnicas</h2>
             <div class="form-row">
@@ -129,9 +177,7 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- VARIACIONES - CON CAMPOS SEPARADOS PARA COLOR Y TALLA -->
-        <!-- ============================================================ -->
+        <!-- ===== VARIACIONES ===== -->
         <div class="form-section">
             <h2>🎨 Variaciones</h2>
             <div class="form-group checkbox-group">
@@ -159,9 +205,7 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- SECCIÓN DE RESEÑAS Y CALIFICACIÓN -->
-        <!-- ============================================================ -->
+        <!-- ===== RESEÑAS ===== -->
         <div class="form-section resenas-section" th:if="${producto.id != null}">
             <h2>⭐ Reseñas y calificación</h2>
 
@@ -217,17 +261,56 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- BOTONES DE ACCIÓN -->
-        <!-- ============================================================ -->
-        <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
-            <button type="submit" class="btn btn-save" style="padding:14px 40px; font-size:1rem;">💾 Guardar producto</button>
-            <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
+        <!-- ===== BOTONES FIJOS (siempre visibles) ===== -->
+        <div class="acciones-fijas">
+            <div>
+                <button type="submit" class="btn btn-save" id="btnGuardar">💾 Guardar producto</button>
+            </div>
+            <div>
+                <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
+            </div>
         </div>
     </form>
 </div>
 
 <script>
+    // ============================================================
+    // PREVISUALIZACIÓN DE IMÁGENES
+    // ============================================================
+    function previewImage(input, index) {
+        const container = document.getElementById('previewContainer');
+        const url = input.value.trim();
+        // Buscar si ya existe una imagen para este índice
+        let img = container.querySelector(`[data-index="${index}"]`);
+        if (!img) {
+            img = document.createElement('img');
+            img.dataset.index = index;
+            img.style.width = '80px';
+            img.style.height = '80px';
+            img.style.borderRadius = '8px';
+            img.style.border = '2px solid #333';
+            img.style.objectFit = 'cover';
+            img.style.margin = '4px';
+            container.appendChild(img);
+        }
+        if (url) {
+            img.src = url;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+
+    // Cargar previsualizaciones iniciales al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input[name^="imagen"]');
+        inputs.forEach((input, idx) => {
+            if (input.value.trim()) {
+                previewImage(input, idx);
+            }
+        });
+    });
+
     // ============================================================
     // MOSTRAR/OCULTAR CAMPOS DE COLOR Y TALLA
     // ============================================================
@@ -242,25 +325,75 @@
     // COMBINAR COLORES Y TALLAS EN UN SOLO CAMPO ANTES DE ENVIAR
     // ============================================================
     document.querySelector('form').addEventListener('submit', function(e) {
-        // Obtener los valores de color y talla
         const colores = document.getElementById('coloresInput').value.trim();
         const tallas = document.getElementById('tallasInput').value.trim();
 
-        // Crear el campo oculto para variacionesDisponibles
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'variacionesDisponibles';
 
         if (colores || tallas) {
-            // Formato: "color1,color2|talla1,talla2"
             const coloresStr = colores ? colores.replace(/\s*,\s*/g, ', ') : '';
             const tallasStr = tallas ? tallas.replace(/\s*,\s*/g, ', ') : '';
             hiddenInput.value = coloresStr + '|' + tallasStr;
         } else {
             hiddenInput.value = '|';
         }
-
         this.appendChild(hiddenInput);
+    });
+
+    // ============================================================
+    // INDICADOR DE CARGA Y VALIDACIÓN ANTES DE ENVIAR
+    // ============================================================
+    document.getElementById('productoForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('btnGuardar');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Guardando...';
+
+        // Validar que el precio sea positivo
+        const precio = document.querySelector('input[name="precio"]');
+        if (parseFloat(precio.value) <= 0) {
+            mostrarToast('El precio debe ser mayor a 0', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar producto';
+            e.preventDefault();
+            return;
+        }
+
+        // Validar que nombre y SKU no estén vacíos
+        const nombre = document.querySelector('input[name="nombre"]');
+        const sku = document.querySelector('input[name="sku"]');
+        if (!nombre.value.trim() || !sku.value.trim()) {
+            mostrarToast('Nombre y SKU son obligatorios', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar producto';
+            e.preventDefault();
+            return;
+        }
+
+        // Si todo ok, se envía el formulario
+    });
+
+    // ============================================================
+    // TOAST DE NOTIFICACIÓN
+    // ============================================================
+    function mostrarToast(mensaje, tipo = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${tipo}`;
+        toast.textContent = mensaje;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+
+    // Mostrar mensajes de éxito/error desde el servidor (si existen)
+    document.addEventListener('DOMContentLoaded', function() {
+        const mensaje = /*[[${mensaje}]]*/ null;
+        if (mensaje) {
+            mostrarToast(mensaje, mensaje.includes('✅') ? 'success' : 'error');
+        }
     });
 </script>
 </body>
