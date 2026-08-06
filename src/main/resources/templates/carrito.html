@@ -7,64 +7,198 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-        h1 { text-align: center; color: #ff00ff; margin-bottom: 30px; font-size: 2rem; }
-        .btn-back { display: inline-block; color: #00ffff; text-decoration: none; padding: 8px 20px; border: 1px solid #00ffff; border-radius: 25px; margin-bottom: 20px; transition: 0.3s; }
-        .btn-back:hover { background: rgba(0,255,255,0.1); }
-        .carrito-vacio { text-align: center; padding: 60px 20px; color: #666; }
-        .carrito-vacio .icono { font-size: 4rem; display: block; margin-bottom: 15px; }
-        .carrito-item { background: rgba(20,20,20,0.8); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .carrito-item img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid #ff00ff; }
-        .carrito-item .info { flex: 1; }
-        .carrito-item .info .nombre { color: #fff; font-weight: 600; font-size: 1.1rem; }
-        .carrito-item .info .detalle { color: #888; font-size: 0.85rem; }
-        .carrito-item .info .precio { color: #00ffff; font-weight: 700; font-size: 1.2rem; }
-        .carrito-item .cantidad { display: flex; align-items: center; gap: 8px; }
-        .carrito-item .cantidad button { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-        .carrito-item .cantidad button:hover { background: rgba(255,0,255,0.1); }
-        .carrito-item .cantidad span { color: #fff; font-weight: 600; min-width: 30px; text-align: center; }
-        .carrito-item .eliminar { background: #ff0044; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .carrito-item .eliminar:hover { box-shadow: 0 0 20px rgba(255,0,68,0.4); }
-        .resumen { background: rgba(20,20,20,0.9); border: 2px solid #ffd700; border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
-        .resumen .total { font-size: 2rem; color: #00ffff; font-weight: 900; }
-        .resumen .btn-pagar { display: inline-block; padding: 14px 40px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; text-decoration: none; }
-        .resumen .btn-pagar:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .back-btn { display: inline-block; color: #00ffff; text-decoration: none; padding: 10px 25px; border: 1px solid #00ffff; border-radius: 30px; margin-bottom: 25px; transition: 0.3s; font-weight: 500; }
+        .back-btn:hover { background: rgba(0,255,255,0.08); box-shadow: 0 0 20px rgba(0,255,255,0.2); }
+        h1 { text-align: center; color: #ff00ff; font-size: 2.4rem; letter-spacing: 2px; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
 
-        /* Confirmación */
-        #confirmacionPedido { display: none; background: rgba(0,255,0,0.08); border: 2px solid #00ff00; border-radius: 16px; padding: 30px; margin-top: 20px; text-align: center; }
+        /* ======== CARRITO VACÍO ======== */
+        .carrito-vacio { text-align: center; padding: 80px 20px; color: #666; }
+        .carrito-vacio .icono { font-size: 5rem; display: block; margin-bottom: 15px; }
+        .carrito-vacio a { color: #ff00ff; text-decoration: none; border: 1px solid #ff00ff; padding: 10px 30px; border-radius: 30px; display: inline-block; margin-top: 15px; transition: 0.3s; }
+        .carrito-vacio a:hover { background: rgba(255,0,255,0.08); }
+
+        /* ======== LISTA DE PRODUCTOS ======== */
+        .productos-lista { margin-bottom: 30px; }
+        .producto-item { background: rgba(20,20,20,0.8); border: 1px solid rgba(255,0,255,0.2); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; transition: 0.3s; }
+        .producto-item:hover { border-color: #ff00ff; background: rgba(255,0,255,0.04); }
+        .producto-item img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 2px solid #333; }
+        .producto-item .info { flex: 1; min-width: 150px; }
+        .producto-item .info .nombre { color: #fff; font-weight: 700; font-size: 1.1rem; }
+        .producto-item .info .detalle { color: #888; font-size: 0.8rem; margin-top: 2px; }
+        .producto-item .info .precio { color: #00ffff; font-weight: 700; font-size: 1.2rem; margin-top: 4px; }
+        .producto-item .cantidad { display: flex; align-items: center; gap: 8px; }
+        .producto-item .cantidad button { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .producto-item .cantidad button:hover { background: rgba(255,0,255,0.12); box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+        .producto-item .cantidad span { color: #fff; font-weight: 600; min-width: 30px; text-align: center; font-size: 1.1rem; }
+        .producto-item .btn-eliminar { background: transparent; color: #ff0044; border: 1px solid #ff0044; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .producto-item .btn-eliminar:hover { background: rgba(255,0,68,0.15); box-shadow: 0 0 20px rgba(255,0,68,0.3); }
+
+        /* ======== RESUMEN ======== */
+        .resumen { background: rgba(20,20,20,0.9); border: 2px solid #ffd700; border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 30px; }
+        .resumen .total-label { color: #aaa; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
+        .resumen .total { font-size: 2.6rem; color: #00ffff; font-weight: 900; text-shadow: 0 0 30px rgba(0,255,255,0.3); }
+        .resumen .btn-pagar { display: inline-block; padding: 14px 50px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 8px; text-decoration: none; }
+        .resumen .btn-pagar:hover { transform: scale(1.04); box-shadow: 0 0 40px rgba(255,215,0,0.5); }
+
+        /* ======== FORMULARIO DE PAGO (contra entrega) ======== */
+        .form-pago { background: rgba(20,20,20,0.9); border: 2px solid #ff00ff; border-radius: 16px; padding: 30px; margin-top: 20px; display: none; }
+        .form-pago h2 { color: #ffd700; margin-bottom: 20px; text-align: center; font-size: 1.6rem; border-bottom: 1px solid rgba(255,215,0,0.15); padding-bottom: 12px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { display: block; margin-bottom: 5px; color: #00ffff; font-weight: 600; font-size: 0.85rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 1rem; transition: 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.15); }
+        .form-group textarea { resize: vertical; min-height: 70px; }
+        .form-group .btn-enviar { width: 100%; padding: 14px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 8px; }
+        .form-group .btn-enviar:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+        .form-group .btn-cancelar { width: 100%; padding: 12px; background: transparent; color: #ff0044; border: 1px solid #ff0044; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 6px; }
+        .form-group .btn-cancelar:hover { background: rgba(255,0,68,0.08); }
+
+        /* ======== CONFIRMACIÓN ======== */
+        #confirmacionPedido { display: none; background: rgba(0,255,0,0.06); border: 2px solid #00ff00; border-radius: 16px; padding: 35px; margin-top: 20px; text-align: center; }
         #confirmacionPedido h2 { color: #00ff00; font-size: 1.8rem; }
-        #confirmacionPedido .codigo { color: #ffd700; font-size: 1.5rem; font-weight: 900; display: block; margin: 10px 0; }
-        #confirmacionPedido .btn { display: inline-block; margin-top: 15px; padding: 10px 30px; background: #ff00ff; color: #fff; border-radius: 25px; text-decoration: none; }
+        #confirmacionPedido .codigo { color: #ffd700; font-size: 1.8rem; font-weight: 900; display: block; margin: 12px 0; letter-spacing: 3px; }
+        #confirmacionPedido .btn { display: inline-block; margin-top: 15px; padding: 12px 35px; background: #ff00ff; color: #fff; border-radius: 30px; text-decoration: none; font-weight: 600; transition: 0.3s; }
+        #confirmacionPedido .btn:hover { box-shadow: 0 0 30px rgba(255,0,255,0.4); transform: scale(1.04); }
 
-        @media (max-width: 600px) {
-            .carrito-item { flex-direction: column; text-align: center; }
-            .carrito-item .cantidad { justify-content: center; }
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .producto-item { flex-direction: column; text-align: center; }
+            .producto-item .cantidad { justify-content: center; }
+            .resumen .total { font-size: 2rem; }
+            h1 { font-size: 1.8rem; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <a href="/" class="btn-back">← Seguir comprando</a>
-    <h1>🛒 Carrito de compras</h1>
+    <a href="/" class="back-btn">← Seguir comprando</a>
+    <h1>🛒 Carrito</h1>
+    <p class="subtitle">Revisa tus productos y completa el formulario para finalizar tu compra</p>
 
-    <div id="carritoContenido"></div>
+    <!-- ======== LISTA DE PRODUCTOS ======== -->
+    <div id="carritoContenido" class="productos-lista"></div>
 
-    <!-- Confirmación de pedido -->
+    <!-- ======== RESUMEN ======== -->
+    <div id="resumenContainer" class="resumen" style="display:none;">
+        <div class="total-label">Total a pagar</div>
+        <div class="total" id="totalCarrito">$0</div>
+        <button class="btn-pagar" id="btnMostrarFormulario">📝 Completar datos de envío</button>
+        <p style="color:#666; font-size:0.8rem; margin-top:6px;">💵 Pago contra entrega: pagas al recibir tu pedido</p>
+    </div>
+
+    <!-- ======== FORMULARIO DE ENVÍO ======== -->
+    <div id="formularioPago" class="form-pago">
+        <h2>📦 Datos de envío</h2>
+        <form id="pedidoForm">
+            <div class="form-row">
+                <div class="form-group"><label>Nombres *</label><input type="text" id="nombres" required placeholder="Ej: María José"></div>
+                <div class="form-group"><label>Apellidos *</label><input type="text" id="apellidos" required placeholder="Ej: Rodríguez Pérez"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Teléfono *</label><input type="tel" id="telefono" required placeholder="Ej: 3123456789"></div>
+                <div class="form-group"><label>Correo electrónico</label><input type="email" id="email" placeholder="Ej: cliente@email.com"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Departamento *</label>
+                    <select id="departamento" required onchange="cargarMunicipios()">
+                        <option value="">Selecciona...</option>
+                        <!-- Los departamentos se cargan con JS -->
+                    </select>
+                </div>
+                <div class="form-group"><label>Ciudad / Municipio *</label>
+                    <select id="municipio" required>
+                        <option value="">Selecciona...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group full"><label>Dirección de entrega *</label><input type="text" id="direccion" required placeholder="Ej: Calle 123 # 45-67, Barrio El Poblado"></div>
+            <div class="form-group full"><label>Notas adicionales</label><textarea id="notas" placeholder="Ej: Entregar al portero, piso 3, dejar en recepción..."></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>Talla</label>
+                    <select id="tallaSelect">
+                        <option value="">No aplica</option>
+                        <option value="S">S</option><option value="M">M</option><option value="L">L</option>
+                        <option value="XL">XL</option><option value="35">35</option><option value="36">36</option>
+                        <option value="37">37</option><option value="38">38</option><option value="39">39</option>
+                        <option value="40">40</option><option value="41">41</option><option value="42">42</option>
+                        <option value="43">43</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Color</label>
+                    <select id="colorSelect">
+                        <option value="">No aplica</option>
+                        <option value="Blanco">Blanco</option><option value="Negro">Negro</option>
+                        <option value="Rojo">Rojo</option><option value="Azul">Azul</option>
+                        <option value="Verde">Verde</option><option value="Amarillo">Amarillo</option>
+                        <option value="Gris">Gris</option><option value="Beige">Beige</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group full">
+                <button type="submit" class="btn-enviar">💵 Confirmar pedido (Contra entrega)</button>
+                <button type="button" class="btn-cancelar" id="btnCancelarFormulario">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ======== CONFIRMACIÓN ======== -->
     <div id="confirmacionPedido">
         <h2>✅ ¡Pedido realizado con éxito!</h2>
         <p>Tu código de seguimiento es:</p>
         <span class="codigo" id="codigoSeguimiento">---</span>
-        <p>Te llegará un correo con los detalles.</p>
+        <p style="color:#aaa;">Recibirás un correo con los detalles de tu pedido.</p>
         <a href="/" class="btn">Seguir comprando</a>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // CARRITO COMPLETO
+    // DATOS DE COLOMBIA (Departamentos y Municipios)
+    // ============================================================
+    const municipiosPorDepartamento = {
+        "Amazonas": ["Leticia", "Puerto Nariño"],
+        "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Rionegro", "Turbo", "Apartadó", "Caucasia", "Carepa", "Chigorodó", "Yarumal", "Santa Fe de Antioquia", "Jardín", "Sonsón", "El Carmen de Viboral", "Marinilla", "La Ceja", "Copacabana", "Girardota", "Barbosa", "Sabaneta", "Caldas", "La Estrella", "El Santuario", "San Vicente"],
+        "Arauca": ["Arauca", "Saravena", "Fortul", "Tame", "Arauquita"],
+        "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Galapa", "Puerto Colombia", "Sabanagrande", "Santo Tomás", "Sabanalarga", "Campo de la Cruz", "Ponedera", "Suan", "Usiacurí"],
+        "Bogotá": ["Bogotá"],
+        "Bolívar": ["Cartagena", "Magangué", "Calamar", "Turbaco", "Arjona", "El Carmen de Bolívar", "San Juan Nepomuceno", "Mompós", "Santa Rosa", "Zambrano", "Ciclón", "Mariquita", "San Pablo", "Simití"],
+        "Boyacá": ["Tunja", "Sogamoso", "Duitama", "Chiquinquirá", "Paipa", "Nobsa", "Moniquirá", "Villa de Leyva", "San Pedro de Urabá", "Oicatá", "Cómbita", "Motavita", "Soracá"],
+        "Caldas": ["Manizales", "Pereira", "Armenia", "Chinchiná", "Villamaría", "Salamina", "Neira", "Riosucio", "Anserma", "Pácora", "La Dorada", "Marmato"],
+        "Caquetá": ["Florencia", "San Vicente del Caguán", "Cartagena del Chairá", "La Montañita", "El Doncello", "Puerto Rico", "Solano", "Milán"],
+        "Casanare": ["Yopal", "Aguazul", "Paz de Ariporo", "Támara", "Orocué", "Monterrey", "Maní", "Recetor", "Chámeza"],
+        "Cauca": ["Popayán", "Santander de Quilichao", "Patía", "Puerto Tejada", "Timbío", "Corinto", "Miranda", "Suárez", "Caloto", "Toribío", "Páez", "Guapi", "Totoró"],
+        "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi", "Bosconia", "El Paso", "La Jagua de Ibirico", "San Alberto", "Becerril", "La Gloria"],
+        "Chocó": ["Quibdó", "Istmina", "Tadó", "Certegui", "Nuquí", "Bahía Solano", "Acandí", "Riosucio"],
+        "Córdoba": ["Montería", "Lorica", "Cereté", "Ciénaga de Oro", "Sahagún", "San Antero", "Tierralta", "Valencia", "Planeta Rica", "Puerto Escondido", "San Pelayo"],
+        "Cundinamarca": ["Bogotá", "Soacha", "Fusagasugá", "Zipaquirá", "Chía", "Cajicá", "Sibaté", "Mosquera", "Funza", "Madrid", "Tocancipá", "Gachancipá", "Tenjo", "Tabio", "Nemocón", "Sesquilé", "Cota", "La Vega", "Villeta", "Anapoima", "Agua de Dios", "Girardot", "Melgar"],
+        "La Guajira": ["Riohacha", "Maicao", "Uribia", "Manáure", "San Juan del Cesar", "Villanueva", "La Jagua del Pilar", "Urumita", "Hatonuevo"],
+        "Guaviare": ["San José del Guaviare", "El Retorno", "Calamar"],
+        "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata", "Campoalegre", "Gigante", "San Agustín", "Acevedo", "Palermo", "Tello"],
+        "Magdalena": ["Santa Marta", "Ciénaga", "Aracataca", "Fundación", "Cerro de San Antonio", "El Banco", "Plato", "Santa Ana", "Pivijay", "Salamina"],
+        "Meta": ["Villavicencio", "Acacías", "Granada", "San Martín", "Cumaral", "Guamal", "Puerto Gaitán", "Puerto López", "Fuente de Oro", "Castilla La Nueva", "San Carlos de Guaroa"],
+        "Nariño": ["Pasto", "Ipiales", "Tumaco", "San Andrés de Tumaco", "La Unión", "Linares", "El Tablón de Gómez", "Buesaco", "Chachagüí", "Tangua", "Consacá", "Guaitarilla", "Cumbal", "Puerres"],
+        "Norte de Santander": ["Cúcuta", "Ocaña", "Villa del Rosario", "Los Patios", "El Zulia", "Pamplona", "San José de Cúcuta", "Tibú", "Sardinata", "Chinácota", "Bochalema"],
+        "Putumayo": ["Mocoa", "Puerto Asís", "Orito", "Valle del Guamuéz", "San Miguel", "Colón", "Santiago"],
+        "Quindío": ["Armenia", "Calarcá", "La Tebaida", "Montenegro", "Quimbaya", "Salento", "Buenavista", "Circasia", "Génova", "Pijao"],
+        "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Belén de Umbría", "Apía", "Quinchía", "Pueblo Rico"],
+        "San Andrés": ["San Andrés", "Providencia"],
+        "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "San Gil", "Barrancabermeja", "Socorro", "El Carmen de Chucurí", "Lebrija", "Puerto Wilches", "Sabana de Torres", "Málaga", "Oiba", "Cepitá"],
+        "Sucre": ["Sincelejo", "Corozal", "Sampués", "San Benito Abad", "Santo Domingo", "Caimito", "La Unión", "Tolú", "Coveñas", "Sabanas"],
+        "Tolima": ["Ibagué", "Espinal", "Melgar", "Chaparral", "El Guamo", "Flandes", "Purificación", "Saldaña", "San Luis", "Honda", "Mariquita", "Lérida", "Venadillo"],
+        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Buga", "Yumbo", "Jamundí", "Candelaria", "Florida", "Pradera", "Roldanillo", "Zarzal", "Sevilla", "La Unión", "Caicedonia", "Dagua", "Restrepo"],
+        "Vaupés": ["Mitú"],
+        "Vichada": ["Puerto Carreño", "La Primavera", "Cumaribo"]
+    };
+
+    // ============================================================
+    // FUNCIONES DEL CARRITO
     // ============================================================
 
-    // Obtener carrito desde localStorage
     function obtenerCarrito() {
         try {
             return JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
@@ -73,14 +207,18 @@
         }
     }
 
-    // Guardar carrito en localStorage
     function guardarCarrito(carrito) {
         localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
     }
 
-    // Renderizar carrito
+    function formatearPrecio(valor) {
+        return Number(valor).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+    }
+
     function renderizarCarrito() {
         const contenedor = document.getElementById('carritoContenido');
+        const resumen = document.getElementById('resumenContainer');
+        const totalSpan = document.getElementById('totalCarrito');
         const carrito = obtenerCarrito();
 
         if (carrito.length === 0) {
@@ -88,9 +226,10 @@
                 <div class="carrito-vacio">
                     <span class="icono">🛒</span>
                     <p>Tu carrito está vacío</p>
-                    <a href="/" style="color:#ff00ff;">Explorar productos</a>
+                    <a href="/">Explorar productos</a>
                 </div>
             `;
+            resumen.style.display = 'none';
             return;
         }
 
@@ -102,49 +241,46 @@
             const cantidad = Number(item.cantidad) || 1;
             const subtotal = precio * cantidad;
             total += subtotal;
+            const nombre = item.nombre || 'Producto';
+            const img = item.imagen || 'https://via.placeholder.com/80?text=Producto';
+            const detalles = [];
+            if (item.color) detalles.push('Color: ' + item.color);
+            if (item.talla) detalles.push('Talla: ' + item.talla);
+            const detalleStr = detalles.length ? detalles.join(' | ') : '';
 
             html += `
-                <div class="carrito-item">
-                    <img src="${item.imagen || ''}" alt="${item.nombre || 'Producto'}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
+                <div class="producto-item" data-index="${index}">
+                    <img src="${img}" alt="${nombre}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
                     <div class="info">
-                        <div class="nombre">${item.nombre || 'Producto'}</div>
-                        <div class="detalle">${item.color ? 'Color: ' + item.color : ''} ${item.talla ? '| Talla: ' + item.talla : ''}</div>
-                        <div class="precio">$${subtotal.toLocaleString('es-CO')}</div>
+                        <div class="nombre">${nombre}</div>
+                        ${detalleStr ? `<div class="detalle">${detalleStr}</div>` : ''}
+                        <div class="precio">${formatearPrecio(subtotal)}</div>
                     </div>
                     <div class="cantidad">
                         <button onclick="cambiarCantidad(${index}, -1)">−</button>
                         <span>${cantidad}</span>
                         <button onclick="cambiarCantidad(${index}, 1)">+</button>
                     </div>
-                    <button class="eliminar" onclick="eliminarProducto(${index})">🗑️</button>
+                    <button class="btn-eliminar" onclick="eliminarProducto(${index})">🗑️</button>
                 </div>
             `;
         });
 
-        html += `
-            <div class="resumen">
-                <p style="color:#aaa;">Total</p>
-                <div class="total">$${total.toLocaleString('es-CO')}</div>
-                <button class="btn-pagar" onclick="realizarPedido()">💵 Pagar contra entrega</button>
-                <p style="color:#666; font-size:0.8rem; margin-top:8px;">Recibes, revisas y pagas al recibir</p>
-            </div>
-        `;
-
         contenedor.innerHTML = html;
+        totalSpan.textContent = formatearPrecio(total);
+        resumen.style.display = 'block';
     }
 
-    // Cambiar cantidad
     function cambiarCantidad(index, delta) {
         const carrito = obtenerCarrito();
         if (index < 0 || index >= carrito.length) return;
-        const nuevaCantidad = (Number(carrito[index].cantidad) || 1) + delta;
-        if (nuevaCantidad < 1) return;
-        carrito[index].cantidad = nuevaCantidad;
+        const nueva = (Number(carrito[index].cantidad) || 1) + delta;
+        if (nueva < 1) return;
+        carrito[index].cantidad = nueva;
         guardarCarrito(carrito);
         renderizarCarrito();
     }
 
-    // Eliminar producto
     function eliminarProducto(index) {
         const carrito = obtenerCarrito();
         if (index < 0 || index >= carrito.length) return;
@@ -153,8 +289,68 @@
         renderizarCarrito();
     }
 
-    // Realizar pedido (envía al backend)
-    function realizarPedido() {
+    // ============================================================
+    // MUNICIPIOS
+    // ============================================================
+
+    function cargarDepartamentos() {
+        const select = document.getElementById('departamento');
+        const deps = Object.keys(municipiosPorDepartamento).sort();
+        deps.forEach(dep => {
+            const opt = document.createElement('option');
+            opt.value = dep;
+            opt.textContent = dep;
+            select.appendChild(opt);
+        });
+    }
+
+    function cargarMunicipios() {
+        const dep = document.getElementById('departamento').value;
+        const select = document.getElementById('municipio');
+        select.innerHTML = '<option value="">Selecciona...</option>';
+        if (dep && municipiosPorDepartamento[dep]) {
+            municipiosPorDepartamento[dep].forEach(mun => {
+                const opt = document.createElement('option');
+                opt.value = mun;
+                opt.textContent = mun;
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    // ============================================================
+    // FORMULARIO
+    // ============================================================
+
+    document.getElementById('btnMostrarFormulario').addEventListener('click', function() {
+        const form = document.getElementById('formularioPago');
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('btnCancelarFormulario').addEventListener('click', function() {
+        document.getElementById('formularioPago').style.display = 'none';
+    });
+
+    document.getElementById('pedidoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const nombres = document.getElementById('nombres').value.trim();
+        const apellidos = document.getElementById('apellidos').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const departamento = document.getElementById('departamento').value;
+        const municipio = document.getElementById('municipio').value;
+        const direccion = document.getElementById('direccion').value.trim();
+        const notas = document.getElementById('notas').value.trim();
+        const talla = document.getElementById('tallaSelect').value;
+        const color = document.getElementById('colorSelect').value;
+
+        if (!nombres || !apellidos || !telefono || !departamento || !municipio || !direccion) {
+            alert('Por favor, completa todos los campos obligatorios (*)');
+            return;
+        }
+
         const carrito = obtenerCarrito();
         if (carrito.length === 0) {
             alert('El carrito está vacío');
@@ -163,75 +359,69 @@
 
         const total = carrito.reduce((sum, item) => sum + (Number(item.precio) || 0) * (Number(item.cantidad) || 1), 0);
 
-        // Mostrar formulario de datos de envío
-        const cliente = prompt('Nombre completo:');
-        if (!cliente) return;
-        const telefono = prompt('Teléfono:');
-        if (!telefono) return;
-        const email = prompt('Correo electrónico (opcional):') || '';
-        const departamento = prompt('Departamento:');
-        if (!departamento) return;
-        const ciudad = prompt('Ciudad:');
-        if (!ciudad) return;
-        const direccion = prompt('Dirección de entrega:');
-        if (!direccion) return;
-        const notas = prompt('Notas adicionales (opcional):') || '';
-
         const productosTexto = carrito.map(item =>
-            `${item.nombre} x${item.cantidad} - $${(Number(item.precio)*Number(item.cantidad)).toLocaleString('es-CO')}`
+            `${item.nombre} x${item.cantidad} - ${formatearPrecio((Number(item.precio)||0)*(Number(item.cantidad)||1))}`
         ).join('\n');
 
         const pedido = {
-            nombreCliente: cliente,
+            nombreCliente: `${nombres} ${apellidos}`,
             telefono: telefono,
-            email: email,
+            email: email || '',
             departamento: departamento,
-            ciudad: ciudad,
+            ciudad: municipio,
             direccion: direccion,
-            notas: notas,
+            notas: notas || '',
             tienda: 'FlowColombia',
             productos: productosTexto,
             total: total,
-            metodoPago: 'Contra entrega'
+            metodoPago: 'Contra entrega',
+            talla: talla || '',
+            color: color || ''
         };
 
-        // Enviar al backend
         fetch('/api/pedido', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Error en el servidor');
+                return res.json();
+            })
             .then(data => {
                 if (data.status === 'OK') {
                     mostrarConfirmacion(data.codigo);
                     localStorage.removeItem('carritoFlowColombia');
                     renderizarCarrito();
+                    document.getElementById('formularioPago').style.display = 'none';
                 } else {
-                    alert('Error al procesar el pedido');
+                    alert('Error al procesar el pedido: ' + (data.message || ''));
                 }
             })
             .catch(err => {
-                alert('Error de conexión. Intenta de nuevo.');
+                alert('Error de conexión. Por favor, intenta de nuevo.');
                 console.error(err);
             });
-    }
+    });
 
-    // Mostrar confirmación
     function mostrarConfirmacion(codigo) {
         document.getElementById('confirmacionPedido').style.display = 'block';
         document.getElementById('codigoSeguimiento').textContent = codigo;
-        // Ocultar carrito
+        document.getElementById('resumenContainer').style.display = 'none';
         document.getElementById('carritoContenido').innerHTML = '';
-        // Scroll al inicio
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Inicializar
-    document.addEventListener('DOMContentLoaded', renderizarCarrito);
+    // ============================================================
+    // INICIALIZACIÓN
+    // ============================================================
 
-    // Re-renderizar si cambia el carrito en otra pestaña
-    window.addEventListener('storage', (e) => {
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarDepartamentos();
+        renderizarCarrito();
+    });
+
+    window.addEventListener('storage', function(e) {
         if (e.key === 'carritoFlowColombia') renderizarCarrito();
     });
 </script>
