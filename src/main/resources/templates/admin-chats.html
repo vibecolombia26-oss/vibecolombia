@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chats - FLOW COLOMBIA</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -24,35 +25,45 @@
 </head>
 <body>
 <div class="container">
-    <div class="header"><h1>💬 Chats VIBE</h1><a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Panel</a></div>
+    <div class="header"><h1>💬 Chats VIBE</h1><a th:href="@{/admin/panel}" class="btn btn-back">← Panel</a></div>
     <div id="chatsContainer"><p style="text-align:center;color:#666;">Cargando...</p></div>
 </div>
-<script th:inline="javascript">
-    var key = /*[[${key}]]*/ '';
+<script>
     function cargarChats() {
-        fetch('/api/chat/todos').then(r=>r.json()).then(mensajes=>{
-            var agrupados={};
-            mensajes.forEach(function(m){ if(!agrupados[m.codigoPedido])agrupados[m.codigoPedido]=[]; agrupados[m.codigoPedido].push(m); });
-            var html='';
-            for(var codigo in agrupados){
-                var msgs=agrupados[codigo];
-                var sinResponder=msgs.filter(function(m){return m.esCliente&&!m.respuesta;}).length;
-                html+='<div class="chat-card"><div class="chat-header">📦 '+codigo+(sinResponder>0?' <span style="color:#ffc107;">('+sinResponder+' pendientes)</span>':'')+'</div>';
-                msgs.forEach(function(m){ if(m.esCliente){ html+='<div class="msg-cliente"><span>'+m.mensaje+'</span></div>'; } else { html+='<div class="msg-respuesta"><span>'+m.mensaje+'</span></div>'; } });
-                if(sinResponder>0){ html+='<div class="responder-form"><input type="text" id="resp_'+msgs[0].id+'" placeholder="Respuesta..." autocomplete="off"><button onclick="responder('+msgs[0].id+')">Enviar</button></div>'; }
-                html+='</div>';
+        fetch('/api/chat/todos').then(r => r.json()).then(mensajes => {
+            var agrupados = {};
+            mensajes.forEach(function(m) { if (!agrupados[m.codigoPedido]) agrupados[m.codigoPedido] = []; agrupados[m.codigoPedido].push(m); });
+            var html = '';
+            for (var codigo in agrupados) {
+                var msgs = agrupados[codigo];
+                var sinResponder = msgs.filter(function(m) { return m.esCliente && !m.respuesta; }).length;
+                html += '<div class="chat-card"><div class="chat-header">📦 ' + codigo + (sinResponder > 0 ? ' <span style="color:#ffc107;">(' + sinResponder + ' pendientes)</span>' : '') + '</div>';
+                msgs.forEach(function(m) {
+                    if (m.esCliente) {
+                        html += '<div class="msg-cliente"><span>' + m.mensaje + '</span></div>';
+                    } else {
+                        html += '<div class="msg-respuesta"><span>' + m.mensaje + '</span></div>';
+                    }
+                });
+                if (sinResponder > 0) {
+                    html += '<div class="responder-form"><input type="text" id="resp_' + msgs[0].id + '" placeholder="Respuesta..." autocomplete="off"><button onclick="responder(' + msgs[0].id + ')">Enviar</button></div>';
+                }
+                html += '</div>';
             }
-            document.getElementById('chatsContainer').innerHTML=html||'<p style="text-align:center;color:#666;">No hay mensajes</p>';
+            document.getElementById('chatsContainer').innerHTML = html || '<p style="text-align:center;color:#666;">No hay mensajes</p>';
         });
     }
-    function responder(msgId){
-        var input=document.getElementById('resp_'+msgId); if(!input)return;
-        var respuesta=input.value.trim(); if(!respuesta)return;
-        var formData=new FormData(); formData.append('key',key); formData.append('respuesta',respuesta);
-        fetch('/admin/responder/'+msgId,{method:'POST',body:formData}).then(function(){ cargarChats(); });
+
+    function responder(msgId) {
+        var input = document.getElementById('resp_' + msgId); if (!input) return;
+        var respuesta = input.value.trim(); if (!respuesta) return;
+        var formData = new FormData();
+        formData.append('respuesta', respuesta);
+        fetch('/admin/responder/' + msgId, { method: 'POST', body: formData }).then(function() { cargarChats(); });
     }
+
     cargarChats();
-    setInterval(function(){ if(document.activeElement&&document.activeElement.tagName!=='INPUT')cargarChats(); },10000);
+    setInterval(function() { if (document.activeElement && document.activeElement.tagName !== 'INPUT') cargarChats(); }, 10000);
 </script>
 </body>
 </html>

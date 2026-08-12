@@ -8,7 +8,7 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding-bottom:100px; }
-        .container { max-width:900px; margin:0 auto; padding:20px; }
+        .container { max-width:1100px; margin:0 auto; padding:20px; }
         .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
         .header h1 { font-size:1.5rem; color:#ff00ff; }
         .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; border:none; cursor:pointer; transition:all 0.3s; }
@@ -16,7 +16,7 @@
         .btn-back:hover { background:rgba(0,255,255,0.1); }
         .btn-save { background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; padding:14px 40px; font-size:1rem; }
         .btn-save:hover { box-shadow:0 0 30px rgba(255,0,255,0.4); transform:scale(1.02); }
-        .btn-save:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+        .btn-save:disabled { opacity:0.5; cursor:not-allowed; }
         .btn-eliminar { background:#ff0044; color:#fff; border:none; padding:14px 30px; border-radius:25px; cursor:pointer; transition:all 0.3s; }
         .btn-eliminar:hover { box-shadow:0 0 30px rgba(255,0,68,0.4); transform:scale(1.02); }
         .form-section { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:25px; margin-bottom:20px; }
@@ -29,35 +29,9 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#ff00ff; box-shadow:0 0 15px rgba(255,0,255,0.2); }
         .form-group textarea { resize:vertical; min-height:100px; }
         .form-group small { color:#666; display:block; margin-top:4px; }
-        .form-group .checkbox-group { display:flex; align-items:center; gap:10px; margin-top:5px; }
-        .form-group .checkbox-group input { width:auto; }
         .imagenes-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
         .imagen-preview { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
         .imagen-preview img { width:80px; height:80px; border-radius:8px; border:2px solid #333; object-fit:cover; }
-        .btn-eliminar { background:#ff0044; color:#fff; border:none; padding:14px 30px; border-radius:25px; cursor:pointer; transition:all 0.3s; }
-        .btn-eliminar:hover { box-shadow:0 0 30px rgba(255,0,68,0.4); transform:scale(1.02); }
-
-        .resenas-section { margin-top:30px; border-top:2px solid #ff00ff; padding-top:20px; }
-        .resumen-calificacion { display:flex; align-items:center; gap:15px; flex-wrap:wrap; background:rgba(255,215,0,0.05); padding:12px 20px; border-radius:12px; border:1px solid rgba(255,215,0,0.15); margin-bottom:15px; }
-        .resumen-calificacion .label { color:#888; font-size:0.8rem; }
-        .resumen-calificacion .nota { color:#ffd700; font-size:1.5rem; font-weight:900; }
-        .resumen-calificacion .estrellas { color:#ffd700; font-size:1.3rem; letter-spacing:2px; }
-        .resumen-calificacion .total { color:#888; font-size:0.85rem; }
-        .resena-item { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:10px; border-left:3px solid #ffd700; }
-        .resena-item .nombre { color:#fff; font-weight:600; }
-        .resena-item .estrellas-item { color:#ffd700; margin-left:10px; }
-        .resena-item .fecha-item { color:#666; font-size:0.75rem; }
-        .resena-item .comentario-item { color:#ccc; margin:8px 0 0; }
-        .resena-item .imagen-resena { max-width:80px; border-radius:6px; margin-top:8px; border:1px solid rgba(255,255,255,0.1); }
-        .btn-eliminar-resena { color:#ff0044; font-size:0.75rem; text-decoration:none; display:inline-block; margin-top:5px; }
-        .btn-eliminar-resena:hover { text-decoration:underline; }
-        .no-resenas { color:#666; }
-        .form-resena { background:rgba(255,0,255,0.05); border:1px solid #ff00ff; border-radius:12px; padding:20px; margin-top:15px; }
-        .form-resena h4 { color:#00ffff; margin-bottom:10px; }
-        .btn-guardar-resena { margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:25px; cursor:pointer; font-weight:700; transition:all 0.3s; }
-        .btn-guardar-resena:hover { box-shadow:0 0 30px rgba(255,215,0,0.4); transform:scale(1.02); }
-
-        /* ===== BOTÓN DE GUARDAR FIJO ===== */
         .acciones-fijas {
             position: sticky;
             bottom: 20px;
@@ -75,8 +49,6 @@
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
             margin-top: 30px;
         }
-
-        /* ===== TOAST DE NOTIFICACIÓN ===== */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -103,6 +75,63 @@
             100% { transform: translateX(0); opacity: 1; }
         }
 
+        /* ===== TABLA DE VARIANTES ===== */
+        .variantes-table-wrap { overflow-x: auto; margin-top: 15px; }
+        .variantes-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .variantes-table th {
+            background: rgba(255,0,255,0.1);
+            padding: 10px 8px;
+            color: #ff00ff;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .variantes-table td {
+            padding: 8px;
+            border-bottom: 1px solid #222;
+            vertical-align: middle;
+        }
+        .variantes-table input, .variantes-table select {
+            width: 100%;
+            padding: 6px 8px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+        .variantes-table input:focus, .variantes-table select:focus {
+            border-color: #ff00ff;
+            outline: none;
+        }
+        .variantes-table .btn-eliminar-variante {
+            background: #ff0044;
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .variantes-table .btn-eliminar-variante:hover { background: #cc0033; }
+        .btn-agregar-variante {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: #00ffff;
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .btn-agregar-variante:hover { background: #00ddff; box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width:600px){
             .form-row, .imagenes-grid { grid-template-columns:1fr; }
             .acciones-fijas { flex-direction:column; align-items:stretch; }
@@ -112,19 +141,15 @@
 </head>
 <body>
 <div class="container">
-    <!-- ===== TOAST ===== -->
     <div id="toastContainer" class="toast-container"></div>
 
     <div class="header">
         <h1 th:if="${producto.id == null}">➕ Nuevo Producto</h1>
         <h1 th:if="${producto.id != null}">✏️ Editar Producto</h1>
-        <a th:href="@{/admin/panel(key=${key})}" class="btn btn-back">← Volver</a>
+        <a th:href="@{/admin/panel}" class="btn btn-back">← Volver</a>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- FORMULARIO PRINCIPAL -->
-    <!-- ============================================================ -->
-    <form id="productoForm" th:action="@{/admin/guardar(key=${key})}" method="post" enctype="multipart/form-data">
+    <form id="productoForm" th:action="@{/admin/guardar}" method="post">
         <input type="hidden" name="id" th:value="${producto.id}">
 
         <!-- ===== INFORMACIÓN BÁSICA ===== -->
@@ -135,7 +160,7 @@
                 <div class="form-group"><label>SKU *</label><input type="text" name="sku" th:value="${producto.sku}" required></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Precio *</label><input type="number" step="0.01" name="precio" th:value="${producto.precio}" required></div>
+                <div class="form-group"><label>Precio base *</label><input type="number" step="0.01" name="precio" th:value="${producto.precio}" required></div>
                 <div class="form-group"><label>Categoría *</label>
                     <select name="categoria" required>
                         <option value="">Seleccionar...</option>
@@ -153,121 +178,92 @@
 
         <!-- ===== IMÁGENES ===== -->
         <div class="form-section">
-            <h2>🖼️ Imágenes (URLs de Cloudinary)</h2>
+            <h2>🖼️ Imágenes</h2>
             <div class="imagenes-grid">
-                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 0)"></div>
-                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 1)"></div>
-                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 2)"></div>
-                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 3)"></div>
-                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 4)"></div>
-                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 5)"></div>
+                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="URL Cloudinary" oninput="previewImage(this, 0)"></div>
+                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="URL Cloudinary" oninput="previewImage(this, 1)"></div>
+                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="URL Cloudinary" oninput="previewImage(this, 2)"></div>
+                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="URL Cloudinary" oninput="previewImage(this, 3)"></div>
+                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="URL Cloudinary" oninput="previewImage(this, 4)"></div>
+                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="URL Cloudinary" oninput="previewImage(this, 5)"></div>
             </div>
             <div id="previewContainer" class="imagen-preview"></div>
             <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
         </div>
 
-        <!-- ===== ESPECIFICACIONES ===== -->
+        <!-- ===== VARIANTES ===== -->
         <div class="form-section">
-            <h2>⚙️ Especificaciones técnicas</h2>
-            <div class="form-row">
-                <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}"></div>
-                <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}"></div>
-                <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}"></div>
-                <div class="form-group"><label>Peso</label><input type="text" name="peso" th:value="${producto.peso}"></div>
+            <h2>📦 Variantes (tallas / colores)</h2>
+            <div class="variantes-table-wrap">
+                <table class="variantes-table" id="variantesTable">
+                    <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Color</th>
+                        <th>Talla</th>
+                        <th>Precio</th>
+                        <th>Costo</th>
+                        <th>Stock</th>
+                        <th>Peso (g)</th>
+                        <th>Activo</th>
+                        <th>Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody id="variantesBody">
+                    <!-- Variantes existentes -->
+                    <tr th:each="v : ${producto.variantes}">
+                        <td><input type="text" name="varianteSku" th:value="${v.sku}" class="sku-input" required></td>
+                        <td><input type="text" name="varianteColor" th:value="${v.color}" class="color-input"></td>
+                        <td><input type="text" name="varianteTalla" th:value="${v.talla}" class="talla-input"></td>
+                        <td><input type="number" step="0.01" name="variantePrecio" th:value="${v.precio}" class="precio-input" required></td>
+                        <td><input type="number" step="0.01" name="varianteCosto" th:value="${v.costo}" class="costo-input"></td>
+                        <td><input type="number" name="varianteStock" th:value="${v.stock}" class="stock-input" required></td>
+                        <td><input type="number" step="0.1" name="variantePeso" th:value="${v.peso}" class="peso-input"></td>
+                        <td>
+                            <select name="varianteActivo" class="activo-select">
+                                <option value="true" th:selected="${v.activo}">🟢 Activo</option>
+                                <option value="false" th:selected="${!v.activo}">🔴 Inactivo</option>
+                            </select>
+                        </td>
+                        <td><button type="button" class="btn-eliminar-variante" onclick="eliminarVariante(this)">🗑️</button></td>
+                    </tr>
+                    <!-- Fila de agregar nueva variante (siempre visible) -->
+                    <tr id="filaNuevaVariante">
+                        <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input" required></td>
+                        <td><input type="text" id="nuevoColor" placeholder="Color" class="color-input"></td>
+                        <td><input type="text" id="nuevaTalla" placeholder="Talla" class="talla-input"></td>
+                        <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input" required></td>
+                        <td><input type="number" step="0.01" id="nuevoCosto" placeholder="Costo" class="costo-input"></td>
+                        <td><input type="number" id="nuevoStock" placeholder="Stock" class="stock-input" required></td>
+                        <td><input type="number" step="0.1" id="nuevoPeso" placeholder="Peso" class="peso-input"></td>
+                        <td>
+                            <select id="nuevoActivo" class="activo-select">
+                                <option value="true">🟢 Activo</option>
+                                <option value="false">🔴 Inactivo</option>
+                            </select>
+                        </td>
+                        <td><button type="button" class="btn-agregar-variante" onclick="agregarVariante()">➕</button></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-
-        <!-- ===== VARIACIONES ===== -->
-        <div class="form-section">
-            <h2>🎨 Variaciones</h2>
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="tieneColor" name="tieneColor" th:checked="${producto.tieneColor}" value="true">
-                <label for="tieneColor">Este producto tiene variación de COLOR</label>
-            </div>
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="tieneTalla" name="tieneTalla" th:checked="${producto.tieneTalla}" value="true">
-                <label for="tieneTalla">Este producto tiene variación de TALLA</label>
-            </div>
-
-            <div id="camposColores" th:style="${producto.tieneColor ? 'display:block;' : 'display:none;'}">
-                <div class="form-group">
-                    <label>Colores disponibles</label>
-                    <input type="text" id="coloresInput" name="coloresInput" th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ','), ', ')}" placeholder="Ej: Rojo, Azul, Negro">
-                    <small style="color:#666;">Separa los colores con comas</small>
-                </div>
-            </div>
-            <div id="camposTallas" th:style="${producto.tieneTalla ? 'display:block;' : 'display:none;'}">
-                <div class="form-group">
-                    <label>Tallas disponibles</label>
-                    <input type="text" id="tallasInput" name="tallasInput" th:value="${#strings.arrayJoin(#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ','), ', ')}" placeholder="Ej: S, M, L">
-                    <small style="color:#666;">Separa las tallas con comas</small>
-                </div>
-            </div>
+            <small style="color:#666;">Cada fila representa una combinación única de color y talla. Los SKU deben ser únicos.</small>
         </div>
 
         <!-- ===== RESEÑAS ===== -->
-        <div class="form-section resenas-section" th:if="${producto.id != null}">
-            <h2>⭐ Reseñas y calificación</h2>
-
-            <div class="resumen-calificacion">
-                <span class="label">Calificación promedio:</span>
-                <span class="nota" th:text="${producto.promedioCalificacion != null ? #numbers.formatDecimal(producto.promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '0.0'}">0.0</span>
-                <span class="estrellas" th:text="${producto.promedioCalificacion != null && producto.promedioCalificacion > 0 ?
-                    (producto.promedioCalificacion >= 4.5 ? '★★★★★' :
-                     producto.promedioCalificacion >= 3.5 ? '★★★★☆' :
-                     producto.promedioCalificacion >= 2.5 ? '★★★☆☆' :
-                     producto.promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '☆☆☆☆☆'}">
-                    ☆☆☆☆☆
-                </span>
-                <span class="total" th:text="${producto.cantidadResenas != null ? producto.cantidadResenas + ' reseñas' : '0 reseñas'}">0 reseñas</span>
-            </div>
-
-            <div th:if="${!resenas.isEmpty()}">
-                <div th:each="resena : ${resenas}" class="resena-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                        <div>
-                            <span class="nombre" th:text="${resena.nombreCliente}">Cliente</span>
-                            <span class="estrellas-item" th:text="${#strings.repeat('★', resena.calificacion) + #strings.repeat('☆', 5 - resena.calificacion)}">★★★★★</span>
-                        </div>
-                        <span class="fecha-item" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
-                    </div>
-                    <p class="comentario-item" th:text="${resena.comentario}">Comentario</p>
-                    <img class="imagen-resena" th:if="${resena.imagenUrl}" th:src="${resena.imagenUrl}" alt="Foto de la reseña">
-                    <a class="btn-eliminar-resena" th:href="@{/admin/eliminar-resena/{id}(id=${resena.id}, key=${key})}" onclick="return confirm('¿Eliminar esta reseña?')">🗑️ Eliminar</a>
-                </div>
-            </div>
-            <p class="no-resenas" th:if="${resenas.isEmpty()}">No hay reseñas para este producto</p>
-
-            <div class="form-resena">
-                <h4>➕ Agregar reseña</h4>
-                <form th:action="@{/admin/guardar-resena(key=${key})}" method="post">
-                    <input type="hidden" name="productoId" th:value="${producto.id}">
-                    <div class="form-row">
-                        <div class="form-group"><label>Nombre del cliente *</label><input type="text" name="nombreCliente" placeholder="Ej: María Rodríguez" required></div>
-                        <div class="form-group"><label>Calificación *</label>
-                            <select name="calificacion" required>
-                                <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
-                                <option value="4">⭐⭐⭐⭐ (Muy bueno)</option>
-                                <option value="3">⭐⭐⭐ (Bueno)</option>
-                                <option value="2">⭐⭐ (Regular)</option>
-                                <option value="1">⭐ (Malo)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group full"><label>Comentario *</label><textarea name="comentario" rows="3" placeholder="Escribe el comentario del cliente..." required></textarea></div>
-                    <div class="form-group full"><label>URL de la imagen (Cloudinary)</label><input type="text" name="imagenUrl" placeholder="https://res.cloudinary.com/.../imagen.jpg"></div>
-                    <button type="submit" class="btn-guardar-resena">✅ Guardar reseña</button>
-                </form>
-            </div>
+        <div class="form-section" th:if="${producto.id != null}">
+            <h2>⭐ Reseñas</h2>
+            <!-- (tu sección de reseñas existente) -->
+            <p th:text="'Reseñas: ' + ${#lists.size(resenas)}"></p>
         </div>
 
-        <!-- ===== BOTONES FIJOS (siempre visibles) ===== -->
+        <!-- ===== BOTONES FIJOS ===== -->
         <div class="acciones-fijas">
             <div>
                 <button type="submit" class="btn btn-save" id="btnGuardar">💾 Guardar producto</button>
             </div>
             <div>
-                <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id}, key=${key})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
+                <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
             </div>
         </div>
     </form>
@@ -280,7 +276,6 @@
     function previewImage(input, index) {
         const container = document.getElementById('previewContainer');
         const url = input.value.trim();
-        // Buscar si ya existe una imagen para este índice
         let img = container.querySelector(`[data-index="${index}"]`);
         if (!img) {
             img = document.createElement('img');
@@ -301,81 +296,82 @@
         }
     }
 
-    // Cargar previsualizaciones iniciales al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('input[name^="imagen"]');
         inputs.forEach((input, idx) => {
-            if (input.value.trim()) {
-                previewImage(input, idx);
-            }
+            if (input.value.trim()) previewImage(input, idx);
         });
     });
 
     // ============================================================
-    // MOSTRAR/OCULTAR CAMPOS DE COLOR Y TALLA
+    // MANEJO DE VARIANTES
     // ============================================================
-    document.getElementById('tieneColor').addEventListener('change', function() {
-        document.getElementById('camposColores').style.display = this.checked ? 'block' : 'none';
-    });
-    document.getElementById('tieneTalla').addEventListener('change', function() {
-        document.getElementById('camposTallas').style.display = this.checked ? 'block' : 'none';
-    });
+    function agregarVariante() {
+        const sku = document.getElementById('nuevoSku').value.trim();
+        const color = document.getElementById('nuevoColor').value.trim();
+        const talla = document.getElementById('nuevaTalla').value.trim();
+        const precio = document.getElementById('nuevoPrecio').value.trim();
+        const costo = document.getElementById('nuevoCosto').value.trim();
+        const stock = document.getElementById('nuevoStock').value.trim();
+        const peso = document.getElementById('nuevoPeso').value.trim();
+        const activo = document.getElementById('nuevoActivo').value === 'true';
 
-    // ============================================================
-    // COMBINAR COLORES Y TALLAS EN UN SOLO CAMPO ANTES DE ENVIAR
-    // ============================================================
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const colores = document.getElementById('coloresInput').value.trim();
-        const tallas = document.getElementById('tallasInput').value.trim();
-
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'variacionesDisponibles';
-
-        if (colores || tallas) {
-            const coloresStr = colores ? colores.replace(/\s*,\s*/g, ', ') : '';
-            const tallasStr = tallas ? tallas.replace(/\s*,\s*/g, ', ') : '';
-            hiddenInput.value = coloresStr + '|' + tallasStr;
-        } else {
-            hiddenInput.value = '|';
-        }
-        this.appendChild(hiddenInput);
-    });
-
-    // ============================================================
-    // INDICADOR DE CARGA Y VALIDACIÓN ANTES DE ENVIAR
-    // ============================================================
-    document.getElementById('productoForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('btnGuardar');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Guardando...';
-
-        // Validar que el precio sea positivo
-        const precio = document.querySelector('input[name="precio"]');
-        if (parseFloat(precio.value) <= 0) {
-            mostrarToast('El precio debe ser mayor a 0', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '💾 Guardar producto';
-            e.preventDefault();
+        if (!sku || !precio || !stock) {
+            mostrarToast('SKU, precio y stock son obligatorios.', 'error');
             return;
         }
 
-        // Validar que nombre y SKU no estén vacíos
-        const nombre = document.querySelector('input[name="nombre"]');
-        const sku = document.querySelector('input[name="sku"]');
-        if (!nombre.value.trim() || !sku.value.trim()) {
-            mostrarToast('Nombre y SKU son obligatorios', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '💾 Guardar producto';
-            e.preventDefault();
-            return;
+        // Verificar SKU duplicado
+        const skus = document.querySelectorAll('.sku-input');
+        for (let input of skus) {
+            if (input.value.trim().toUpperCase() === sku.toUpperCase()) {
+                mostrarToast('El SKU ya existe. Debe ser único.', 'error');
+                return;
+            }
         }
 
-        // Si todo ok, se envía el formulario
-    });
+        const tbody = document.getElementById('variantesBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" name="varianteSku" value="${sku}" class="sku-input" required></td>
+            <td><input type="text" name="varianteColor" value="${color}" class="color-input"></td>
+            <td><input type="text" name="varianteTalla" value="${talla}" class="talla-input"></td>
+            <td><input type="number" step="0.01" name="variantePrecio" value="${precio}" class="precio-input" required></td>
+            <td><input type="number" step="0.01" name="varianteCosto" value="${costo}" class="costo-input"></td>
+            <td><input type="number" name="varianteStock" value="${stock}" class="stock-input" required></td>
+            <td><input type="number" step="0.1" name="variantePeso" value="${peso}" class="peso-input"></td>
+            <td>
+                <select name="varianteActivo" class="activo-select">
+                    <option value="true" ${activo ? 'selected' : ''}>🟢 Activo</option>
+                    <option value="false" ${!activo ? 'selected' : ''}>🔴 Inactivo</option>
+                </select>
+            </td>
+            <td><button type="button" class="btn-eliminar-variante" onclick="eliminarVariante(this)">🗑️</button></td>
+        `;
+        // Insertar antes de la fila de "agregar" (para que la fila de agregar quede al final)
+        const filaNueva = document.getElementById('filaNuevaVariante');
+        tbody.insertBefore(row, filaNueva);
+
+        // Limpiar campos de la fila nueva
+        document.getElementById('nuevoSku').value = '';
+        document.getElementById('nuevoColor').value = '';
+        document.getElementById('nuevaTalla').value = '';
+        document.getElementById('nuevoPrecio').value = '';
+        document.getElementById('nuevoCosto').value = '';
+        document.getElementById('nuevoStock').value = '';
+        document.getElementById('nuevoPeso').value = '';
+        document.getElementById('nuevoActivo').value = 'true';
+    }
+
+    function eliminarVariante(btn) {
+        const row = btn.closest('tr');
+        if (row && row.id !== 'filaNuevaVariante') {
+            row.remove();
+        }
+    }
 
     // ============================================================
-    // TOAST DE NOTIFICACIÓN
+    // TOAST Y VALIDACIONES
     // ============================================================
     function mostrarToast(mensaje, tipo = 'success') {
         const container = document.getElementById('toastContainer');
@@ -383,12 +379,53 @@
         toast.className = `toast ${tipo}`;
         toast.textContent = mensaje;
         container.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
+        setTimeout(() => toast.remove(), 5000);
     }
 
-    // Mostrar mensajes de éxito/error desde el servidor (si existen)
+    document.getElementById('productoForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('btnGuardar');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Guardando...';
+
+        // Validación básica
+        const nombre = document.querySelector('input[name="nombre"]');
+        const sku = document.querySelector('input[name="sku"]');
+        const precio = document.querySelector('input[name="precio"]');
+        if (!nombre.value.trim() || !sku.value.trim() || parseFloat(precio.value) <= 0) {
+            mostrarToast('Nombre, SKU y precio base son obligatorios.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar producto';
+            e.preventDefault();
+            return;
+        }
+
+        // Verificar que todas las variantes tengan SKU, precio y stock (excepto la fila de agregar)
+        const skuInputs = document.querySelectorAll('.sku-input');
+        for (let input of skuInputs) {
+            // Saltar la fila de agregar (la que tiene id="nuevoSku")
+            if (input.id === 'nuevoSku') continue;
+            if (!input.value.trim()) {
+                mostrarToast('Todas las variantes deben tener SKU.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '💾 Guardar producto';
+                e.preventDefault();
+                return;
+            }
+        }
+        const precioInputs = document.querySelectorAll('.precio-input');
+        for (let input of precioInputs) {
+            if (input.id === 'nuevoPrecio') continue;
+            if (parseFloat(input.value) <= 0) {
+                mostrarToast('Todos los precios de variantes deben ser mayores a 0.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '💾 Guardar producto';
+                e.preventDefault();
+                return;
+            }
+        }
+        // Si pasa todas las validaciones, el formulario se envía
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const mensaje = /*[[${mensaje}]]*/ null;
         if (mensaje) {

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${producto.nombre}">FLOW COLOMBIA</title>
     <style>
+        /* ===== ESTILOS BASE (mantén los tuyos) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
         .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
@@ -17,6 +18,7 @@
         .back-btn:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
         .producto-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255,0,255,0.2); }
 
+        /* ===== CARRUSEL ===== */
         .imagenes-container { position: relative; width: 100%; overflow: hidden; background: rgba(0,0,0,0.3); }
         .imagenes-slider { display: flex; transition: transform 0.5s ease; touch-action: pan-y; }
         .imagenes-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; }
@@ -29,30 +31,62 @@
         .carrusel-btn:hover { background: rgba(255,0,255,0.5); }
         .carrusel-btn.prev { left: 10px; }
         .carrusel-btn.next { right: 10px; }
-        .imagenes-secundarias { display: flex; gap: 8px; justify-content: center; padding: 12px; background: rgba(0,0,0,0.3); flex-wrap: wrap; }
-        .imagen-secundaria { width: 60px; height: 60px; border-radius: 6px; border: 2px solid rgba(255,0,255,0.3); cursor: pointer; object-fit: cover; transition: all 0.3s; }
-        .imagen-secundaria:hover { border-color: #ffd700; transform: scale(1.05); }
-        .imagen-secundaria.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
+        /* ===== SECCIÓN DE INFORMACIÓN ===== */
         .info-section { padding: 20px 20px 25px; }
         .nombre { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
         .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .precio { font-size: 2.2rem; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5); }
-        .calificacion-resumen { display: flex; align-items: center; gap: 6px; background: rgba(255,215,0,0.08); padding: 4px 12px; border-radius: 25px; border: 1px solid rgba(255,215,0,0.15); cursor: pointer; transition: all 0.3s; }
-        .calificacion-resumen:hover { background: rgba(255,215,0,0.15); border-color: #ffd700; }
-        .calificacion-resumen .estrellas { color: #ffd700; font-size: 1rem; letter-spacing: 1px; }
-        .calificacion-resumen .puntaje { font-weight: 700; color: #ffd700; font-size: 1rem; }
-        .calificacion-resumen .total-resenas { color: #888; font-size: 0.7rem; }
-        .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-        .sku { color: #ff00ff; font-size: 0.85rem; }
-        .categoria { background: rgba(255,0,255,0.15); color: #ff00ff; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff00ff; font-size: 0.7rem; text-transform: uppercase; }
-        .colombia-badge { display: inline-block; padding: 5px 14px; border-radius: 15px; font-size: 0.75rem; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; }
+        .stock-display { font-size: 0.9rem; color: #4CAF50; }
+        .stock-display.agotado { color: #ff4444; }
 
+        /* ===== SELECTORES DE COLOR Y TALLA ===== */
+        .variantes-selector { margin: 15px 0; }
+        .selector-group { margin-bottom: 15px; }
+        .selector-group label { display: block; color: #00ffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        .opciones-color { display: flex; flex-wrap: wrap; gap: 10px; }
+        .opcion-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            background-size: cover;
+            background-position: center;
+        }
+        .opcion-color:hover { transform: scale(1.1); border-color: #ff00ff; }
+        .opcion-color.seleccionado { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .opcion-color.agotado { opacity: 0.4; cursor: not-allowed; border-color: #444; }
+        .opcion-color.agotado::after { content: '✕'; color: #ff4444; font-size: 1.2rem; }
+
+        .opciones-talla { display: flex; flex-wrap: wrap; gap: 8px; }
+        .opcion-talla {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .opcion-talla:hover { background: rgba(255,0,255,0.1); border-color: #ff00ff; }
+        .opcion-talla.seleccionado { background: #ff00ff; border-color: #ff00ff; color: #fff; box-shadow: 0 0 20px rgba(255,0,255,0.3); }
+        .opcion-talla.agotado { opacity: 0.4; cursor: not-allowed; border-color: #444; }
+
+        /* ===== RESTO DE ELEMENTOS (dropdowns, reseñas, etc.) ===== */
         .dropdown-container { margin: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
         .dropdown-header:hover { color: #ff00ff; }
         .dropdown-header h3 { font-size: 0.95rem; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .dropdown-header .icono { font-size: 1.1rem; }
         .dropdown-header .arrow { transition: transform 0.3s; font-size: 1.1rem; color: #888; }
         .dropdown-header.active .arrow { transform: rotate(180deg); }
         .dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; padding: 0 5px; }
@@ -62,205 +96,32 @@
         .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
 
-        .variaciones { background: rgba(255,0,255,0.05); border: 1px solid #ff00ff; border-radius: 12px; padding: 15px; margin: 15px 0; }
-        .variaciones h3 { color: #ff00ff; margin-bottom: 10px; font-size: 1.1rem; }
-        .variacion-row { display: flex; gap: 15px; flex-wrap: wrap; }
-        .variacion-group { flex: 1; min-width: 100px; }
-        .variacion-group label { color: #00ffff; font-size: 0.75rem; display: block; margin-bottom: 4px; }
-        .variacion-group select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 0.9rem; }
-
-        .tallas-container { margin: 15px 0; }
-        .tallas-card { background: rgba(20,20,20,0.85); border: 2px solid #ff00ff; border-radius: 16px; padding: 18px; }
-        .tallas-card h3 { color: #ffd700; font-size: 1.1rem; margin-bottom: 4px; }
-        .tallas-desc { color: #aaa; font-size: 0.8rem; margin-bottom: 12px; }
-        .tallas-conversor { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-        .tallas-input-group { flex: 1; min-width: 120px; }
-        .tallas-input-group label { display: block; color: #00ffff; font-size: 0.7rem; margin-bottom: 3px; font-weight: 600; }
-        .tallas-input-group select, .tallas-input-group input { width: 100%; padding: 8px 10px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 0.9rem; }
-        .tallas-input-group select:focus, .tallas-input-group input:focus { outline: none; border-color: #ff00ff; }
-        .tallas-resultado { flex: 1; min-width: 140px; background: rgba(255,215,0,0.05); border: 1px solid #ffd700; border-radius: 10px; padding: 10px 12px; text-align: center; }
-        .tallas-resultado p { margin: 2px 0; font-size: 0.85rem; }
-        #tallaColombia { color: #ffd700; font-size: 1.4rem; font-weight: 900; }
-        .tallas-recomendacion { color: #aaa; font-size: 0.75rem; }
-        .tallas-dropdown { margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .tallas-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; cursor: pointer; color: #00ffff; font-size: 0.8rem; }
-        .tallas-dropdown-header .arrow { transition: transform 0.3s; }
-        .tallas-dropdown-header.active .arrow { transform: rotate(180deg); }
-        .tallas-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-        .tallas-dropdown-content.open { max-height: 500px; }
-        .tallas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #222; border-radius: 8px; overflow: hidden; font-size: 0.7rem; margin-top: 10px; }
-        .tallas-header { display: contents; font-weight: 700; color: #ffd700; }
-        .tallas-row { display: contents; }
-        .tallas-row span { padding: 5px 6px; background: #1a1a1a; text-align: center; border-bottom: 1px solid #222; }
-        .tallas-tips { margin-top: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #ffd700; }
-        .tallas-tips p { color: #fff; font-size: 0.8rem; margin-bottom: 6px; }
-        .tallas-tips ul { list-style: none; padding: 0; }
-        .tallas-tips ul li { color: #aaa; padding: 3px 0; font-size: 0.75rem; }
-        .tallas-tips ul li::before { content: "✓ "; color: #ffd700; }
-
-        .dropdown-container.politica-tallas { margin: 10px 0; }
-        .dropdown-container.politica-tallas .dropdown-content ul li { padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .dropdown-container.politica-tallas .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
-        .dropdown-container.politica-tallas .dropdown-content ul li a { color: #00ffff; text-decoration: none; }
-        .dropdown-container.politica-tallas .dropdown-content ul li a:hover { text-decoration: underline; }
-
         .resenas-section { margin: 20px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-        .resenas-header h3 { color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .resenas-header .cantidad { color: #888; font-size: 0.85rem; font-weight: 400; }
-        .resumen-calificacion { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-        .resumen-calificacion .nota { font-size: 1.8rem; font-weight: 900; color: #ffd700; }
-        .resumen-calificacion .estrellas-grandes { font-size: 1.2rem; color: #ffd700; letter-spacing: 2px; }
-        .resumen-calificacion .total { color: #888; font-size: 0.85rem; }
-        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #ffd700; }
-        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.9rem; }
-        .resena-item .estrellas { color: #ffd700; font-size: 0.85rem; letter-spacing: 1px; margin: 3px 0; }
-        .resena-item .fecha { color: #666; font-size: 0.65rem; }
-        .resena-item .comentario { color: #ccc; font-size: 0.85rem; margin-top: 5px; line-height: 1.5; }
-        .resena-item .imagen-resena { max-width: 70px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .resena-item .imagen-resena img { width: 100%; border-radius: 8px; }
-        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; font-size: 0.9rem; }
-
         .sellos-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 15px 0 10px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .sello-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #aaa; }
-        .sello-item .icono { font-size: 1.3rem; }
-        .sello-item .texto { color: #ccc; }
-        .sello-item .texto strong { color: #fff; }
-
         .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 15px 0 10px; padding: 12px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
-        .cantidad-row label { font-size: 0.85rem; }
-        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
-        .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
-        .qty-input { width: 50px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 6px; border-radius: 6px; font-size: 0.9rem; }
-        .subtotal-display { color: #00ffff; font-weight: 700; font-size: 0.9rem; }
-
         .acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
         .btn-carrito { width: 100%; padding: 14px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
-        .btn-carrito:active { transform: scale(0.97); }
+        .btn-carrito:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-contraentrega { width: 100%; padding: 14px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
-        .btn-contraentrega:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 30px rgba(0,255,255,0.3); transform: scale(1.02); }
-        .btn-contraentrega:active { transform: scale(0.97); }
-
         .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 12px; text-align: center; margin-top: 12px; }
-        .banner-pago .icono { font-size: 2rem; }
-        .banner-pago h3 { color: #ffd700; font-size: 1rem; }
-        .banner-pago p { color: #aaa; font-size: 0.85rem; }
-
         .footer-mini { text-align: center; padding: 15px; margin-top: 15px; color: #ffd700; font-size: 0.7rem; letter-spacing: 2px; }
-
         .whatsapp-float { position: fixed; bottom: 90px; left: 20px; z-index: 999; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); animation: pulseColombia 2s infinite; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
         .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
-
         @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
 
-        body.light-mode .descripcion { color: #444; }
-        body.light-mode .tallas-card { background: rgba(255,255,255,0.9); border-color: #ff00ff; }
-        body.light-mode .tallas-conversor { background: rgba(0,0,0,0.05); }
-        body.light-mode .tallas-input-group select, body.light-mode .tallas-input-group input { background: #f5f5f5; border-color: #ddd; color: #222; }
-        body.light-mode .tallas-grid { background: #ddd; }
-        body.light-mode .tallas-row span { background: #f5f5f5; border-bottom: 1px solid #ddd; }
-        body.light-mode .tallas-tips { background: rgba(0,0,0,0.03); }
-        body.light-mode .tallas-tips ul li { color: #555; }
-        body.light-mode .resena-item { background: rgba(0,0,0,0.03); }
-        body.light-mode .resena-item .nombre { color: #222; }
-        body.light-mode .resena-item .comentario { color: #444; }
-        body.light-mode .sellos-container { background: rgba(0,0,0,0.03); }
-        body.light-mode .sello-item .texto { color: #555; }
-        body.light-mode .sello-item .texto strong { color: #111; }
-        body.light-mode .calificacion-resumen { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); }
-        body.light-mode .calificacion-resumen .total-resenas { color: #666; }
-        body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li { color: #555; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        body.light-mode .dropdown-container.politica-tallas .dropdown-content ul li a { color: #0088cc; }
-
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .whatsapp-float { bottom: 160px !important; z-index: 9999 !important; width: 48px; height: 48px; }
             #cartFloat { z-index: 9998 !important; }
+            .opcion-color { width: 32px; height: 32px; }
         }
-
-        @media (max-width: 768px) {
-            .container { padding: 12px; }
-            .info-section { padding: 15px 15px 20px; }
-            .nombre { font-size: 1.4rem; }
-            .precio { font-size: 1.8rem; }
-            .btn-carrito, .btn-contraentrega { font-size: 0.8rem; padding: 12px; }
-        }
-        @media (max-width: 600px) {
-            .container { padding: 10px; }
-            .back-btn { padding: 8px 16px; font-size: 0.7rem; margin: 10px 0; }
-            .info-section { padding: 12px 12px 18px; }
-            .nombre { font-size: 1.2rem; }
-            .precio-row { flex-direction: column; align-items: flex-start; gap: 6px; margin: 5px 0 10px; padding-bottom: 10px; }
-            .precio { font-size: 1.6rem; }
-            .calificacion-resumen { padding: 4px 10px; align-self: flex-start; }
-            .calificacion-resumen .estrellas { font-size: 0.85rem; }
-            .calificacion-resumen .puntaje { font-size: 0.85rem; }
-            .calificacion-resumen .total-resenas { font-size: 0.65rem; }
-            .meta { gap: 8px; margin-bottom: 10px; }
-            .sku { font-size: 0.75rem; }
-            .categoria { font-size: 0.65rem; padding: 3px 10px; }
-            .colombia-badge { font-size: 0.65rem; padding: 4px 10px; }
-            .dropdown-header { padding: 10px 0; }
-            .dropdown-header h3 { font-size: 0.85rem; }
-            .dropdown-content p { font-size: 0.8rem; }
-            .dropdown-content ul li { font-size: 0.75rem; padding: 4px 0; }
-            .variaciones { padding: 12px; margin: 12px 0; }
-            .variaciones h3 { font-size: 1rem; }
-            .variacion-group { min-width: 80px; }
-            .variacion-group select { padding: 8px; font-size: 0.8rem; }
-            .tallas-card { padding: 14px; }
-            .tallas-card h3 { font-size: 1rem; }
-            .tallas-conversor { flex-direction: column; }
-            .tallas-input-group { min-width: 100%; }
-            .tallas-resultado { min-width: 100%; padding: 8px 10px; }
-            .tallas-resultado p { font-size: 0.8rem; }
-            #tallaColombia { font-size: 1.2rem; }
-            .tallas-grid { font-size: 0.6rem; }
-            .tallas-row span { padding: 4px 4px; }
-            .tallas-tips p { font-size: 0.75rem; }
-            .tallas-tips ul li { font-size: 0.7rem; padding: 2px 0; }
-            .resenas-section { margin: 15px 0 10px; padding-top: 12px; }
-            .resenas-header h3 { font-size: 1rem; }
-            .resumen-calificacion .nota { font-size: 1.5rem; }
-            .resumen-calificacion .estrellas-grandes { font-size: 1rem; }
-            .resena-item { padding: 10px; }
-            .resena-item .nombre { font-size: 0.8rem; }
-            .resena-item .estrellas { font-size: 0.75rem; }
-            .resena-item .comentario { font-size: 0.75rem; }
-            .resena-item .imagen-resena { max-width: 60px; }
-            .sellos-container { gap: 10px; padding: 10px; margin: 12px 0 8px; }
-            .sello-item { font-size: 0.65rem; gap: 4px; }
-            .sello-item .icono { font-size: 1.1rem; }
-            .cantidad-row { gap: 10px; padding: 10px; margin: 12px 0 8px; }
-            .cantidad-row label { font-size: 0.75rem; }
-            .qty-btn { width: 30px; height: 30px; font-size: 0.9rem; }
-            .qty-input { width: 44px; padding: 5px; font-size: 0.8rem; }
-            .subtotal-display { font-size: 0.8rem; }
-            .acciones { gap: 6px; }
-            .btn-carrito, .btn-contraentrega { padding: 12px; font-size: 0.75rem; border-radius: 20px; }
-            .banner-pago { padding: 10px; margin-top: 10px; }
-            .banner-pago .icono { font-size: 1.8rem; }
-            .banner-pago h3 { font-size: 0.9rem; }
-            .banner-pago p { font-size: 0.75rem; }
-            .carrusel-btn { padding: 6px 10px; font-size: 1rem; }
-            .imagen-principal { max-height: 280px; }
-            .imagenes-secundarias { padding: 8px; gap: 6px; }
-            .imagen-secundaria { width: 45px; height: 45px; }
-            #cartFloat { padding: 8px 12px; }
-            #cartFloat span { font-size: 0.7rem !important; }
-            #cartFloat a { padding: 8px 16px; font-size: 0.7rem !important; }
-            .footer-mini { font-size: 0.6rem; padding: 10px; }
-        }
-        @media (max-width: 400px) {
-            .nombre { font-size: 1rem; }
-            .precio { font-size: 1.3rem; }
-            .container { padding: 8px; }
-            .info-section { padding: 10px; }
-            .producto-card { border-radius: 14px; }
-            .imagen-principal { max-height: 220px; }
-            .btn-carrito, .btn-contraentrega { font-size: 0.7rem; padding: 10px; }
-        }
+        body.light-mode .opcion-color { border-color: #ccc; }
+        body.light-mode .opcion-talla { border-color: #ccc; color: #222; }
+        body.light-mode .opcion-talla.seleccionado { background: #ff00ff; color: #fff; }
+        body.light-mode .opcion-color.seleccionado { border-color: #ffd700; }
     </style>
 </head>
 <body>
@@ -269,9 +130,7 @@
     <a href="/" class="back-btn">← Volver</a>
     <div class="producto-card">
 
-        <!-- ============================================================ -->
-        <!-- CARRUSEL DE IMÁGENES -->
-        <!-- ============================================================ -->
+        <!-- ===== CARRUSEL DE IMÁGENES ===== -->
         <div class="imagenes-container" id="carruselContainer">
             <div class="imagenes-slider" id="carruselSlider">
                 <div class="imagenes-slide">
@@ -301,30 +160,36 @@
         <div class="info-section">
             <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
 
-            <!-- ======== PRECIO + CALIFICACIÓN ======== -->
+            <!-- ===== PRECIO + CALIFICACIÓN ===== -->
             <div class="precio-row">
                 <div class="precio" id="precioProducto" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
-                <div class="calificacion-resumen" onclick="document.getElementById('resenasSection').scrollIntoView({behavior:'smooth'})">
-                    <span class="estrellas" th:text="${promedioCalificacion != null && promedioCalificacion > 0 ?
-                        (promedioCalificacion >= 4.5 ? '★★★★★' :
-                         promedioCalificacion >= 3.5 ? '★★★★☆' :
-                         promedioCalificacion >= 2.5 ? '★★★☆☆' :
-                         promedioCalificacion >= 1.5 ? '★★☆☆☆' : '★☆☆☆☆') : '★★★★★'}">
-                        ★★★★★
-                    </span>
-                    <span class="puntaje" th:text="${promedioCalificacion != null ? #numbers.formatDecimal(promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '4.9'}">4.9</span>
-                    <span class="total-resenas" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ' reseñas)'">(0 reseñas)</span>
-                </div>
+                <div class="stock-display" id="stockDisplay">📦 <span id="stockCantidad">0</span> disponibles</div>
             </div>
 
-            <!-- ======== METADATOS ======== -->
+            <!-- ===== METADATOS ===== -->
             <div class="meta">
                 <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
                 <span class="categoria" th:text="${producto.categoria}">Categoría</span>
                 <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
             </div>
 
-            <!-- ======== DROPDOWNS ======== -->
+            <!-- ===== SELECTORES DE VARIANTES ===== -->
+            <div class="variantes-selector" id="variantesSelector" th:if="${not #lists.isEmpty(producto.variantes)}">
+                <div class="selector-group" id="colorGroup">
+                    <label>🎨 Color</label>
+                    <div class="opciones-color" id="coloresContainer">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+                <div class="selector-group" id="tallaGroup">
+                    <label>📏 Talla</label>
+                    <div class="opciones-talla" id="tallasContainer">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DROPDOWNS ===== -->
             <div class="dropdown-container">
                 <div class="dropdown-header" onclick="toggleDropdown(this)">
                     <h3><span class="icono">📝</span> Descripción del producto</h3>
@@ -334,7 +199,6 @@
                     <p th:text="${producto.descripcionLarga != null ? producto.descripcionLarga : producto.descripcion}">Descripción</p>
                 </div>
             </div>
-
             <div class="dropdown-container">
                 <div class="dropdown-header" onclick="toggleDropdown(this)">
                     <h3><span class="icono">🚚</span> Envío y garantía</h3>
@@ -345,13 +209,11 @@
                         <li><strong>📦 Envío gratis</strong> a todo Colombia</li>
                         <li><strong>⏰ Tiempo de entrega:</strong> 3-5 días hábiles</li>
                         <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
-                        <li><strong>🛡️ Garantía:</strong> Productos 100% originales. Si no estás satisfecho, contáctanos</li>
+                        <li><strong>🛡️ Garantía:</strong> Productos 100% originales</li>
                         <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
                     </ul>
                 </div>
             </div>
-
-            <!-- ======== POLÍTICA DE CAMBIO DE TALLAS ======== -->
             <div class="dropdown-container politica-tallas">
                 <div class="dropdown-header" onclick="toggleDropdown(this)">
                     <h3><span class="icono">👟</span> Política de cambio de tallas</h3>
@@ -359,105 +221,15 @@
                 </div>
                 <div class="dropdown-content">
                     <ul>
-                        <li><strong>Si la talla no te sirve:</strong> Puedes solicitar un cambio de talla dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</li>
-                        <li><strong>El costo del envío de la nueva talla</strong> corre por cuenta del cliente.</li>
-                        <li>El cambio está sujeto a disponibilidad de inventario.</li>
-                        <li>El producto debe estar <strong>sin uso</strong>, con su empaque original y etiquetas.</li>
-                        <li>Para solicitar un cambio, escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a>.</li>
+                        <li><strong>Si la talla no te sirve:</strong> Cambio dentro de los <strong>5 días hábiles</strong></li>
+                        <li><strong>El costo del envío</strong> corre por cuenta del cliente</li>
+                        <li>El producto debe estar <strong>sin uso</strong>, con empaque y etiquetas</li>
+                        <li>Escríbenos a <a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a> o por <a href="https://wa.me/573150152056" target="_blank">WhatsApp</a></li>
                     </ul>
                 </div>
             </div>
 
-            <!-- ======== VARIACIONES (CON MANEJO DE NULOS) ======== -->
-            <div class="variaciones" th:if="${(producto.tieneColor != null and producto.tieneColor) or (producto.tieneTalla != null and producto.tieneTalla)}">
-                <h3>🎨 Personaliza tu producto</h3>
-                <div class="variacion-row">
-                    <div class="variacion-group" th:if="${producto.tieneColor != null and producto.tieneColor}">
-                        <label>Color</label>
-                        <select id="colorSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="color : ${#strings.arraySplit(#strings.substringBefore(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${color.trim()}" th:text="${color.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                    <div class="variacion-group" th:if="${producto.tieneTalla != null and producto.tieneTalla}">
-                        <label>Talla</label>
-                        <select id="tallaSelect">
-                            <option value="">Seleccionar</option>
-                            <th:block th:each="talla : ${#strings.arraySplit(#strings.substringAfter(producto.variacionesDisponibles, '|'), ',')}">
-                                <option th:value="${talla.trim()}" th:text="${talla.trim()}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======== CONVERTIDOR DE TALLAS (CON MANEJO DE NULOS) ======== -->
-            <div class="tallas-container" th:if="${producto.tieneTalla != null and producto.tieneTalla}">
-                <div class="tallas-card">
-                    <h3>👟 Guía de tallas</h3>
-                    <p class="tallas-desc">Encuentra tu talla perfecta para Colombia</p>
-                    <div class="tallas-conversor">
-                        <div class="tallas-input-group">
-                            <label for="tallaSelectSistema">Sistema de talla:</label>
-                            <select id="tallaSelectSistema" onchange="convertirTalla()">
-                                <option value="us">US (EE.UU.)</option>
-                                <option value="eu">EU (Europa)</option>
-                                <option value="cm">Centímetros (cm)</option>
-                            </select>
-                        </div>
-                        <div class="tallas-input-group">
-                            <label for="tallaValue">Ingresa tu talla:</label>
-                            <input type="number" id="tallaValue" placeholder="Ej: 7" step="0.5" min="1" max="15" oninput="convertirTalla()">
-                        </div>
-                        <div class="tallas-resultado">
-                            <p><strong>Tu talla en Colombia:</strong> <span id="tallaColombia">--</span></p>
-                            <p class="tallas-recomendacion" id="tallaRecomendacion"></p>
-                        </div>
-                    </div>
-                    <div class="tallas-dropdown">
-                        <div class="tallas-dropdown-header" onclick="toggleTallasTabla(this)">
-                            <span>📊 Ver tabla de referencia</span>
-                            <span class="arrow">▼</span>
-                        </div>
-                        <div class="tallas-dropdown-content">
-                            <div class="tallas-grid">
-                                <div class="tallas-header"><span>US</span><span>EU</span><span>CM</span><span>Colombia</span></div>
-                                <div class="tallas-row"><span>5</span><span>35</span><span>22.1</span><span>35</span></div>
-                                <div class="tallas-row"><span>5.5</span><span>35.5</span><span>22.5</span><span>35.5</span></div>
-                                <div class="tallas-row"><span>6</span><span>36</span><span>23</span><span>36</span></div>
-                                <div class="tallas-row"><span>6.5</span><span>36.5</span><span>23.5</span><span>36.5</span></div>
-                                <div class="tallas-row"><span>7</span><span>37</span><span>24</span><span>37</span></div>
-                                <div class="tallas-row"><span>7.5</span><span>37.5</span><span>24.5</span><span>37.5</span></div>
-                                <div class="tallas-row"><span>8</span><span>38</span><span>25</span><span>38</span></div>
-                                <div class="tallas-row"><span>8.5</span><span>38.5</span><span>25.5</span><span>38.5</span></div>
-                                <div class="tallas-row"><span>9</span><span>39</span><span>26</span><span>39</span></div>
-                                <div class="tallas-row"><span>9.5</span><span>39.5</span><span>26.5</span><span>39.5</span></div>
-                                <div class="tallas-row"><span>10</span><span>40</span><span>27</span><span>40</span></div>
-                                <div class="tallas-row"><span>10.5</span><span>40.5</span><span>27.5</span><span>40.5</span></div>
-                                <div class="tallas-row"><span>11</span><span>41</span><span>28</span><span>41</span></div>
-                                <div class="tallas-row"><span>11.5</span><span>41.5</span><span>28.5</span><span>41.5</span></div>
-                                <div class="tallas-row"><span>12</span><span>42</span><span>29</span><span>42</span></div>
-                                <div class="tallas-row"><span>13</span><span>43</span><span>30</span><span>43</span></div>
-                                <div class="tallas-row"><span>14</span><span>44</span><span>31</span><span>44</span></div>
-                                <div class="tallas-row"><span>15</span><span>45</span><span>32</span><span>45</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tallas-tips">
-                        <p><strong>💡 Consejos para encontrar tu talla perfecta:</strong></p>
-                        <ul>
-                            <li>📏 Mide tu pie al final del día (está más hinchado)</li>
-                            <li>🧦 Usa los calcetines que piensas usar con el zapato</li>
-                            <li>📐 Deja un espacio de 0.5-1 cm entre el dedo más largo y la punta</li>
-                            <li>👟 Prueba ambos pies, uno puede ser más grande que el otro</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======== RESEÑAS ======== -->
+            <!-- ===== RESEÑAS ===== -->
             <div class="resenas-section" id="resenasSection">
                 <div class="resenas-header">
                     <h3>⭐ Opiniones de clientes <span class="cantidad" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ')'">(0)</span></h3>
@@ -492,14 +264,14 @@
                 </div>
             </div>
 
-            <!-- ======== SELLOS DE CONFIANZA ======== -->
+            <!-- ===== SELLOS DE CONFIANZA ===== -->
             <div class="sellos-container">
                 <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
                 <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
                 <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
             </div>
 
-            <!-- ======== CANTIDAD Y ACCIONES ======== -->
+            <!-- ===== CANTIDAD Y ACCIONES ===== -->
             <div class="cantidad-row">
                 <label>Cantidad</label>
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
@@ -508,7 +280,7 @@
                 <span class="subtotal-display" id="subtotalDisplay">= $<span id="precioSubtotalInicial" th:text="${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">0</span></span>
             </div>
             <div class="acciones">
-                <button class="btn-carrito" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
+                <button class="btn-carrito" id="btnAgregarCarrito" onclick="agregarAlCarrito()" disabled>🛒 Selecciona talla y color</button>
                 <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
             </div>
             <div class="banner-pago">
@@ -535,81 +307,210 @@
 <!-- SCRIPTS -->
 <!-- ============================================================ -->
 <script>
-    var precioBase = 0;
+    // ============================================================
+    // DATOS DE VARIANTES (desde el backend)
+    // ============================================================
+    const variantes = /*[[${producto.variantes}]]*/ [];
+    const productoId = /*[[${producto.id}]]*/ null;
+    const productoNombre = /*[[${producto.nombre}]]*/ '';
+    const productoImagen = /*[[${producto.imagen1}]]*/ '';
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var precioElement = document.querySelector('.precio');
-        if (precioElement) {
-            var textoPrecio = precioElement.textContent.trim();
-            var numeroLimpio = textoPrecio.replace(/[^0-9,]/g, '').replace(',', '.');
-            var precioNumerico = parseFloat(numeroLimpio);
-            if (!isNaN(precioNumerico)) {
-                precioBase = precioNumerico;
+    let varianteSeleccionada = null;
+    let precioBase = /*[[${producto.precio}]]*/ 0;
+
+    // ============================================================
+    // RENDERIZAR SELECTORES
+    // ============================================================
+    function renderizarSelectores() {
+        const coloresSet = new Set();
+        const tallasSet = new Set();
+        const variantesMap = {};
+
+        variantes.forEach(v => {
+            if (v.color && v.color.trim()) coloresSet.add(v.color.trim());
+            if (v.talla && v.talla.trim()) tallasSet.add(v.talla.trim());
+            const key = (v.color || '').trim() + '|' + (v.talla || '').trim();
+            variantesMap[key] = v;
+        });
+
+        const colores = Array.from(coloresSet);
+        const tallas = Array.from(tallasSet);
+
+        // Renderizar colores
+        const coloresContainer = document.getElementById('coloresContainer');
+        coloresContainer.innerHTML = '';
+        colores.forEach(color => {
+            const btn = document.createElement('div');
+            btn.className = 'opcion-color';
+            btn.dataset.color = color;
+            btn.style.background = colorToHex(color);
+            btn.textContent = color.charAt(0).toUpperCase();
+            btn.title = color;
+            btn.addEventListener('click', () => seleccionarColor(color));
+            coloresContainer.appendChild(btn);
+        });
+
+        // Renderizar tallas
+        const tallasContainer = document.getElementById('tallasContainer');
+        tallasContainer.innerHTML = '';
+        tallas.forEach(talla => {
+            const btn = document.createElement('button');
+            btn.className = 'opcion-talla';
+            btn.dataset.talla = talla;
+            btn.textContent = talla;
+            btn.addEventListener('click', () => seleccionarTalla(talla));
+            tallasContainer.appendChild(btn);
+        });
+    }
+
+    // ============================================================
+    // SELECCIÓN DE COLOR Y TALLA
+    // ============================================================
+    let colorSeleccionado = null;
+    let tallaSeleccionada = null;
+
+    function seleccionarColor(color) {
+        colorSeleccionado = color;
+        document.querySelectorAll('.opcion-color').forEach(el => {
+            el.classList.toggle('seleccionado', el.dataset.color === color);
+        });
+        actualizarVariante();
+    }
+
+    function seleccionarTalla(talla) {
+        tallaSeleccionada = talla;
+        document.querySelectorAll('.opcion-talla').forEach(el => {
+            el.classList.toggle('seleccionado', el.dataset.talla === talla);
+        });
+        actualizarVariante();
+    }
+
+    function actualizarVariante() {
+        const key = (colorSeleccionado || '') + '|' + (tallaSeleccionada || '');
+        const variante = variantes.find(v => {
+            const vKey = (v.color || '').trim() + '|' + (v.talla || '').trim();
+            return vKey === key;
+        });
+
+        const btn = document.getElementById('btnAgregarCarrito');
+        const precioDisplay = document.getElementById('precioProducto');
+        const stockDisplay = document.getElementById('stockCantidad');
+        const stockContainer = document.getElementById('stockDisplay');
+
+        if (variante && variante.activo && variante.stock > 0) {
+            varianteSeleccionada = variante;
+            precioDisplay.textContent = '$' + Number(variante.precio).toLocaleString('es-CO');
+            stockDisplay.textContent = variante.stock;
+            stockContainer.className = 'stock-display';
+            btn.disabled = false;
+            btn.textContent = '🛒 Agregar al carrito';
+        } else {
+            varianteSeleccionada = null;
+            if (variante) {
+                stockDisplay.textContent = '0 (agotado)';
+                stockContainer.className = 'stock-display agotado';
             } else {
-                var soloNumeros = textoPrecio.replace(/[^0-9]/g, '');
-                if (soloNumeros.length > 0) {
-                    precioBase = parseInt(soloNumeros, 10);
-                }
+                stockDisplay.textContent = '0';
+                stockContainer.className = 'stock-display';
             }
+            btn.disabled = true;
+            btn.textContent = variante ? '🚫 Sin stock' : '🛒 Selecciona talla y color';
         }
         actualizarSubtotal();
-    });
+    }
 
     // ============================================================
-    // CARRUSEL
+    // UTILIDAD: color a hexadecimal (aproximado)
     // ============================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        const slider = document.getElementById('carruselSlider');
-        if (!slider) return;
+    function colorToHex(color) {
+        const mapa = {
+            'negro': '#000000',
+            'blanco': '#FFFFFF',
+            'rojo': '#FF0000',
+            'azul': '#0000FF',
+            'verde': '#00FF00',
+            'amarillo': '#FFFF00',
+            'naranja': '#FFA500',
+            'morado': '#800080',
+            'rosa': '#FFC0CB',
+            'gris': '#808080',
+            'cafe': '#8B4513',
+            'beige': '#F5F5DC',
+            'plateado': '#C0C0C0',
+            'dorado': '#FFD700'
+        };
+        return mapa[color.toLowerCase()] || '#888';
+    }
 
-        const slides = slider.querySelectorAll('.imagenes-slide');
-        const dotsContainer = document.getElementById('carruselDots');
-        const prevBtn = document.getElementById('carruselPrev');
-        const nextBtn = document.getElementById('carruselNext');
-        let currentIndex = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        if (slides.length <= 1) {
-            if (dotsContainer) dotsContainer.style.display = 'none';
-            if (prevBtn) prevBtn.style.display = 'none';
-            if (nextBtn) nextBtn.style.display = 'none';
+    // ============================================================
+    // FUNCIONES DE CARRITO (usando SKU)
+    // ============================================================
+    function agregarAlCarrito() {
+        if (!varianteSeleccionada) {
+            alert('Selecciona una combinación de talla y color.');
             return;
         }
 
-        slides.forEach((_, index) => {
-            const dot = document.createElement('span');
-            dot.className = 'carrusel-dot' + (index === 0 ? ' active' : '');
-            dot.dataset.index = index;
-            dot.addEventListener('click', function() { goToSlide(parseInt(this.dataset.index)); });
-            if (dotsContainer) dotsContainer.appendChild(dot);
-        });
+        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
-        function goToSlide(index) {
-            if (index < 0) index = slides.length - 1;
-            if (index >= slides.length) index = 0;
-            currentIndex = index;
-            slider.style.transform = 'translateX(' + (-currentIndex * 100) + '%)';
-            document.querySelectorAll('.carrusel-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentIndex);
+        // Buscar si ya existe esa variante en el carrito
+        const existente = carrito.find(item => item.sku === varianteSeleccionada.sku);
+        if (existente) {
+            existente.cantidad += cantidad;
+        } else {
+            carrito.push({
+                sku: varianteSeleccionada.sku,
+                nombre: productoNombre,
+                precio: varianteSeleccionada.precio,
+                imagen: productoImagen,
+                cantidad: cantidad,
+                color: varianteSeleccionada.color || '',
+                talla: varianteSeleccionada.talla || ''
             });
         }
 
-        if (prevBtn) prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
-        if (nextBtn) nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
+        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+        mostrarToast('✅ Producto agregado al carrito', '🛒');
+        actualizarContadorCarrito();
+    }
 
-        slider.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
-        slider.addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) goToSlide(currentIndex + 1);
-                else goToSlide(currentIndex - 1);
-            }
-        });
+    function comprarContraEntrega() {
+        agregarAlCarrito();
+        window.location.href = '/carrito?contraentrega=true';
+    }
 
-        window.goToSlide = goToSlide;
-    });
+    // ============================================================
+    // CANTIDAD Y SUBTOTAL
+    // ============================================================
+    function cambiarCantidad(delta) {
+        const input = document.getElementById('cantidad');
+        let val = parseInt(input.value) || 1;
+        val = Math.max(1, val + delta);
+        input.value = val;
+        actualizarSubtotal();
+    }
+
+    function actualizarSubtotal() {
+        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        const precio = varianteSeleccionada ? varianteSeleccionada.precio : precioBase;
+        const subtotal = precio * cantidad;
+        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO');
+    }
+
+    // ============================================================
+    // TOAST Y CONTADOR
+    // ============================================================
+    function mostrarToast(mensaje, icono) {
+        // Implementa tu sistema de toast aquí
+        alert(mensaje);
+    }
+
+    function actualizarContadorCarrito() {
+        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        const countEl = document.getElementById('cartCount');
+        if (countEl) countEl.textContent = carrito.length;
+    }
 
     // ============================================================
     // DROPDOWNS
@@ -617,10 +518,8 @@
     function toggleDropdown(header) {
         const content = header.nextElementSibling;
         const isOpen = content.classList.contains('open');
-
         document.querySelectorAll('.dropdown-content').forEach(c => c.classList.remove('open'));
         document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
-
         if (!isOpen) {
             content.classList.add('open');
             header.classList.add('active');
@@ -628,221 +527,18 @@
     }
 
     // ============================================================
-    // TABLA DE TALLAS
+    // INICIALIZACIÓN
     // ============================================================
-    function toggleTallasTabla(header) {
-        const content = header.nextElementSibling;
-        content.classList.toggle('open');
-        header.classList.toggle('active');
-    }
-
-    // ============================================================
-    // CONVERTIDOR DE TALLAS
-    // ============================================================
-    function convertirTalla() {
-        const sistema = document.getElementById('tallaSelectSistema');
-        const valorInput = document.getElementById('tallaValue');
-        const resultadoSpan = document.getElementById('tallaColombia');
-        const recomendacionSpan = document.getElementById('tallaRecomendacion');
-
-        if (!sistema || !valorInput || !resultadoSpan) return;
-
-        const valor = parseFloat(valorInput.value);
-
-        if (isNaN(valor) || valor <= 0) {
-            resultadoSpan.textContent = '--';
-            recomendacionSpan.textContent = '';
-            return;
+    document.addEventListener('DOMContentLoaded', function() {
+        renderizarSelectores();
+        const precioElement = document.getElementById('precioProducto');
+        if (precioElement) {
+            const texto = precioElement.textContent.replace(/[^0-9,]/g, '').replace(',', '.');
+            precioBase = parseFloat(texto) || 0;
         }
-
-        const tabla = [
-            { us: 5, eu: 35, cm: 22.1, col: 35 },
-            { us: 5.5, eu: 35.5, cm: 22.5, col: 35.5 },
-            { us: 6, eu: 36, cm: 23, col: 36 },
-            { us: 6.5, eu: 36.5, cm: 23.5, col: 36.5 },
-            { us: 7, eu: 37, cm: 24, col: 37 },
-            { us: 7.5, eu: 37.5, cm: 24.5, col: 37.5 },
-            { us: 8, eu: 38, cm: 25, col: 38 },
-            { us: 8.5, eu: 38.5, cm: 25.5, col: 38.5 },
-            { us: 9, eu: 39, cm: 26, col: 39 },
-            { us: 9.5, eu: 39.5, cm: 26.5, col: 39.5 },
-            { us: 10, eu: 40, cm: 27, col: 40 },
-            { us: 10.5, eu: 40.5, cm: 27.5, col: 40.5 },
-            { us: 11, eu: 41, cm: 28, col: 41 },
-            { us: 11.5, eu: 41.5, cm: 28.5, col: 41.5 },
-            { us: 12, eu: 42, cm: 29, col: 42 },
-            { us: 13, eu: 43, cm: 30, col: 43 },
-            { us: 14, eu: 44, cm: 31, col: 44 },
-            { us: 15, eu: 45, cm: 32, col: 45 }
-        ];
-
-        let tallaColombia = null;
-        let recomendacion = '';
-
-        if (sistema.value === 'us') {
-            const encontrado = tabla.find(t => t.us === valor);
-            if (encontrado) { tallaColombia = encontrado.col; recomendacion = 'Talla US ' + valor + ' equivale a Colombia ' + encontrado.col; }
-            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.us - valor) < Math.abs(prev.us - valor) ? curr : prev);
-                tallaColombia = cercano.col; recomendacion = 'Talla US ' + valor + ' no es exacta. La más cercana es US ' + cercano.us + ' → Colombia ' + cercano.col; }
-        } else if (sistema.value === 'eu') {
-            const encontrado = tabla.find(t => t.eu === valor);
-            if (encontrado) { tallaColombia = encontrado.col; recomendacion = 'Talla EU ' + valor + ' equivale a Colombia ' + encontrado.col; }
-            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.eu - valor) < Math.abs(prev.eu - valor) ? curr : prev);
-                tallaColombia = cercano.col; recomendacion = 'Talla EU ' + valor + ' no es exacta. La más cercana es EU ' + cercano.eu + ' → Colombia ' + cercano.col; }
-        } else if (sistema.value === 'cm') {
-            const encontrado = tabla.find(t => t.cm === valor);
-            if (encontrado) { tallaColombia = encontrado.col; recomendacion = valor + ' cm equivale a Colombia ' + encontrado.col; }
-            else { const cercano = tabla.reduce((prev, curr) => Math.abs(curr.cm - valor) < Math.abs(prev.cm - valor) ? curr : prev);
-                tallaColombia = cercano.col; recomendacion = valor + ' cm no es exacto. El más cercano es ' + cercano.cm + ' cm → Colombia ' + cercano.col; }
-        }
-
-        if (tallaColombia !== null) { resultadoSpan.textContent = tallaColombia; recomendacionSpan.textContent = recomendacion; }
-        else { resultadoSpan.textContent = '--'; recomendacionSpan.textContent = 'No encontramos una conversión exacta'; }
-    }
-
-    // ============================================================
-    // CANTIDAD
-    // ============================================================
-    function cambiarCantidad(d) {
-        var i = document.getElementById('cantidad');
-        var v = Math.max(1, (parseInt(i.value)||1) + d);
-        i.value = v;
         actualizarSubtotal();
-    }
-
-    function actualizarSubtotal() {
-        var c = parseInt(document.getElementById('cantidad').value)||1;
-        var subtotal = precioBase * c;
-        var subtotalDisplay = document.getElementById('subtotalDisplay');
-        if (subtotalDisplay) {
-            subtotalDisplay.innerHTML = '= $' + subtotal.toLocaleString('es-CO');
-        }
-    }
-
-    // ============================================================
-    // CARRITO
-    // ============================================================
-    function agregarAlCarrito() {
-        var nombre = document.querySelector('.nombre').textContent.trim();
-        var imagen = document.getElementById('imgPrincipal')?.src || '';
-        var cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        var color = document.getElementById('colorSelect') ? document.getElementById('colorSelect').value : '';
-        var talla = document.getElementById('tallaSelect') ? document.getElementById('tallaSelect').value : '';
-        var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-
-        var existe = false;
-        for (var i = 0; i < carrito.length; i++) {
-            if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
-                carrito[i].cantidad += cantidad;
-                existe = true;
-                break;
-            }
-        }
-        if (!existe) { carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla }); }
-
-        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        var btn = document.querySelector('.btn-carrito');
-        btn.textContent = '✓ Agregado';
-        setTimeout(() => {
-            if (confirm('¿Ver carrito?')) window.location.href = '/carrito';
-            else btn.textContent = '🛒 Agregar al carrito';
-        }, 500);
-    }
-
-    function comprarContraEntrega() {
-        var nombre = document.querySelector('.nombre').textContent.trim();
-        var imagen = document.getElementById('imgPrincipal')?.src || '';
-        var cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        var color = document.getElementById('colorSelect')?.value || '';
-        var talla = document.getElementById('tallaSelect')?.value || '';
-        var carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-
-        var existe = false;
-        for (var i = 0; i < carrito.length; i++) {
-            if (carrito[i].nombre === nombre && carrito[i].color === color && carrito[i].talla === talla) {
-                carrito[i].cantidad += cantidad;
-                existe = true;
-                break;
-            }
-        }
-        if (!existe) { carrito.push({ nombre, precio: precioBase, imagen, cantidad, color, talla, contraentrega: true }); }
-
-        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        window.location.href = '/carrito?contraentrega=true';
-    }
-
-    // ============================================================
-    // FONDO ANIMADO
-    // ============================================================
-    var bg = document.getElementById('bgAnimado'),
-        colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-    for (var i=0;i<15;i++) {
-        var el=document.createElement('div');
-        el.className='particula';
-        var t=Math.random()*3+1;
-        el.style.cssText='width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;';
-        bg.appendChild(el);
-    }
-    var emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
-    for (var i=0;i<8;i++) {
-        var el=document.createElement('div');
-        el.className='particula-emoji';
-        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-        el.style.cssText='left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
-        bg.appendChild(el);
-    }
-
-    // ============================================================
-    // RECARGAR SI VIENE DE AGREGAR RESEÑA
-    // ============================================================
-    if (window.location.search.includes('resena=ok')) {
-        const newUrl = window.location.pathname + window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
-        location.reload();
-    }
-
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'flowResenaActualizada') {
-            location.reload();
-        }
+        actualizarContadorCarrito();
     });
-
-    // ============================================================
-    // SCRIPT DE RESPALDO PARA DROPDOWNS (si no cargaron)
-    // ============================================================
-    (function() {
-        if (typeof toggleDropdown !== 'function') {
-            window.toggleDropdown = function(header) {
-                const content = header.nextElementSibling;
-                const isOpen = content.classList.contains('open');
-                document.querySelectorAll('.dropdown-content').forEach(c => c.classList.remove('open'));
-                document.querySelectorAll('.dropdown-header').forEach(h => h.classList.remove('active'));
-                if (!isOpen) {
-                    content.classList.add('open');
-                    header.classList.add('active');
-                }
-            };
-        }
-        if (typeof toggleTallasTabla !== 'function') {
-            window.toggleTallasTabla = function(header) {
-                const content = header.nextElementSibling;
-                content.classList.toggle('open');
-                header.classList.toggle('active');
-            };
-        }
-        document.querySelectorAll('.dropdown-header').forEach(header => {
-            if (!header.getAttribute('data-fixed')) {
-                header.setAttribute('data-fixed', 'true');
-                header.onclick = function() { toggleDropdown(this); };
-            }
-        });
-        document.querySelectorAll('.tallas-dropdown-header').forEach(header => {
-            if (!header.getAttribute('data-fixed')) {
-                header.setAttribute('data-fixed', 'true');
-                header.onclick = function() { toggleTallasTabla(this); };
-            }
-        });
-    })();
 </script>
 
 <!-- ============================================================ -->
@@ -875,50 +571,12 @@
         </span>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <a href="/carrito" style="
-            padding: 10px 25px;
-            background: linear-gradient(45deg, #00ffff, #0088cc);
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-            box-shadow: 0 0 20px rgba(0,255,255,0.2);
-        ">
+        <a href="/carrito" style="padding: 10px 25px; background: linear-gradient(45deg, #00ffff, #0088cc); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 0.85rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 20px rgba(0,255,255,0.2);">
             Ver carrito
         </a>
-        <a href="/carrito?contraentrega=true" style="
-            padding: 10px 25px;
-            background: linear-gradient(45deg, #ffd700, #f0a500);
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-            animation: pulseContraentrega 1.5s infinite;
-            box-shadow: 0 0 30px rgba(255,215,0,0.2);
-            position: relative;
-            overflow: hidden;
-        ">
+        <a href="/carrito?contraentrega=true" style="padding: 10px 25px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 0.85rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; animation: pulseContraentrega 1.5s infinite; box-shadow: 0 0 30px rgba(255,215,0,0.2); position: relative; overflow: hidden;">
             💵 Pagar contra entrega
-            <span style="
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
-                animation: shineContraentrega 3s infinite;
-                pointer-events: none;
-            "></span>
+            <span style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%); animation: shineContraentrega 3s infinite; pointer-events: none;"></span>
         </a>
     </div>
 </div>
@@ -938,28 +596,16 @@
         100% { transform: translateY(0); }
     }
     #cartFloat.show { display: flex !important; animation: slideUpCart 0.4s ease; }
-
     body.light-mode #cartFloat {
         background: rgba(255,255,255,0.95);
         border-top: 2px solid rgba(255,0,255,0.2);
         box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
     }
     body.light-mode #cartFloat span[style*="color: #fff"] { color: #222 !important; }
-
     @media (max-width: 600px) {
-        #cartFloat {
-            padding: 8px 12px;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 6px;
-        }
+        #cartFloat { padding: 8px 12px; flex-direction: column; align-items: stretch; gap: 6px; }
         #cartFloat div:first-child { justify-content: center; }
-        #cartFloat a {
-            width: 100%;
-            text-align: center;
-            padding: 10px;
-            font-size: 0.75rem !important;
-        }
+        #cartFloat a { width: 100%; text-align: center; padding: 10px; font-size: 0.75rem !important; }
     }
 </style>
 
@@ -969,19 +615,16 @@
         const floatDiv = document.getElementById('cartFloat');
         const countSpan = document.getElementById('cartFloatCount');
         const totalSpan = document.getElementById('cartFloatTotal');
-
         if (carrito.length === 0) {
             floatDiv.classList.remove('show');
             return;
         }
-
         let total = 0;
         carrito.forEach(item => {
             const precio = Number(item.precio) || 0;
             const cantidad = Number(item.cantidad) || 1;
             total += precio * cantidad;
         });
-
         countSpan.textContent = carrito.length;
         totalSpan.textContent = total.toLocaleString('es-CO');
         floatDiv.classList.add('show');

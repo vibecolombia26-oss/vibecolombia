@@ -138,7 +138,7 @@
 <div class="container">
     <div class="header">
         <h1>📋 Gestión de Pedidos</h1>
-        <a th:href="@{/admin/panel(key=${key})}" class="btn-back">← Volver al panel</a>
+        <a th:href="@{/admin/panel}" class="btn-back">← Volver al panel</a>
     </div>
 
     <div class="pedidos-layout">
@@ -148,19 +148,19 @@
             <div class="pedidos-lista-header">
                 <h3>📦 Pedidos</h3>
                 <div class="filtros">
-                    <a th:href="@{/admin/pedidos(key=${key})}" class="filtro-btn" th:classappend="${estadoSeleccionado == null ? 'active' : ''}">
+                    <a th:href="@{/admin/pedidos}" class="filtro-btn" th:classappend="${estadoSeleccionado == null ? 'active' : ''}">
                         Todos <span class="badge" th:text="${#lists.size(pedidos)}">0</span>
                     </a>
-                    <a th:href="@{/admin/pedidos(key=${key}, estado='Pendiente')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Pendiente' ? 'active' : ''}">
+                    <a th:href="@{/admin/pedidos(estado='Pendiente')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Pendiente' ? 'active' : ''}">
                         ⏳ <span class="badge" th:text="${pendientes}">0</span>
                     </a>
-                    <a th:href="@{/admin/pedidos(key=${key}, estado='Procesando')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Procesando' ? 'active' : ''}">
+                    <a th:href="@{/admin/pedidos(estado='Procesando')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Procesando' ? 'active' : ''}">
                         🔄 <span class="badge" th:text="${procesando}">0</span>
                     </a>
-                    <a th:href="@{/admin/pedidos(key=${key}, estado='Enviado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Enviado' ? 'active' : ''}">
+                    <a th:href="@{/admin/pedidos(estado='Enviado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Enviado' ? 'active' : ''}">
                         📦 <span class="badge" th:text="${enviados}">0</span>
                     </a>
-                    <a th:href="@{/admin/pedidos(key=${key}, estado='Entregado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Entregado' ? 'active' : ''}">
+                    <a th:href="@{/admin/pedidos(estado='Entregado')}" class="filtro-btn" th:classappend="${estadoSeleccionado == 'Entregado' ? 'active' : ''}">
                         ✅ <span class="badge" th:text="${entregados}">0</span>
                     </a>
                 </div>
@@ -212,12 +212,10 @@
                 </div>
                 <div class="detalle-acciones">
                     <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" style="display:inline;">
-                        <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Procesando">
                         <button type="submit" class="btn-accion btn-procesar" th:if="${pedidoSeleccionado.estado == 'Pendiente'}">🔄 Procesar</button>
                     </form>
                     <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" class="form-envio" th:if="${pedidoSeleccionado.estado == 'Procesando'}">
-                        <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Enviado">
                         <select name="transportadora" required>
                             <option value="">Transportadora...</option>
@@ -231,11 +229,10 @@
                         <button type="submit" class="btn-accion btn-enviar">📦 Enviar</button>
                     </form>
                     <form th:action="@{/admin/cambiar-estado/{id}(id=${pedidoSeleccionado.id})}" method="post" style="display:inline;">
-                        <input type="hidden" name="key" th:value="${key}">
                         <input type="hidden" name="estado" value="Entregado">
                         <button type="submit" class="btn-accion btn-entregar" th:if="${pedidoSeleccionado.estado == 'Enviado'}">✅ Entregado</button>
                     </form>
-                    <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id}, key=${key})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">🗑️ Eliminar</a>
+                    <a th:href="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id})}" class="btn-accion btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">🗑️ Eliminar</a>
                 </div>
             </div>
         </div>
@@ -243,7 +240,6 @@
 </div>
 
 <script>
-    // Obtener el ID del pedido seleccionado (si existe)
     var pedidoSeleccionado = /*[[${pedidoSeleccionado}]]*/ null;
     var pedidoSeleccionadoId = pedidoSeleccionado ? pedidoSeleccionado.id : null;
 

@@ -50,9 +50,9 @@
             <h1>🔒 Panel Admin <span class="total" th:text="'(' + ${#lists.size(productos)} + ' productos)'">(0 productos)</span></h1>
         </div>
         <div>
-            <a th:href="@{/admin/pedidos(key=${key})}" class="btn btn-pedidos">📋 Pedidos</a>
-            <a th:href="@{/admin/chats(key=${key})}" class="btn btn-chats">💬 Chats</a>
-            <a th:href="@{/admin/nuevo(key=${key})}" class="btn btn-agregar">+ Agregar</a>
+            <a th:href="@{/admin/pedidos}" class="btn btn-pedidos">📋 Pedidos</a>
+            <a th:href="@{/admin/chats}" class="btn btn-chats">💬 Chats</a>
+            <a th:href="@{/admin/nuevo}" class="btn btn-agregar">+ Agregar</a>
             <a href="/" class="btn btn-ver">🌐 Ver Tienda</a>
         </div>
     </div>
@@ -76,7 +76,7 @@
             <tr th:if="${productos.isEmpty()}">
                 <td colspan="7" class="sin-productos">
                     <span class="icono">📦</span>
-                    No hay productos aún. <a th:href="@{/admin/nuevo(key=${key})}" style="color:#ff00ff;">Agrega el primero</a>
+                    No hay productos aún. <a th:href="@{/admin/nuevo}" style="color:#ff00ff;">Agrega el primero</a>
                 </td>
             </tr>
             <tr th:each="p : ${productos}">
@@ -88,8 +88,8 @@
                 <td th:text="${p.sku}">SKU</td>
                 <td>
                     <div class="acciones">
-                        <a th:href="@{/admin/editar/{id}(id=${p.id}, key=${key})}" class="btn-editar">✏️</a>
-                        <a th:href="@{/admin/eliminar/{id}(id=${p.id}, key=${key})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️</a>
+                        <a th:href="@{/admin/editar/{id}(id=${p.id})}" class="btn-editar">✏️</a>
+                        <a th:href="@{/admin/eliminar/{id}(id=${p.id})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️</a>
                     </div>
                 </td>
             </tr>

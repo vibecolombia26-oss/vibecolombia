@@ -12,6 +12,7 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // --- Campos existentes (se mantienen para migración) ---
     private String nombre;
     private String sku;
     private Double precio;
@@ -23,6 +24,7 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String descripcionLarga;
 
+    // Imágenes antiguas (se mantienen hasta migrar)
     private String imagen1;
     private String imagen2;
     private String imagen3;
@@ -36,21 +38,28 @@ public class Producto {
     private String peso;
 
     private Boolean tieneVariaciones = false;
-    private String variacionesDisponibles; // Formato: "color1,color2|talla1,talla2"
+    private String variacionesDisponibles; // "color1,color2|talla1,talla2"
     private Boolean tieneColor = false;
     private Boolean tieneTalla = false;
 
-    // ============================================================
-    // RELACIÓN CON RESEÑAS
-    // ============================================================
+    // --- Nuevas relaciones ---
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orden ASC")
+    private List<ProductoImagen> imagenes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VarianteProducto> variantes = new ArrayList<>();
+
+    // Relación con reseñas (existente)
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resena> resenas = new ArrayList<>();
 
     public Producto() {}
 
     // ============================================================
-    // GETTERS Y SETTERS
+    // GETTERS Y SETTERS (manteniendo todos los antiguos + nuevos)
     // ============================================================
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -114,11 +123,17 @@ public class Producto {
     public Boolean getTieneTalla() { return tieneTalla; }
     public void setTieneTalla(Boolean tieneTalla) { this.tieneTalla = tieneTalla; }
 
+    public List<ProductoImagen> getImagenes() { return imagenes; }
+    public void setImagenes(List<ProductoImagen> imagenes) { this.imagenes = imagenes; }
+
+    public List<VarianteProducto> getVariantes() { return variantes; }
+    public void setVariantes(List<VarianteProducto> variantes) { this.variantes = variantes; }
+
     public List<Resena> getResenas() { return resenas; }
     public void setResenas(List<Resena> resenas) { this.resenas = resenas; }
 
     // ============================================================
-    // MÉTODOS PARA CALIFICACIONES
+    // MÉTODOS DE CALIFICACIÓN (existentes, sin cambios)
     // ============================================================
     public Double getPromedioCalificacion() {
         if (resenas == null || resenas.isEmpty()) return 0.0;
@@ -132,5 +147,28 @@ public class Producto {
     public Long getCantidadResenas() {
         if (resenas == null) return 0L;
         return resenas.stream().filter(r -> r.getAprobado() != null && r.getAprobado()).count();
+    }
+
+    // ============================================================
+    // MÉTODO PARA AGREGAR IMAGEN (utilidad)
+    // ============================================================
+    public void addImagen(String url, Integer orden) {
+        ProductoImagen imagen = new ProductoImagen(this, url, orden);
+        this.imagenes.add(imagen);
+    }
+
+    // ============================================================
+    // MÉTODO PARA AGREGAR VARIANTE (utilidad)
+    // ============================================================
+    public void addVariante(String sku, String color, String talla, Double precio, Integer stock) {
+        VarianteProducto variante = new VarianteProducto();
+        variante.setProducto(this);
+        variante.setSku(sku);
+        variante.setColor(color);
+        variante.setTalla(talla);
+        variante.setPrecio(precio);
+        variante.setStock(stock);
+        variante.setActivo(true);
+        this.variantes.add(variante);
     }
 }

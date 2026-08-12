@@ -111,14 +111,6 @@ public class WebController {
         }
     }
 
-    // ============================================================
-    // OTRAS PÁGINAS
-    // ============================================================
-    @GetMapping("/carrito")
-    public String carrito() {
-        return "carrito";
-    }
-
     @GetMapping("/envios")
     public String envios() {
         return "envios";
