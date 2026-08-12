@@ -157,7 +157,7 @@
             <h2>📋 Información básica</h2>
             <div class="form-row">
                 <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
-                <div class="form-group"><label>SKU *</label><input type="text" name="sku" th:value="${producto.sku}" required></div>
+                <div class="form-group"><label>SKU base *</label><input type="text" name="sku" th:value="${producto.sku}" required></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>Precio base *</label><input type="number" step="0.01" name="precio" th:value="${producto.precio}" required></div>
@@ -191,7 +191,7 @@
             <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
         </div>
 
-        <!-- ===== VARIANTES ===== -->
+        <!-- ===== VARIANTES (TABLA) ===== -->
         <div class="form-section">
             <h2>📦 Variantes (tallas / colores)</h2>
             <div class="variantes-table-wrap">
@@ -227,14 +227,14 @@
                         </td>
                         <td><button type="button" class="btn-eliminar-variante" onclick="eliminarVariante(this)">🗑️</button></td>
                     </tr>
-                    <!-- Fila de agregar nueva variante (siempre visible) -->
+                    <!-- Fila de nueva variante (siempre visible) -->
                     <tr id="filaNuevaVariante">
-                        <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input" required></td>
+                        <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input"></td>
                         <td><input type="text" id="nuevoColor" placeholder="Color" class="color-input"></td>
                         <td><input type="text" id="nuevaTalla" placeholder="Talla" class="talla-input"></td>
-                        <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input" required></td>
+                        <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input"></td>
                         <td><input type="number" step="0.01" id="nuevoCosto" placeholder="Costo" class="costo-input"></td>
-                        <td><input type="number" id="nuevoStock" placeholder="Stock" class="stock-input" required></td>
+                        <td><input type="number" id="nuevoStock" placeholder="Stock" class="stock-input"></td>
                         <td><input type="number" step="0.1" id="nuevoPeso" placeholder="Peso" class="peso-input"></td>
                         <td>
                             <select id="nuevoActivo" class="activo-select">
@@ -253,7 +253,7 @@
         <!-- ===== RESEÑAS ===== -->
         <div class="form-section" th:if="${producto.id != null}">
             <h2>⭐ Reseñas</h2>
-            <!-- (tu sección de reseñas existente) -->
+            <!-- Aquí puedes poner tu sección de reseñas existente -->
             <p th:text="'Reseñas: ' + ${#lists.size(resenas)}"></p>
         </div>
 
@@ -392,18 +392,17 @@
         const sku = document.querySelector('input[name="sku"]');
         const precio = document.querySelector('input[name="precio"]');
         if (!nombre.value.trim() || !sku.value.trim() || parseFloat(precio.value) <= 0) {
-            mostrarToast('Nombre, SKU y precio base son obligatorios.', 'error');
+            mostrarToast('Nombre, SKU base y precio base son obligatorios.', 'error');
             btn.disabled = false;
             btn.innerHTML = '💾 Guardar producto';
             e.preventDefault();
             return;
         }
 
-        // Verificar que todas las variantes tengan SKU, precio y stock (excepto la fila de agregar)
+        // Verificar que todas las variantes (excepto la fila de nueva) tengan SKU, precio y stock
         const skuInputs = document.querySelectorAll('.sku-input');
         for (let input of skuInputs) {
-            // Saltar la fila de agregar (la que tiene id="nuevoSku")
-            if (input.id === 'nuevoSku') continue;
+            if (input.id === 'nuevoSku') continue; // Saltar la fila de agregar
             if (!input.value.trim()) {
                 mostrarToast('Todas las variantes deben tener SKU.', 'error');
                 btn.disabled = false;

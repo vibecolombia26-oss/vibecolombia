@@ -23,18 +23,12 @@ public class ProductoController {
         this.resenaService = resenaService;
     }
 
-    // ============================================================
-    // PANEL DE PRODUCTOS
-    // ============================================================
     @GetMapping("/panel")
     public String panel(Model model) {
         model.addAttribute("productos", productoService.listarTodos());
         return "admin-panel";
     }
 
-    // ============================================================
-    // NUEVO PRODUCTO
-    // ============================================================
     @GetMapping("/nuevo")
     public String nuevoProducto(Model model) {
         model.addAttribute("producto", new Producto());
@@ -42,9 +36,6 @@ public class ProductoController {
         return "admin-form";
     }
 
-    // ============================================================
-    // EDITAR PRODUCTO
-    // ============================================================
     @GetMapping("/editar/{id}")
     public String editarProducto(@PathVariable Long id, Model model) {
         Producto producto = productoService.obtenerPorId(id);
@@ -57,9 +48,6 @@ public class ProductoController {
         return "admin-form";
     }
 
-    // ============================================================
-    // GUARDAR PRODUCTO (con manejo robusto de variantes)
-    // ============================================================
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto,
                                   @RequestParam(required = false) String imagen1File,
@@ -78,9 +66,7 @@ public class ProductoController {
                                   @RequestParam(required = false) List<Boolean> varianteActivo,
                                   RedirectAttributes redirect) {
 
-        // ============================================================
-        // 1. Guardar imágenes (igual que antes)
-        // ============================================================
+        // 1. Guardar imágenes (misma lógica que antes)
         if (producto.getId() != null) {
             Producto existente = productoService.obtenerPorId(producto.getId());
             if (existente != null) {
@@ -99,87 +85,31 @@ public class ProductoController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // ============================================================
-        // 2. Guardar producto base (necesario para tener ID)
-        // ============================================================
-        productoService.guardar(producto); // Guardamos para obtener ID (si es nuevo)
-
-        // ============================================================
-        // 3. Procesar variantes de forma robusta
-        // ============================================================
-        // Limpiar variantes existentes
-        producto.getVariantes().clear();
-
-        // Si no hay SKU, no hay variantes que procesar
-        if (varianteSku != null && !varianteSku.isEmpty()) {
-            // Determinar el tamaño máximo (basado en la lista de SKU)
-            int size = varianteSku.size();
-
-            for (int i = 0; i < size; i++) {
-                String sku = varianteSku.get(i);
-                // Saltar SKU vacíos o nulos
-                if (sku == null || sku.trim().isEmpty()) continue;
-
-                // Obtener cada campo con valores predeterminados si son null
-                String color = (varianteColor != null && i < varianteColor.size()) ? varianteColor.get(i) : "";
-                String talla = (varianteTalla != null && i < varianteTalla.size()) ? varianteTalla.get(i) : "";
-
-                // Precio: si es null o 0, usar el precio base del producto
-                Double precio = producto.getPrecio();
-                if (variantePrecio != null && i < variantePrecio.size() && variantePrecio.get(i) != null && variantePrecio.get(i) > 0) {
-                    precio = variantePrecio.get(i);
-                }
-
-                // Costo: si es null, usar 0
-                Double costo = 0.0;
-                if (varianteCosto != null && i < varianteCosto.size() && varianteCosto.get(i) != null) {
-                    costo = varianteCosto.get(i);
-                }
-
-                // Stock: si es null, usar 0
-                Integer stock = 0;
-                if (varianteStock != null && i < varianteStock.size() && varianteStock.get(i) != null) {
-                    stock = varianteStock.get(i);
-                }
-
-                // Peso: si es null, usar null
-                Double peso = null;
-                if (variantePeso != null && i < variantePeso.size() && variantePeso.get(i) != null) {
-                    peso = variantePeso.get(i);
-                }
-
-                // Activo: si es null, usar true
-                Boolean activo = true;
-                if (varianteActivo != null && i < varianteActivo.size() && varianteActivo.get(i) != null) {
-                    activo = varianteActivo.get(i);
-                }
-
-                // Crear y agregar variante
-                VarianteProducto v = new VarianteProducto();
-                v.setProducto(producto);
-                v.setSku(sku.trim());
-                v.setColor(color.trim());
-                v.setTalla(talla.trim());
-                v.setPrecio(precio);
-                v.setCosto(costo);
-                v.setStock(stock);
-                v.setPeso(peso);
-                v.setActivo(activo);
-
-                producto.getVariantes().add(v);
-            }
+        // 2. Guardar producto y variantes usando el método transaccional
+        try {
+            productoService.guardarProductoConVariantes(
+                    producto,
+                    varianteSku,
+                    varianteColor,
+                    varianteTalla,
+                    variantePrecio,
+                    varianteCosto,
+                    varianteStock,
+                    variantePeso,
+                    varianteActivo
+            );
+            redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
+        } catch (IllegalArgumentException e) {
+            redirect.addFlashAttribute("mensaje", "❌ Error: " + e.getMessage());
+            return "redirect:/admin/editar/" + producto.getId();
+        } catch (Exception e) {
+            redirect.addFlashAttribute("mensaje", "❌ Error al guardar: " + e.getMessage());
+            return "redirect:/admin/editar/" + producto.getId();
         }
 
-        // Guardar producto con las variantes
-        productoService.guardar(producto);
-
-        redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         return "redirect:/admin/panel";
     }
 
-    // ============================================================
-    // ELIMINAR PRODUCTO
-    // ============================================================
     @GetMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id, RedirectAttributes redirect) {
         productoService.eliminar(id);
@@ -187,9 +117,6 @@ public class ProductoController {
         return "redirect:/admin/panel";
     }
 
-    // ============================================================
-    // GUARDAR RESEÑA
-    // ============================================================
     @PostMapping("/guardar-resena")
     public String guardarResena(@RequestParam Long productoId,
                                 @RequestParam String nombreCliente,
@@ -218,9 +145,6 @@ public class ProductoController {
         return "redirect:/admin/editar/" + productoId;
     }
 
-    // ============================================================
-    // ELIMINAR RESEÑA
-    // ============================================================
     @GetMapping("/eliminar-resena/{id}")
     public String eliminarResena(@PathVariable Long id, RedirectAttributes redirect) {
         Resena resena = resenaService.obtenerPorId(id);

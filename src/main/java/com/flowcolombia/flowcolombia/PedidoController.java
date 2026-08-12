@@ -48,12 +48,11 @@ public class PedidoController {
         System.out.println("   Productos guardados: " + pedidoGuardado.getProductos());
         System.out.println("=========================================");
 
-        // 🔥 CORREGIDO: Ahora pasamos el código del pedido (no el nombre)
         if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
             try {
                 emailService.enviarConfirmacion(
                         pedido.getEmail(),
-                        pedido.getCodigo(),        // <-- Código de seguimiento
+                        pedido.getCodigo(),
                         pedido.getProductos(),
                         pedido.getTotal()
                 );

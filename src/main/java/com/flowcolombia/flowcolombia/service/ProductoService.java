@@ -9,7 +9,7 @@ import com.flowcolombia.flowcolombia.VarianteProductoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,14 +56,11 @@ public class ProductoService {
         return productoRepository.findBySku(sku).orElse(null);
     }
 
-    @Transactional
     public Producto guardar(Producto producto) {
         return productoRepository.save(producto);
     }
 
-    @Transactional
     public void eliminar(Long id) {
-        // Eliminar imágenes y variantes asociadas
         productoImagenRepository.deleteByProductoId(id);
         varianteProductoRepository.deleteByProductoId(id);
         productoRepository.deleteById(id);
@@ -74,61 +71,102 @@ public class ProductoService {
     }
 
     // ============================================================
-    // NUEVOS MÉTODOS PARA IMÁGENES
+    // NUEVO MÉTODO: guardar producto con variantes (TRANSACCIONAL)
     // ============================================================
-    public List<ProductoImagen> obtenerImagenesPorProducto(Long productoId) {
-        return productoImagenRepository.findByProductoIdOrderByOrdenAsc(productoId);
-    }
-
     @Transactional
-    public void guardarImagenes(Producto producto, List<String> urls) {
-        // Limpiar imágenes existentes
-        productoImagenRepository.deleteByProductoId(producto.getId());
+    public Producto guardarProductoConVariantes(Producto producto,
+                                                List<String> varianteSku,
+                                                List<String> varianteColor,
+                                                List<String> varianteTalla,
+                                                List<Double> variantePrecio,
+                                                List<Double> varianteCosto,
+                                                List<Integer> varianteStock,
+                                                List<Double> variantePeso,
+                                                List<Boolean> varianteActivo) {
 
-        // Guardar nuevas imágenes
-        int orden = 0;
-        for (String url : urls) {
-            if (url != null && !url.trim().isEmpty()) {
-                producto.addImagen(url.trim(), orden++);
+        // 1. Guardar el producto base
+        Producto productoGuardado = productoRepository.save(producto);
+
+        // 2. Obtener variantes actuales
+        List<VarianteProducto> variantesActuales = new ArrayList<>(productoGuardado.getVariantes());
+
+        // 3. Mapa de variantes actuales por SKU (para comparar)
+        Map<String, VarianteProducto> mapaActual = variantesActuales.stream()
+                .collect(Collectors.toMap(VarianteProducto::getSku, v -> v));
+
+        // 4. Lista para almacenar los SKU que se mantienen
+        Set<String> skusMantenidos = new HashSet<>();
+
+        // 5. Procesar variantes recibidas
+        int size = (varianteSku != null) ? varianteSku.size() : 0;
+
+        for (int i = 0; i < size; i++) {
+            String sku = (i < varianteSku.size()) ? varianteSku.get(i) : null;
+            if (sku == null || sku.trim().isEmpty()) continue;
+
+            String color = (varianteColor != null && i < varianteColor.size()) ? varianteColor.get(i) : "";
+            String talla = (varianteTalla != null && i < varianteTalla.size()) ? varianteTalla.get(i) : "";
+
+            Double precio = (variantePrecio != null && i < variantePrecio.size() && variantePrecio.get(i) != null && variantePrecio.get(i) > 0)
+                    ? variantePrecio.get(i)
+                    : productoGuardado.getPrecio();
+
+            Double costo = (varianteCosto != null && i < varianteCosto.size() && varianteCosto.get(i) != null)
+                    ? varianteCosto.get(i)
+                    : 0.0;
+
+            Integer stock = (varianteStock != null && i < varianteStock.size() && varianteStock.get(i) != null)
+                    ? varianteStock.get(i)
+                    : 0;
+
+            Double peso = (variantePeso != null && i < variantePeso.size() && variantePeso.get(i) != null)
+                    ? variantePeso.get(i)
+                    : null;
+
+            Boolean activo = (varianteActivo != null && i < varianteActivo.size() && varianteActivo.get(i) != null)
+                    ? varianteActivo.get(i)
+                    : true;
+
+            // Validar SKU único
+            if (mapaActual.containsKey(sku.trim())) {
+                // Actualizar variante existente
+                VarianteProducto existente = mapaActual.get(sku.trim());
+                existente.setColor(color.trim());
+                existente.setTalla(talla.trim());
+                existente.setPrecio(precio);
+                existente.setCosto(costo);
+                existente.setStock(stock);
+                existente.setPeso(peso);
+                existente.setActivo(activo);
+                skusMantenidos.add(sku.trim());
+            } else {
+                // Crear nueva variante
+                VarianteProducto nueva = new VarianteProducto();
+                nueva.setProducto(productoGuardado);
+                nueva.setSku(sku.trim());
+                nueva.setColor(color.trim());
+                nueva.setTalla(talla.trim());
+                nueva.setPrecio(precio);
+                nueva.setCosto(costo);
+                nueva.setStock(stock);
+                nueva.setPeso(peso);
+                nueva.setActivo(activo);
+                productoGuardado.getVariantes().add(nueva);
+                skusMantenidos.add(sku.trim());
             }
         }
-        productoRepository.save(producto);
+
+        // 6. Eliminar variantes que ya no están en la lista
+        productoGuardado.getVariantes().removeIf(v -> !skusMantenidos.contains(v.getSku()));
+
+        // 7. Guardar producto (cascade ALL)
+        return productoRepository.save(productoGuardado);
     }
 
     // ============================================================
-    // NUEVOS MÉTODOS PARA VARIANTES
+    // MÉTODO PARA OBTENER VARIANTE POR SKU (necesario para CarritoController)
     // ============================================================
-    public List<VarianteProducto> obtenerVariantesPorProducto(Long productoId) {
-        return varianteProductoRepository.findByProductoId(productoId);
-    }
-
     public VarianteProducto obtenerVariantePorSku(String sku) {
         return varianteProductoRepository.findBySku(sku).orElse(null);
-    }
-
-    @Transactional
-    public void guardarVariantes(Producto producto, List<VarianteProducto> variantes) {
-        // Limpiar variantes existentes
-        varianteProductoRepository.deleteByProductoId(producto.getId());
-
-        // Asignar producto a cada variante y guardar
-        for (VarianteProducto v : variantes) {
-            v.setProducto(producto);
-            varianteProductoRepository.save(v);
-        }
-    }
-
-    @Transactional
-    public void actualizarStock(Long varianteId, Integer nuevoStock) {
-        VarianteProducto variante = varianteProductoRepository.findById(varianteId).orElse(null);
-        if (variante != null) {
-            variante.setStock(nuevoStock);
-            if (nuevoStock <= 0) {
-                variante.setActivo(false);
-            } else {
-                variante.setActivo(true);
-            }
-            varianteProductoRepository.save(variante);
-        }
     }
 }
