@@ -9,7 +9,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -22,6 +25,10 @@ public class ProductoController {
         this.productoService = productoService;
         this.resenaService = resenaService;
     }
+
+    // ============================================================
+    // ADMIN: PANEL, NUEVO, EDITAR, GUARDAR, ELIMINAR
+    // ============================================================
 
     @GetMapping("/panel")
     public String panel(Model model) {
@@ -113,7 +120,7 @@ public class ProductoController {
                 return "redirect:/admin/editar/" + producto.getId();
             }
         } catch (Exception e) {
-            redirect.addFlashAttribute("mensaje", "❌ Error al guardar: " + e.getMessage());
+            redirect.addFlashAttribute("mensaje", "❌ Ocurrió un error inesperado. Intenta nuevamente.");
             if (producto.getId() == null) {
                 return "redirect:/admin/nuevo";
             } else {
@@ -130,6 +137,10 @@ public class ProductoController {
         redirect.addFlashAttribute("mensaje", "✅ Producto eliminado correctamente!");
         return "redirect:/admin/panel";
     }
+
+    // ============================================================
+    // ADMIN: RESEÑAS
+    // ============================================================
 
     @PostMapping("/guardar-resena")
     public String guardarResena(@RequestParam Long productoId,
@@ -170,5 +181,125 @@ public class ProductoController {
         }
         redirect.addFlashAttribute("mensaje", "Reseña no encontrada");
         return "redirect:/admin/panel";
+    }
+
+    // ============================================================
+    // 🆕 ENDPOINT REST PARA DETALLE DE PRODUCTO (PÚBLICO)
+    // ============================================================
+
+    @GetMapping("/api/producto/{id}")
+    @ResponseBody
+    public Map<String, Object> obtenerProductoDetalle(@PathVariable Long id) {
+        try {
+            Producto producto = productoService.obtenerPorId(id);
+            if (producto == null) {
+                return crearRespuestaError("Producto no encontrado");
+            }
+
+            Map<String, Object> detalle = new HashMap<>();
+
+            // ============================================================
+            // 1. DATOS DEL PRODUCTO
+            // ============================================================
+            detalle.put("id", producto.getId());
+            detalle.put("nombre", producto.getNombre());
+            detalle.put("sku", producto.getSku());
+            detalle.put("precio", producto.getPrecio());
+            detalle.put("categoria", producto.getCategoria());
+            detalle.put("descripcion", producto.getDescripcion());
+            detalle.put("descripcionLarga", producto.getDescripcionLarga());
+
+            // ============================================================
+            // 2. IMÁGENES
+            // ============================================================
+            List<String> imagenes = new ArrayList<>();
+            if (producto.getImagenes() != null && !producto.getImagenes().isEmpty()) {
+                imagenes = producto.getImagenes().stream()
+                        .map(ProductoImagen::getUrl)
+                        .collect(Collectors.toList());
+            } else {
+                if (producto.getImagen1() != null) imagenes.add(producto.getImagen1());
+                if (producto.getImagen2() != null) imagenes.add(producto.getImagen2());
+                if (producto.getImagen3() != null) imagenes.add(producto.getImagen3());
+                if (producto.getImagen4() != null) imagenes.add(producto.getImagen4());
+                if (producto.getImagen5() != null) imagenes.add(producto.getImagen5());
+                if (producto.getImagen6() != null) imagenes.add(producto.getImagen6());
+            }
+            detalle.put("imagenes", imagenes);
+
+            // ============================================================
+            // 3. VARIANTES
+            // ============================================================
+            List<Map<String, Object>> variantes = new ArrayList<>();
+            if (producto.getVariantes() != null) {
+                for (VarianteProducto v : producto.getVariantes()) {
+                    Map<String, Object> vMap = new HashMap<>();
+                    vMap.put("sku", v.getSku());
+                    vMap.put("color", v.getColor());
+                    vMap.put("talla", v.getTalla());
+                    vMap.put("precio", v.getPrecio());
+                    vMap.put("stock", v.getStock());
+                    vMap.put("activo", v.getActivo());
+                    variantes.add(vMap);
+                }
+            }
+            detalle.put("variantes", variantes);
+
+            // ============================================================
+            // 4. RESEÑAS (solo aprobadas)
+            // ============================================================
+            List<Resena> resenasAprobadas = resenaService.listarAprobadasPorProducto(id);
+            List<Map<String, Object>> resenasList = new ArrayList<>();
+            for (Resena r : resenasAprobadas) {
+                Map<String, Object> rMap = new HashMap<>();
+                rMap.put("nombreCliente", r.getNombreCliente());
+                rMap.put("calificacion", r.getCalificacion());
+                rMap.put("comentario", r.getComentario());
+                rMap.put("fecha", r.getFecha());
+                rMap.put("imagenUrl", r.getImagenUrl());
+                resenasList.add(rMap);
+            }
+            detalle.put("resenas", resenasList);
+
+            // ============================================================
+            // 5. PROMEDIO Y CANTIDAD
+            // ============================================================
+            detalle.put("promedioCalificacion", producto.getPromedioCalificacion());
+            detalle.put("totalResenas", producto.getCantidadResenas());
+
+            // ============================================================
+            // 6. PRODUCTOS RELACIONADOS (optimizado con categoría)
+            // ============================================================
+            List<Map<String, Object>> relacionados = new ArrayList<>();
+            if (producto.getCategoria() != null && !producto.getCategoria().isEmpty()) {
+                List<Producto> relacionadosProductos = productoService.obtenerRelacionados(
+                        producto.getId(),
+                        producto.getCategoria(),
+                        5
+                );
+                for (Producto p : relacionadosProductos) {
+                    Map<String, Object> pMap = new HashMap<>();
+                    pMap.put("id", p.getId());
+                    pMap.put("nombre", p.getNombre());
+                    pMap.put("precio", p.getPrecio());
+                    pMap.put("imagen", p.getImagen1() != null ? p.getImagen1() : "");
+                    relacionados.add(pMap);
+                }
+            }
+            detalle.put("relacionados", relacionados);
+
+            return detalle;
+
+        } catch (Exception e) {
+            // Registro del error en logs (se asume logger)
+            // logger.error("Error al obtener detalle del producto", e);
+            return crearRespuestaError("Error al obtener el detalle del producto");
+        }
+    }
+
+    private Map<String, Object> crearRespuestaError(String mensaje) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", mensaje);
+        return error;
     }
 }

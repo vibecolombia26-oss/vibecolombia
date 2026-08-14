@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${producto.nombre}">FLOW COLOMBIA</title>
     <style>
-        /* ===== ESTILOS BASE (mantén los tuyos) ===== */
+        /* ===== ESTILOS BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
         .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; background-color: #0a0a0a; }
@@ -32,7 +32,7 @@
         .carrusel-btn.prev { left: 10px; }
         .carrusel-btn.next { right: 10px; }
 
-        /* ===== SECCIÓN DE INFORMACIÓN ===== */
+        /* ===== INFORMACIÓN ===== */
         .info-section { padding: 20px 20px 25px; }
         .nombre { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
         .precio-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -40,49 +40,23 @@
         .stock-display { font-size: 0.9rem; color: #4CAF50; }
         .stock-display.agotado { color: #ff4444; }
 
-        /* ===== SELECTORES DE COLOR Y TALLA ===== */
+        /* ===== SELECTORES DE VARIANTES ===== */
         .variantes-selector { margin: 15px 0; }
         .selector-group { margin-bottom: 15px; }
         .selector-group label { display: block; color: #00ffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
         .opciones-color { display: flex; flex-wrap: wrap; gap: 10px; }
-        .opcion-color {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 3px solid #333;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            color: #fff;
-            font-weight: 600;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-            background-size: cover;
-            background-position: center;
-        }
+        .opcion-color { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background-size: cover; background-position: center; }
         .opcion-color:hover { transform: scale(1.1); border-color: #ff00ff; }
         .opcion-color.seleccionado { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
         .opcion-color.agotado { opacity: 0.4; cursor: not-allowed; border-color: #444; }
         .opcion-color.agotado::after { content: '✕'; color: #ff4444; font-size: 1.2rem; }
-
         .opciones-talla { display: flex; flex-wrap: wrap; gap: 8px; }
-        .opcion-talla {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 2px solid #333;
-            background: transparent;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
+        .opcion-talla { padding: 8px 16px; border-radius: 8px; border: 2px solid #333; background: transparent; color: #fff; cursor: pointer; transition: all 0.3s; font-weight: 600; }
         .opcion-talla:hover { background: rgba(255,0,255,0.1); border-color: #ff00ff; }
         .opcion-talla.seleccionado { background: #ff00ff; border-color: #ff00ff; color: #fff; box-shadow: 0 0 20px rgba(255,0,255,0.3); }
         .opcion-talla.agotado { opacity: 0.4; cursor: not-allowed; border-color: #444; }
 
-        /* ===== RESTO DE ELEMENTOS (dropdowns, reseñas, etc.) ===== */
+        /* ===== DROPDOWNS ===== */
         .dropdown-container { margin: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; transition: all 0.3s; }
         .dropdown-header:hover { color: #ff00ff; }
@@ -96,10 +70,52 @@
         .dropdown-content ul li { color: #ccc; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .dropdown-content ul li::before { content: "✦ "; color: #ff00ff; }
 
+        /* ===== RESEÑAS ===== */
         .resenas-section { margin: 20px 0 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .resenas-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .resenas-header h3 { color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .resenas-header .cantidad { color: #888; font-size: 0.85rem; font-weight: 400; }
+        .resumen-calificacion { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .resumen-calificacion .nota { font-size: 1.8rem; font-weight: 900; color: #ffd700; }
+        .resumen-calificacion .estrellas-grandes { font-size: 1.2rem; color: #ffd700; letter-spacing: 2px; }
+        .resumen-calificacion .total { color: #888; font-size: 0.85rem; }
+
+        /* ===== MINIATURA DE RESEÑA (pública) ===== */
+        .imagen-resena {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: block;
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .imagen-resena:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,255,255,0.25);
+        }
+
+        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #ffd700; }
+        .resena-item .nombre { font-weight: 600; color: #fff; font-size: 0.9rem; }
+        .resena-item .estrellas { color: #ffd700; font-size: 0.85rem; letter-spacing: 1px; margin: 3px 0; }
+        .resena-item .fecha { color: #666; font-size: 0.65rem; }
+        .resena-item .comentario { color: #ccc; font-size: 0.85rem; margin-top: 5px; line-height: 1.5; }
+        .sin-resenas { text-align: center; padding: 20px; color: #666; background: rgba(255,255,255,0.02); border-radius: 12px; font-size: 0.9rem; }
+
+        /* ===== SELLOS, CANTIDAD, BOTONES ===== */
         .sellos-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 15px 0 10px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .sello-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #aaa; }
+        .sello-item .icono { font-size: 1.3rem; }
+        .sello-item .texto { color: #ccc; }
+        .sello-item .texto strong { color: #fff; }
         .cantidad-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 15px 0 10px; padding: 12px; background: rgba(0,255,255,0.05); border-radius: 12px; border: 1px solid rgba(0,255,255,0.2); flex-wrap: wrap; }
+        .cantidad-row label { font-size: 0.85rem; }
+        .qty-btn { background: transparent; color: #ff00ff; border: 1px solid #ff00ff; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .qty-btn:hover { background: rgba(255,0,255,0.1); box-shadow: 0 0 15px rgba(255,0,255,0.3); }
+        .qty-input { width: 50px; text-align: center; background: #111; color: #fff; border: 1px solid #333; padding: 6px; border-radius: 6px; font-size: 0.9rem; }
+        .subtotal-display { color: #00ffff; font-weight: 700; font-size: 0.9rem; }
         .acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
         .btn-carrito { width: 100%; padding: 14px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
@@ -112,16 +128,73 @@
         .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
         @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
 
+        /* ===== MODAL DE IMÁGENES (mejorado) ===== */
+        .image-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            cursor: pointer;
+        }
+        .image-modal.active {
+            display: flex;
+        }
+        .image-modal-content {
+            max-width: min(90vw, 1000px);
+            max-height: 85vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: default;
+        }
+        .image-modal-close {
+            position: fixed;
+            top: 20px;
+            right: 25px;
+            z-index: 10001;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(20,20,20,0.9);
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .image-modal-close:hover {
+            background: #ff0044;
+            transform: scale(1.05);
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .whatsapp-float { bottom: 160px !important; z-index: 9999 !important; width: 48px; height: 48px; }
             #cartFloat { z-index: 9998 !important; }
             .opcion-color { width: 32px; height: 32px; }
+            .image-modal { padding: 15px; }
+            .image-modal-content { max-width: 95vw; max-height: 80vh; }
+            .image-modal-close { top:10px; right:10px; width:36px; height:36px; font-size:24px; }
         }
         body.light-mode .opcion-color { border-color: #ccc; }
         body.light-mode .opcion-talla { border-color: #ccc; color: #222; }
         body.light-mode .opcion-talla.seleccionado { background: #ff00ff; color: #fff; }
         body.light-mode .opcion-color.seleccionado { border-color: #ffd700; }
+        body.light-mode .imagen-resena { border-color: #ddd; }
+        body.light-mode .resena-item { background: rgba(0,0,0,0.03); }
+        body.light-mode .resena-item .nombre { color: #222; }
+        body.light-mode .resena-item .comentario { color: #444; }
     </style>
 </head>
 <body>
@@ -130,7 +203,9 @@
     <a href="/" class="back-btn">← Volver</a>
     <div class="producto-card">
 
-        <!-- ===== CARRUSEL DE IMÁGENES ===== -->
+        <!-- ============================================================ -->
+        <!-- CARRUSEL DE IMÁGENES -->
+        <!-- ============================================================ -->
         <div class="imagenes-container" id="carruselContainer">
             <div class="imagenes-slider" id="carruselSlider">
                 <div class="imagenes-slide">
@@ -160,36 +235,32 @@
         <div class="info-section">
             <h1 class="nombre" th:text="${producto.nombre}">Nombre</h1>
 
-            <!-- ===== PRECIO + CALIFICACIÓN ===== -->
+            <!-- ======== PRECIO + CALIFICACIÓN ======== -->
             <div class="precio-row">
                 <div class="precio" id="precioProducto" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
                 <div class="stock-display" id="stockDisplay">📦 <span id="stockCantidad">0</span> disponibles</div>
             </div>
 
-            <!-- ===== METADATOS ===== -->
+            <!-- ======== METADATOS ======== -->
             <div class="meta">
                 <span class="sku" th:text="'Ref: ' + ${producto.sku}">SKU</span>
                 <span class="categoria" th:text="${producto.categoria}">Categoría</span>
                 <span class="colombia-badge">🇨🇴 Envío GRATIS</span>
             </div>
 
-            <!-- ===== SELECTORES DE VARIANTES ===== -->
+            <!-- ======== SELECTORES DE VARIANTES ======== -->
             <div class="variantes-selector" id="variantesSelector" th:if="${not #lists.isEmpty(producto.variantes)}">
                 <div class="selector-group" id="colorGroup">
                     <label>🎨 Color</label>
-                    <div class="opciones-color" id="coloresContainer">
-                        <!-- Se llena con JS -->
-                    </div>
+                    <div class="opciones-color" id="coloresContainer"></div>
                 </div>
                 <div class="selector-group" id="tallaGroup">
                     <label>📏 Talla</label>
-                    <div class="opciones-talla" id="tallasContainer">
-                        <!-- Se llena con JS -->
-                    </div>
+                    <div class="opciones-talla" id="tallasContainer"></div>
                 </div>
             </div>
 
-            <!-- ===== DROPDOWNS ===== -->
+            <!-- ======== DROPDOWNS ======== -->
             <div class="dropdown-container">
                 <div class="dropdown-header" onclick="toggleDropdown(this)">
                     <h3><span class="icono">📝</span> Descripción del producto</h3>
@@ -229,7 +300,7 @@
                 </div>
             </div>
 
-            <!-- ===== RESEÑAS ===== -->
+            <!-- ======== RESEÑAS (públicas) ======== -->
             <div class="resenas-section" id="resenasSection">
                 <div class="resenas-header">
                     <h3>⭐ Opiniones de clientes <span class="cantidad" th:text="'(' + ${totalResenas != null ? totalResenas : 0} + ')'">(0)</span></h3>
@@ -253,9 +324,12 @@
                         </div>
                         <span class="fecha" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
                         <p class="comentario" th:text="${resena.comentario}">Comentario</p>
-                        <div class="imagen-resena" th:if="${resena.imagenUrl != null && !resena.imagenUrl.isEmpty()}">
-                            <img th:src="${resena.imagenUrl}" alt="Foto de la reseña">
-                        </div>
+                        <!-- ===== MINIATURA CLICABLE ===== -->
+                        <img class="imagen-resena"
+                             th:if="${resena.imagenUrl != null && !#strings.isEmpty(resena.imagenUrl)}"
+                             th:src="${resena.imagenUrl}"
+                             alt="Foto de la reseña"
+                             onclick="abrirImagenModal(this.src)">
                     </div>
                 </div>
                 <div th:if="${resenas == null || resenas.isEmpty()}" class="sin-resenas">
@@ -264,14 +338,14 @@
                 </div>
             </div>
 
-            <!-- ===== SELLOS DE CONFIANZA ===== -->
+            <!-- ======== SELLOS DE CONFIANZA ======== -->
             <div class="sellos-container">
                 <div class="sello-item"><span class="icono">📦</span><span class="texto"><strong>Envío gratis</strong> a toda Colombia</span></div>
                 <div class="sello-item"><span class="icono">💵</span><span class="texto"><strong>Pago contra entrega</strong> seguro</span></div>
                 <div class="sello-item"><span class="icono">🛡️</span><span class="texto"><strong>Garantía</strong> de satisfacción</span></div>
             </div>
 
-            <!-- ===== CANTIDAD Y ACCIONES ===== -->
+            <!-- ======== CANTIDAD Y ACCIONES ======== -->
             <div class="cantidad-row">
                 <label>Cantidad</label>
                 <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
@@ -304,6 +378,24 @@
 </a>
 
 <!-- ============================================================ -->
+<!-- MODAL DE IMÁGENES (mejorado) -->
+<!-- ============================================================ -->
+<div id="imageModal"
+     class="image-modal"
+     onclick="cerrarImagenModalPorFondo(event)">
+    <button type="button"
+            class="image-modal-close"
+            onclick="cerrarImagenModal(event)">
+        ×
+    </button>
+    <img id="imageModalContent"
+         class="image-modal-content"
+         src=""
+         alt="Vista ampliada de la reseña"
+         onclick="event.stopPropagation()">
+</div>
+
+<!-- ============================================================ -->
 <!-- SCRIPTS -->
 <!-- ============================================================ -->
 <script>
@@ -319,7 +411,7 @@
     let precioBase = /*[[${producto.precio}]]*/ 0;
 
     // ============================================================
-    // RENDERIZAR SELECTORES
+    // RENDERIZAR SELECTORES DE VARIANTES
     // ============================================================
     function renderizarSelectores() {
         const coloresSet = new Set();
@@ -336,7 +428,7 @@
         const colores = Array.from(coloresSet);
         const tallas = Array.from(tallasSet);
 
-        // Renderizar colores
+        // Colores
         const coloresContainer = document.getElementById('coloresContainer');
         coloresContainer.innerHTML = '';
         colores.forEach(color => {
@@ -350,7 +442,7 @@
             coloresContainer.appendChild(btn);
         });
 
-        // Renderizar tallas
+        // Tallas
         const tallasContainer = document.getElementById('tallasContainer');
         tallasContainer.innerHTML = '';
         tallas.forEach(talla => {
@@ -364,7 +456,7 @@
     }
 
     // ============================================================
-    // SELECCIÓN DE COLOR Y TALLA
+    // SELECCIÓN DE VARIANTE
     // ============================================================
     let colorSeleccionado = null;
     let tallaSeleccionada = null;
@@ -420,7 +512,7 @@
     }
 
     // ============================================================
-    // UTILIDAD: color a hexadecimal (aproximado)
+    // UTILIDAD: color a hexadecimal
     // ============================================================
     function colorToHex(color) {
         const mapa = {
@@ -443,7 +535,7 @@
     }
 
     // ============================================================
-    // FUNCIONES DE CARRITO (usando SKU)
+    // CARRITO (usando SKU)
     // ============================================================
     function agregarAlCarrito() {
         if (!varianteSeleccionada) {
@@ -454,7 +546,6 @@
         const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
         const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
 
-        // Buscar si ya existe esa variante en el carrito
         const existente = carrito.find(item => item.sku === varianteSeleccionada.sku);
         if (existente) {
             existente.cantidad += cantidad;
@@ -499,10 +590,10 @@
     }
 
     // ============================================================
-    // TOAST Y CONTADOR
+    // TOAST
     // ============================================================
     function mostrarToast(mensaje, icono) {
-        // Implementa tu sistema de toast aquí
+        // Implementación simple; puedes reemplazar con tu sistema de toast
         alert(mensaje);
     }
 
@@ -527,6 +618,44 @@
     }
 
     // ============================================================
+    // MODAL DE IMÁGENES (mejorado)
+    // ============================================================
+    function abrirImagenModal(url) {
+        const modal = document.getElementById('imageModal');
+        const imagen = document.getElementById('imageModalContent');
+        if (!modal || !imagen || !url) return;
+        imagen.src = url;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarImagenModal(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        const modal = document.getElementById('imageModal');
+        const imagen = document.getElementById('imageModalContent');
+        if (!modal) return;
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (imagen) {
+            imagen.src = '';
+        }
+    }
+
+    function cerrarImagenModalPorFondo(event) {
+        if (event.target === document.getElementById('imageModal')) {
+            cerrarImagenModal(event);
+        }
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            cerrarImagenModal(event);
+        }
+    });
+
+    // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
@@ -538,11 +667,60 @@
         }
         actualizarSubtotal();
         actualizarContadorCarrito();
+
+        // Fondo animado
+        const bg = document.getElementById('bgAnimado');
+        const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+        for (let i=0;i<15;i++) {
+            const el = document.createElement('div');
+            el.className='particula';
+            const t = Math.random()*3+1;
+            el.style.cssText = 'width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;';
+            bg.appendChild(el);
+        }
+        const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+        for (let i=0;i<8;i++) {
+            const el = document.createElement('div');
+            el.className='particula-emoji';
+            el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+            el.style.cssText = 'left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
+            bg.appendChild(el);
+        }
+    });
+
+    // ============================================================
+    // BARRA FLOTANTE DE CARRITO
+    // ============================================================
+    function actualizarBarraCarrito() {
+        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        const floatDiv = document.getElementById('cartFloat');
+        const countSpan = document.getElementById('cartFloatCount');
+        const totalSpan = document.getElementById('cartFloatTotal');
+        if (carrito.length === 0) {
+            floatDiv.classList.remove('show');
+            return;
+        }
+        let total = 0;
+        carrito.forEach(item => {
+            const precio = Number(item.precio) || 0;
+            const cantidad = Number(item.cantidad) || 1;
+            total += precio * cantidad;
+        });
+        countSpan.textContent = carrito.length;
+        totalSpan.textContent = total.toLocaleString('es-CO');
+        floatDiv.classList.add('show');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarBarraCarrito();
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
+        });
     });
 </script>
 
 <!-- ============================================================ -->
-<!-- BARRA FLOTANTE DE CARRITO -->
+<!-- BARRA FLOTANTE DE CARRITO (existente) -->
 <!-- ============================================================ -->
 <div id="cartFloat" style="
     position: fixed;
@@ -608,35 +786,6 @@
         #cartFloat a { width: 100%; text-align: center; padding: 10px; font-size: 0.75rem !important; }
     }
 </style>
-
-<script>
-    function actualizarBarraCarrito() {
-        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        const floatDiv = document.getElementById('cartFloat');
-        const countSpan = document.getElementById('cartFloatCount');
-        const totalSpan = document.getElementById('cartFloatTotal');
-        if (carrito.length === 0) {
-            floatDiv.classList.remove('show');
-            return;
-        }
-        let total = 0;
-        carrito.forEach(item => {
-            const precio = Number(item.precio) || 0;
-            const cantidad = Number(item.cantidad) || 1;
-            total += precio * cantidad;
-        });
-        countSpan.textContent = carrito.length;
-        totalSpan.textContent = total.toLocaleString('es-CO');
-        floatDiv.classList.add('show');
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        actualizarBarraCarrito();
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
-        });
-    });
-</script>
 
 </body>
 </html>
