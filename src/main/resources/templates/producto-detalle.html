@@ -204,32 +204,32 @@
     <div class="producto-card">
 
         <!-- ============================================================ -->
-        <!-- CARRUSEL DE IMÁGENES -->
+        <!-- CARRUSEL DE IMÁGENES (MODIFICADO FASE 2) -->
         <!-- ============================================================ -->
         <div class="imagenes-container" id="carruselContainer">
             <div class="imagenes-slider" id="carruselSlider">
-                <div class="imagenes-slide">
+                <!-- Imágenes desde la colección ProductoImagen -->
+                <div th:each="img, iter : ${producto.imagenes}" class="imagenes-slide"
+                     th:attr="data-index=${iter.index}">
+                    <img class="imagen-principal" th:src="${img.url}" th:alt="${producto.nombre}"
+                         th:id="${iter.index == 0 ? 'imgPrincipal' : ''}">
+                </div>
+                <!-- Fallback: si la colección está vacía, usar imagen1 -->
+                <div th:if="${#lists.isEmpty(producto.imagenes)}" class="imagenes-slide">
                     <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen2 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen2}" th:alt="${producto.nombre}">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen3 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen3}" th:alt="${producto.nombre}">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen4 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen4}" th:alt="${producto.nombre}">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen5 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen5}" th:alt="${producto.nombre}">
-                </div>
-                <div class="imagenes-slide" th:if="${producto.imagen6 != null}">
-                    <img class="imagen-principal" th:src="${producto.imagen6}" th:alt="${producto.nombre}">
                 </div>
             </div>
             <button class="carrusel-btn prev" id="carruselPrev">‹</button>
             <button class="carrusel-btn next" id="carruselNext">›</button>
-            <div class="carrusel-dots" id="carruselDots"></div>
+            <div class="carrusel-dots" id="carruselDots">
+                <!-- Dots dinámicos para cada imagen de la colección -->
+                <span th:each="img, iter : ${producto.imagenes}"
+                      class="carrusel-dot" th:classappend="${iter.index == 0 ? 'active' : ''}"
+                      th:attr="data-index=${iter.index}"></span>
+                <!-- Fallback: un solo dot si la colección está vacía -->
+                <span th:if="${#lists.isEmpty(producto.imagenes)}"
+                      class="carrusel-dot active" data-index="0"></span>
+            </div>
         </div>
 
         <div class="info-section">
@@ -324,7 +324,6 @@
                         </div>
                         <span class="fecha" th:text="${#temporals.format(resena.fecha, 'dd/MM/yyyy')}">Fecha</span>
                         <p class="comentario" th:text="${resena.comentario}">Comentario</p>
-                        <!-- ===== MINIATURA CLICABLE ===== -->
                         <img class="imagen-resena"
                              th:if="${resena.imagenUrl != null && !#strings.isEmpty(resena.imagenUrl)}"
                              th:src="${resena.imagenUrl}"
@@ -396,7 +395,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPTS -->
+<!-- SCRIPTS (MODIFICADO FASE 2) -->
 <!-- ============================================================ -->
 <script>
     // ============================================================
@@ -405,7 +404,9 @@
     const variantes = /*[[${producto.variantes}]]*/ [];
     const productoId = /*[[${producto.id}]]*/ null;
     const productoNombre = /*[[${producto.nombre}]]*/ '';
-    const productoImagen = /*[[${producto.imagen1}]]*/ '';
+
+    // 🔥 MODIFICADO FASE 2: usa ProductoImagen como fuente principal con fallback a imagen1
+    const productoImagen = /*[[${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : producto.imagen1}]]*/ '';
 
     let varianteSeleccionada = null;
     let precioBase = /*[[${producto.precio}]]*/ 0;
@@ -593,7 +594,6 @@
     // TOAST
     // ============================================================
     function mostrarToast(mensaje, icono) {
-        // Implementación simple; puedes reemplazar con tu sistema de toast
         alert(mensaje);
     }
 
@@ -618,7 +618,7 @@
     }
 
     // ============================================================
-    // MODAL DE IMÁGENES (mejorado)
+    // MODAL DE IMÁGENES
     // ============================================================
     function abrirImagenModal(url) {
         const modal = document.getElementById('imageModal');
@@ -630,17 +630,13 @@
     }
 
     function cerrarImagenModal(event) {
-        if (event) {
-            event.stopPropagation();
-        }
+        if (event) event.stopPropagation();
         const modal = document.getElementById('imageModal');
         const imagen = document.getElementById('imageModalContent');
         if (!modal) return;
         modal.classList.remove('active');
         document.body.style.overflow = '';
-        if (imagen) {
-            imagen.src = '';
-        }
+        if (imagen) imagen.src = '';
     }
 
     function cerrarImagenModalPorFondo(event) {
@@ -650,16 +646,69 @@
     }
 
     document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            cerrarImagenModal(event);
-        }
+        if (event.key === 'Escape') cerrarImagenModal(event);
     });
 
     // ============================================================
-    // INICIALIZACIÓN
+    // CARRUSEL (MODIFICADO FASE 2)
+    // ============================================================
+    let totalSlides = 0;
+    let slideActual = 0;
+
+    function irASlide(index) {
+        const slider = document.getElementById('carruselSlider');
+        const slides = slider.querySelectorAll('.imagenes-slide');
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+        slideActual = index;
+        slider.style.transform = 'translateX(-' + (index * 100) + '%)';
+        actualizarDots();
+    }
+
+    function actualizarDots() {
+        const dots = document.querySelectorAll('.carrusel-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === slideActual);
+        });
+    }
+
+    document.getElementById('carruselPrev').addEventListener('click', function() {
+        irASlide(slideActual - 1);
+    });
+
+    document.getElementById('carruselNext').addEventListener('click', function() {
+        irASlide(slideActual + 1);
+    });
+
+    // ============================================================
+    // INICIALIZACIÓN (MODIFICADO FASE 2)
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
+        // 🔥 Calcular totalSlides dinámicamente
+        const slides = document.querySelectorAll('.imagenes-slide');
+        totalSlides = slides.length;
+
+        const dots = document.querySelectorAll('.carrusel-dot');
+        // Si hay menos slides que dots, ocultar los sobrantes
+        if (slides.length < totalSlides) {
+            dots.forEach((dot, i) => {
+                if (i >= slides.length) {
+                    dot.style.display = 'none';
+                }
+            });
+        }
+        // Si solo hay 1 imagen, ocultar botones de navegación
+        if (slides.length <= 1) {
+            document.getElementById('carruselPrev').style.display = 'none';
+            document.getElementById('carruselNext').style.display = 'none';
+        }
+        // Asegurar que el primer slide esté visible
+        irASlide(0);
+
+        // Renderizar selectores de variantes
         renderizarSelectores();
+
+        // Actualizar precio base
         const precioElement = document.getElementById('precioProducto');
         if (precioElement) {
             const texto = precioElement.textContent.replace(/[^0-9,]/g, '').replace(',', '.');

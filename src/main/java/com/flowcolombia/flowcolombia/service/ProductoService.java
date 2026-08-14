@@ -35,6 +35,7 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
+    // Fase 1: ahora usa findByCategoria con @EntityGraph
     public List<Producto> listarPorCategoria(String categoria) {
         return productoRepository.findByCategoria(categoria);
     }
@@ -51,6 +52,11 @@ public class ProductoService {
 
     public Producto obtenerPorId(Long id) {
         return productoRepository.findById(id).orElse(null);
+    }
+
+    // Fase 2: nuevo método para el detalle con imágenes y variantes
+    public Producto obtenerDetalleProducto(Long id) {
+        return productoRepository.findByIdWithImagenesAndVariantes(id).orElse(null);
     }
 
     public Producto obtenerPorSku(String sku) {

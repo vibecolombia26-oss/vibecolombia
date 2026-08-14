@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
+// 🔥 Imports necesarios para las entidades
+import com.flowcolombia.flowcolombia.Producto;
+import com.flowcolombia.flowcolombia.Resena;
+
 @Controller
 public class WebController {
 
@@ -79,12 +83,13 @@ public class WebController {
     }
 
     // ============================================================
-    // DETALLE DE PRODUCTO
+    // DETALLE DE PRODUCTO (MODIFICADO FASE 2)
     // ============================================================
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
         try {
-            Producto producto = productoService.obtenerPorId(id);
+            // 🔥 Cambio Fase 2: usar obtenerDetalleProducto para cargar imágenes y variantes
+            Producto producto = productoService.obtenerDetalleProducto(id);
             if (producto == null) {
                 return "redirect:/?error=Producto no encontrado";
             }
@@ -107,6 +112,8 @@ public class WebController {
 
             return "producto-detalle";
         } catch (Exception e) {
+            // 🔥 Mejora para depuración: imprimir el stack trace
+            e.printStackTrace();
             return "redirect:/?error=Error al cargar el producto";
         }
     }
@@ -137,7 +144,7 @@ public class WebController {
     }
 
     // ============================================================
-    // 🔥 ADMIN LOGIN (ESTE ES EL QUE FALTABA)
+    // ADMIN LOGIN
     // ============================================================
     @GetMapping("/admin-login")
     public String adminLogin() {
