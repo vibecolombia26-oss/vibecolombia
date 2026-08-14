@@ -75,7 +75,6 @@
             100% { transform: translateX(0); opacity: 1; }
         }
 
-        /* ===== TABLA DE VARIANTES ===== */
         .variantes-table-wrap { overflow-x: auto; margin-top: 15px; }
         .variantes-table {
             width: 100%;
@@ -131,7 +130,6 @@
         }
         .btn-agregar-variante:hover { background: #00ddff; box-shadow: 0 0 20px rgba(0,255,255,0.3); }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width:600px){
             .form-row, .imagenes-grid { grid-template-columns:1fr; }
             .acciones-fijas { flex-direction:column; align-items:stretch; }
@@ -191,7 +189,7 @@
             <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
         </div>
 
-        <!-- ===== VARIANTES (TABLA) ===== -->
+        <!-- ===== VARIANTES ===== -->
         <div class="form-section">
             <h2>📦 Variantes (tallas / colores)</h2>
             <div class="variantes-table-wrap">
@@ -210,9 +208,14 @@
                     </tr>
                     </thead>
                     <tbody id="variantesBody">
-                    <!-- Variantes existentes -->
+                    <!-- ============================================================ -->
+                    <!-- VARIANTES EXISTENTES -->
+                    <!-- ============================================================ -->
                     <tr th:each="v : ${producto.variantes}">
-                        <td><input type="text" name="varianteSku" th:value="${v.sku}" class="sku-input" required></td>
+                        <td>
+                            <input type="hidden" name="varianteId" th:value="${v.id}">
+                            <input type="text" name="varianteSku" th:value="${v.sku}" class="sku-input" required>
+                        </td>
                         <td><input type="text" name="varianteColor" th:value="${v.color}" class="color-input"></td>
                         <td><input type="text" name="varianteTalla" th:value="${v.talla}" class="talla-input"></td>
                         <td><input type="number" step="0.01" name="variantePrecio" th:value="${v.precio}" class="precio-input" required></td>
@@ -227,9 +230,14 @@
                         </td>
                         <td><button type="button" class="btn-eliminar-variante" onclick="eliminarVariante(this)">🗑️</button></td>
                     </tr>
-                    <!-- Fila de nueva variante (siempre visible) -->
+
+                    <!-- ============================================================ -->
+                    <!-- FILA DE NUEVA VARIANTE (sin ID oculto) -->
+                    <!-- ============================================================ -->
                     <tr id="filaNuevaVariante">
-                        <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input"></td>
+                        <td>
+                            <input type="text" id="nuevoSku" placeholder="SKU" class="sku-input">
+                        </td>
                         <td><input type="text" id="nuevoColor" placeholder="Color" class="color-input"></td>
                         <td><input type="text" id="nuevaTalla" placeholder="Talla" class="talla-input"></td>
                         <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input"></td>
@@ -253,7 +261,6 @@
         <!-- ===== RESEÑAS ===== -->
         <div class="form-section" th:if="${producto.id != null}">
             <h2>⭐ Reseñas</h2>
-            <!-- Aquí puedes poner tu sección de reseñas existente -->
             <p th:text="'Reseñas: ' + ${#lists.size(resenas)}"></p>
         </div>
 
@@ -321,7 +328,7 @@
             return;
         }
 
-        // Verificar SKU duplicado
+        // Validar SKU duplicado en el formulario
         const skus = document.querySelectorAll('.sku-input');
         for (let input of skus) {
             if (input.value.trim().toUpperCase() === sku.toUpperCase()) {
@@ -332,14 +339,37 @@
 
         const tbody = document.getElementById('variantesBody');
         const row = document.createElement('tr');
+
+        // Escapar valores para evitar inyección HTML (básico)
+        const escapeHtml = (text) => {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        };
+
+        const skuEscaped = escapeHtml(sku);
+        const colorEscaped = escapeHtml(color);
+        const tallaEscaped = escapeHtml(talla);
+        const precioEscaped = escapeHtml(precio);
+        const costoEscaped = escapeHtml(costo);
+        const stockEscaped = escapeHtml(stock);
+        const pesoEscaped = escapeHtml(peso);
+
         row.innerHTML = `
-            <td><input type="text" name="varianteSku" value="${sku}" class="sku-input" required></td>
-            <td><input type="text" name="varianteColor" value="${color}" class="color-input"></td>
-            <td><input type="text" name="varianteTalla" value="${talla}" class="talla-input"></td>
-            <td><input type="number" step="0.01" name="variantePrecio" value="${precio}" class="precio-input" required></td>
-            <td><input type="number" step="0.01" name="varianteCosto" value="${costo}" class="costo-input"></td>
-            <td><input type="number" name="varianteStock" value="${stock}" class="stock-input" required></td>
-            <td><input type="number" step="0.1" name="variantePeso" value="${peso}" class="peso-input"></td>
+            <td>
+                <input type="text" name="varianteSku" value="${skuEscaped}" class="sku-input" required>
+            </td>
+            <td><input type="text" name="varianteColor" value="${colorEscaped}" class="color-input"></td>
+            <td><input type="text" name="varianteTalla" value="${tallaEscaped}" class="talla-input"></td>
+            <td><input type="number" step="0.01" name="variantePrecio" value="${precioEscaped}" class="precio-input" required></td>
+            <td><input type="number" step="0.01" name="varianteCosto" value="${costoEscaped}" class="costo-input"></td>
+            <td><input type="number" name="varianteStock" value="${stockEscaped}" class="stock-input" required></td>
+            <td><input type="number" step="0.1" name="variantePeso" value="${pesoEscaped}" class="peso-input"></td>
             <td>
                 <select name="varianteActivo" class="activo-select">
                     <option value="true" ${activo ? 'selected' : ''}>🟢 Activo</option>
@@ -348,7 +378,6 @@
             </td>
             <td><button type="button" class="btn-eliminar-variante" onclick="eliminarVariante(this)">🗑️</button></td>
         `;
-        // Insertar antes de la fila de "agregar" (para que la fila de agregar quede al final)
         const filaNueva = document.getElementById('filaNuevaVariante');
         tbody.insertBefore(row, filaNueva);
 
@@ -399,10 +428,24 @@
             return;
         }
 
-        // Verificar que todas las variantes (excepto la fila de nueva) tengan SKU, precio y stock
+        // 1. Validar que la fila de nueva variante no tenga datos sin agregar
+        const nuevoSku = document.getElementById('nuevoSku').value.trim();
+        const nuevoColor = document.getElementById('nuevoColor').value.trim();
+        const nuevaTalla = document.getElementById('nuevaTalla').value.trim();
+        const nuevoPrecio = document.getElementById('nuevoPrecio').value.trim();
+        const nuevoStock = document.getElementById('nuevoStock').value.trim();
+        if (nuevoSku || nuevoColor || nuevaTalla || nuevoPrecio || nuevoStock) {
+            mostrarToast('⚠️ Tienes una variante pendiente de agregar. Pulsa ➕ para agregarla.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar producto';
+            e.preventDefault();
+            return;
+        }
+
+        // 2. Validar que todas las variantes tengan SKU, precio y stock
         const skuInputs = document.querySelectorAll('.sku-input');
         for (let input of skuInputs) {
-            if (input.id === 'nuevoSku') continue; // Saltar la fila de agregar
+            if (input.id === 'nuevoSku') continue; // Saltar fila de agregar
             if (!input.value.trim()) {
                 mostrarToast('Todas las variantes deben tener SKU.', 'error');
                 btn.disabled = false;
@@ -422,7 +465,20 @@
                 return;
             }
         }
-        // Si pasa todas las validaciones, el formulario se envía
+
+        // 3. Validar SKU duplicado dentro del formulario (incluyendo la fila de nueva)
+        const skus = [];
+        for (let input of skuInputs) {
+            const val = input.value.trim().toUpperCase();
+            if (val && skus.includes(val)) {
+                mostrarToast('SKU duplicado en el formulario: ' + val, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '💾 Guardar producto';
+                e.preventDefault();
+                return;
+            }
+            if (val) skus.push(val);
+        }
     });
 
     document.addEventListener('DOMContentLoaded', function() {

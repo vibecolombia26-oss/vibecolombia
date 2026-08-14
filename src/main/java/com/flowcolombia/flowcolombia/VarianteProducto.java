@@ -4,15 +4,6 @@ import jakarta.persistence.*;
 
 import java.util.Objects;
 
-/**
- * Representa una variante específica de un producto.
- * Cada variante corresponde a una combinación única de:
- * - Color
- * - Talla
- *
- * Además, incluye información de precio, costo, stock, peso
- * y estado activo/inactivo para control de inventario.
- */
 @Entity
 @Table(
         name = "variante_producto",
@@ -25,16 +16,10 @@ import java.util.Objects;
 )
 public class VarianteProducto {
 
-    // ============================================================
-    // IDENTIFICADOR
-    // ============================================================
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ============================================================
-    // RELACIÓN CON PRODUCTO
-    // ============================================================
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "producto_id",
@@ -43,15 +28,6 @@ public class VarianteProducto {
     )
     private Producto producto;
 
-    // ============================================================
-    // CAMPOS DE LA VARIANTE
-    // ============================================================
-
-    /**
-     * SKU único de la variante.
-     * Es el identificador real que se usa en el carrito, pedidos y seguimiento.
-     * No puede ser nulo y debe ser único en toda la tabla.
-     */
     @Column(
             name = "sku",
             nullable = false,
@@ -60,70 +36,30 @@ public class VarianteProducto {
     )
     private String sku;
 
-    /**
-     * Color de la variante.
-     * Puede ser nulo si el producto no tiene variación de color.
-     */
     @Column(name = "color", length = 50)
     private String color;
 
-    /**
-     * Talla de la variante.
-     * Puede ser nulo si el producto no tiene variación de talla.
-     */
     @Column(name = "talla", length = 20)
     private String talla;
 
-    /**
-     * Precio de venta de esta variante específica.
-     * Puede ser diferente al precio base del producto.
-     * Debe ser mayor a 0.
-     */
     @Column(name = "precio", nullable = false)
     private Double precio;
 
-    /**
-     * Costo de adquisición o fabricación de esta variante.
-     * Útil para calcular márgenes de ganancia.
-     * Puede ser nulo si no se conoce.
-     */
     @Column(name = "costo")
     private Double costo;
 
-    /**
-     * Cantidad disponible en inventario para esta variante.
-     * No puede ser negativo.
-     * Si es 0, la variante se considera agotada.
-     */
     @Column(name = "stock", nullable = false)
     private Integer stock = 0;
 
-    /**
-     * Peso de la variante en gramos (g).
-     * Puede variar entre tallas o colores.
-     * Útil para cálculos de envío.
-     */
     @Column(name = "peso")
     private Double peso;
 
-    /**
-     * Indica si la variante está activa y disponible para la venta.
-     * Si es false, no se muestra en la tienda aunque tenga stock.
-     */
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
-    // ============================================================
-    // CONSTRUCTORES
-    // ============================================================
-
     public VarianteProducto() {
-        // Constructor vacío requerido por JPA
     }
 
-    /**
-     * Constructor útil para crear variantes rápidamente.
-     */
     public VarianteProducto(Producto producto, String sku, String color, String talla,
                             Double precio, Integer stock) {
         this.producto = producto;
@@ -220,20 +156,13 @@ public class VarianteProducto {
     }
 
     // ============================================================
-    // MÉTODOS DE UTILIDAD
+    // MÉTODOS DE STOCK (necesarios para VarianteProductoService)
     // ============================================================
 
     /**
-     * Verifica si la variante está disponible para la venta.
-     * Una variante está disponible si está activa y tiene stock > 0.
-     */
-    public boolean isDisponible() {
-        return Boolean.TRUE.equals(activo) && stock != null && stock > 0;
-    }
-
-    /**
      * Reduce el stock en la cantidad especificada.
-     * @throws IllegalArgumentException si la cantidad es negativa o supera el stock disponible.
+     * @param cantidad Cantidad a reducir (debe ser > 0 y <= stock actual)
+     * @throws IllegalArgumentException si la cantidad es negativa o supera el stock disponible
      */
     public void reducirStock(int cantidad) {
         if (cantidad < 0) {
@@ -247,6 +176,8 @@ public class VarianteProducto {
 
     /**
      * Incrementa el stock en la cantidad especificada.
+     * @param cantidad Cantidad a incrementar (debe ser > 0)
+     * @throws IllegalArgumentException si la cantidad es negativa
      */
     public void incrementarStock(int cantidad) {
         if (cantidad < 0) {
@@ -255,21 +186,43 @@ public class VarianteProducto {
         this.stock += cantidad;
     }
 
+    /**
+     * Verifica si la variante está disponible para la venta.
+     * Una variante está disponible si está activa y tiene stock > 0.
+     */
+    public boolean isDisponible() {
+        return Boolean.TRUE.equals(activo) && stock != null && stock > 0;
+    }
+
     // ============================================================
-    // EQUALS Y HASHCODE (basado en SKU, que es único)
+    // EQUALS Y HASHCODE SEGUROS PARA JPA (basados en ID)
     // ============================================================
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         VarianteProducto that = (VarianteProducto) o;
-        return Objects.equals(sku, that.sku);
+
+        // Si ambos tienen ID, comparar por ID
+        if (this.id != null && that.id != null) {
+            return Objects.equals(this.id, that.id);
+        }
+
+        // Si uno tiene ID y el otro no, no son iguales
+        if (this.id != null || that.id != null) {
+            return false;
+        }
+
+        // Ambos son nuevos (sin ID): comparar por referencia (this == o ya se verificó)
+        return super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sku);
+        // Si tiene ID, usar su hash; si no, usar un valor constante (para no romper colecciones)
+        return (id != null) ? Objects.hash(id) : getClass().hashCode();
     }
 
     // ============================================================

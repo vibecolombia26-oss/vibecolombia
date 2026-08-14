@@ -64,9 +64,12 @@ public class ProductoController {
                                   @RequestParam(required = false) List<Integer> varianteStock,
                                   @RequestParam(required = false) List<Double> variantePeso,
                                   @RequestParam(required = false) List<Boolean> varianteActivo,
+                                  @RequestParam(required = false) List<Long> varianteId,
                                   RedirectAttributes redirect) {
 
-        // 1. Guardar imágenes (misma lógica que antes)
+        // ============================================================
+        // 1. ACTUALIZAR IMÁGENES (si se enviaron nuevas)
+        // ============================================================
         if (producto.getId() != null) {
             Producto existente = productoService.obtenerPorId(producto.getId());
             if (existente != null) {
@@ -85,7 +88,9 @@ public class ProductoController {
         if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
         if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
-        // 2. Guardar producto y variantes usando el método transaccional
+        // ============================================================
+        // 2. GUARDAR PRODUCTO Y VARIANTES
+        // ============================================================
         try {
             productoService.guardarProductoConVariantes(
                     producto,
@@ -96,15 +101,24 @@ public class ProductoController {
                     varianteCosto,
                     varianteStock,
                     variantePeso,
-                    varianteActivo
+                    varianteActivo,
+                    varianteId
             );
             redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         } catch (IllegalArgumentException e) {
             redirect.addFlashAttribute("mensaje", "❌ Error: " + e.getMessage());
-            return "redirect:/admin/editar/" + producto.getId();
+            if (producto.getId() == null) {
+                return "redirect:/admin/nuevo";
+            } else {
+                return "redirect:/admin/editar/" + producto.getId();
+            }
         } catch (Exception e) {
             redirect.addFlashAttribute("mensaje", "❌ Error al guardar: " + e.getMessage());
-            return "redirect:/admin/editar/" + producto.getId();
+            if (producto.getId() == null) {
+                return "redirect:/admin/nuevo";
+            } else {
+                return "redirect:/admin/editar/" + producto.getId();
+            }
         }
 
         return "redirect:/admin/panel";
