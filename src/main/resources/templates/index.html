@@ -707,8 +707,12 @@
     <div class="products-grid">
         <div th:each="producto : ${productos}" class="product-card">
             <a th:href="@{/producto/{id}(id=${producto.id})}" style="text-decoration: none; color: inherit;">
-                <img th:if="${producto.imagen1 != null}" th:src="${producto.imagen1}" th:alt="${producto.nombre}" loading="lazy">
-                <div class="product-icon" th:if="${producto.imagen1 == null}">🛍️</div>
+                <!-- 🔥 BLOQUE MODIFICADO (Fase 1) -->
+                <img th:if="${not #lists.isEmpty(producto.imagenes) or producto.imagen1 != null}"
+                     th:src="${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : producto.imagen1}"
+                     th:alt="${producto.nombre}" loading="lazy">
+                <div class="product-icon" th:if="${#lists.isEmpty(producto.imagenes) and producto.imagen1 == null}">🛍️</div>
+                <!-- FIN BLOQUE MODIFICADO -->
                 <h3 class="product-name" th:text="${producto.nombre}">Nombre</h3>
                 <div class="product-price" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">Precio</div>
                 <p class="product-desc" th:text="${producto.descripcion}">Descripción</p>

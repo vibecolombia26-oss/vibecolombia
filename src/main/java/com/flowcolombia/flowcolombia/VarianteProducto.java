@@ -36,7 +36,8 @@ public class VarianteProducto {
     )
     private String sku;
 
-    @Column(name = "color", length = 50)
+    // 🔥 CAMBIO: longitud de 50 a 255
+    @Column(name = "color", length = 255)
     private String color;
 
     @Column(name = "talla", length = 20)
@@ -156,14 +157,9 @@ public class VarianteProducto {
     }
 
     // ============================================================
-    // MÉTODOS DE STOCK (necesarios para VarianteProductoService)
+    // MÉTODOS DE STOCK
     // ============================================================
 
-    /**
-     * Reduce el stock en la cantidad especificada.
-     * @param cantidad Cantidad a reducir (debe ser > 0 y <= stock actual)
-     * @throws IllegalArgumentException si la cantidad es negativa o supera el stock disponible
-     */
     public void reducirStock(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad no puede ser negativa.");
@@ -174,11 +170,6 @@ public class VarianteProducto {
         this.stock -= cantidad;
     }
 
-    /**
-     * Incrementa el stock en la cantidad especificada.
-     * @param cantidad Cantidad a incrementar (debe ser > 0)
-     * @throws IllegalArgumentException si la cantidad es negativa
-     */
     public void incrementarStock(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad no puede ser negativa.");
@@ -186,16 +177,12 @@ public class VarianteProducto {
         this.stock += cantidad;
     }
 
-    /**
-     * Verifica si la variante está disponible para la venta.
-     * Una variante está disponible si está activa y tiene stock > 0.
-     */
     public boolean isDisponible() {
         return Boolean.TRUE.equals(activo) && stock != null && stock > 0;
     }
 
     // ============================================================
-    // EQUALS Y HASHCODE SEGUROS PARA JPA (basados en ID)
+    // EQUALS Y HASHCODE
     // ============================================================
 
     @Override
@@ -205,28 +192,24 @@ public class VarianteProducto {
 
         VarianteProducto that = (VarianteProducto) o;
 
-        // Si ambos tienen ID, comparar por ID
         if (this.id != null && that.id != null) {
             return Objects.equals(this.id, that.id);
         }
 
-        // Si uno tiene ID y el otro no, no son iguales
         if (this.id != null || that.id != null) {
             return false;
         }
 
-        // Ambos son nuevos (sin ID): comparar por referencia (this == o ya se verificó)
         return super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        // Si tiene ID, usar su hash; si no, usar un valor constante (para no romper colecciones)
         return (id != null) ? Objects.hash(id) : getClass().hashCode();
     }
 
     // ============================================================
-    // TOSTRING (para logs y depuración)
+    // TOSTRING
     // ============================================================
 
     @Override
