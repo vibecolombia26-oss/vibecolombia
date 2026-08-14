@@ -54,9 +54,9 @@ public class ProductoService {
         return productoRepository.findById(id).orElse(null);
     }
 
-    // Fase 2: nuevo método para el detalle con imágenes y variantes
+    // Fase 2: nuevo método para el detalle usando findDetalleById
     public Producto obtenerDetalleProducto(Long id) {
-        return productoRepository.findByIdWithImagenesAndVariantes(id).orElse(null);
+        return productoRepository.findDetalleById(id).orElse(null);
     }
 
     public Producto obtenerPorSku(String sku) {
@@ -310,15 +310,6 @@ public class ProductoService {
     // PRODUCTOS RELACIONADOS (OPTIMIZADO)
     // ============================================================
 
-    /**
-     * Obtiene productos relacionados de la misma categoría, excluyendo el producto actual.
-     * Utiliza la categoría proporcionada para evitar una consulta adicional al producto.
-     *
-     * @param productoId ID del producto a excluir
-     * @param categoria  Categoría para filtrar productos relacionados
-     * @param limite     Número máximo de productos a devolver (recomendado: 5)
-     * @return Lista de productos relacionados (vacía si no hay o si los parámetros son inválidos)
-     */
     public List<Producto> obtenerRelacionados(Long productoId, String categoria, int limite) {
         if (productoId == null || categoria == null || categoria.trim().isEmpty() || limite < 1) {
             return new ArrayList<>();
@@ -327,14 +318,6 @@ public class ProductoService {
         return productoRepository.findRelacionados(productoId, categoria.trim(), pageable);
     }
 
-    /**
-     * Método existente que obtiene productos relacionados a partir del ID del producto.
-     * Ahora usa el nuevo método para evitar duplicar la lógica y no cargar la categoría completa.
-     *
-     * @param productoId ID del producto
-     * @param limite     Número máximo de productos a devolver
-     * @return Lista de productos relacionados
-     */
     public List<Producto> obtenerRelacionados(Long productoId, int limite) {
         Producto producto = obtenerPorId(productoId);
         if (producto == null) {

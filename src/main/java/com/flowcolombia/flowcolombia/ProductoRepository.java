@@ -15,9 +15,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @EntityGraph(attributePaths = "imagenes")
     List<Producto> findByCategoria(String categoria);
 
-    // Fase 2: carga imágenes y variantes para el detalle
+    // Fase 2: método explícito con @Query y @EntityGraph para el detalle
     @EntityGraph(attributePaths = {"imagenes", "variantes"})
-    Optional<Producto> findByIdWithImagenesAndVariantes(Long id);
+    @Query("SELECT p FROM Producto p WHERE p.id = :id")
+    Optional<Producto> findDetalleById(@Param("id") Long id);
 
     Optional<Producto> findBySku(String sku);
 
@@ -25,19 +26,6 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     long countByCategoria(String categoria);
 
-    // ============================================================
-    // PRODUCTOS RELACIONADOS (EFICIENTE)
-    // ============================================================
-
-    /**
-     * Obtiene productos de la misma categoría, excluyendo el producto actual,
-     * con límite mediante Pageable.
-     *
-     * @param productoId ID del producto a excluir
-     * @param categoria  Categoría para filtrar
-     * @param pageable   Objeto de paginación (limita el número de resultados)
-     * @return Lista de productos relacionados
-     */
     @Query("SELECT p FROM Producto p WHERE p.categoria = :categoria AND p.id != :productoId ORDER BY p.id DESC")
     List<Producto> findRelacionados(@Param("productoId") Long productoId,
                                     @Param("categoria") String categoria,
