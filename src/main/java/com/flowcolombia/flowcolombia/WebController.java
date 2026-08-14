@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-// 🔥 Imports necesarios para las entidades
 import com.flowcolombia.flowcolombia.Producto;
 import com.flowcolombia.flowcolombia.Resena;
 
@@ -27,9 +26,6 @@ public class WebController {
         this.resenaService = resenaService;
     }
 
-    // ============================================================
-    // PÁGINA PRINCIPAL
-    // ============================================================
     @GetMapping("/")
     public String home(@RequestParam(required = false) String categoria, Model model) {
         List<String> categoriasDisponibles = productoService.listarCategorias();
@@ -65,9 +61,6 @@ public class WebController {
         return "index";
     }
 
-    // ============================================================
-    // OPTIMIZACIÓN DE IMÁGENES
-    // ============================================================
     private void optimizarImagenes(Producto p) {
         if (p == null) return;
         String[] imagenes = {p.getImagen1(), p.getImagen2(), p.getImagen3(), p.getImagen4(), p.getImagen5(), p.getImagen6()};
@@ -82,13 +75,9 @@ public class WebController {
         }
     }
 
-    // ============================================================
-    // DETALLE DE PRODUCTO (MODIFICADO FASE 2)
-    // ============================================================
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
         try {
-            // 🔥 Cambio Fase 2: usar obtenerDetalleProducto para cargar imágenes y variantes
             Producto producto = productoService.obtenerDetalleProducto(id);
             if (producto == null) {
                 return "redirect:/?error=Producto no encontrado";
@@ -112,7 +101,6 @@ public class WebController {
 
             return "producto-detalle";
         } catch (Exception e) {
-            // 🔥 Mejora para depuración: imprimir el stack trace
             e.printStackTrace();
             return "redirect:/?error=Error al cargar el producto";
         }
@@ -143,9 +131,6 @@ public class WebController {
         return "contacto";
     }
 
-    // ============================================================
-    // ADMIN LOGIN
-    // ============================================================
     @GetMapping("/admin-login")
     public String adminLogin() {
         return "admin-login";
