@@ -29,7 +29,7 @@ public class ProductoService {
     }
 
     // ============================================================
-    // MÉTODOS EXISTENTES
+    // MÉTODOS EXISTENTES (sin cambios)
     // ============================================================
     public List<Producto> listarTodos() {
         return productoRepository.findAll();
@@ -79,7 +79,7 @@ public class ProductoService {
     }
 
     // ============================================================
-    // GUARDAR PRODUCTO CON VARIANTES (TRANSACCIONAL) - CORREGIDO
+    // GUARDAR PRODUCTO CON VARIANTES (TRANSACCIONAL)
     // ============================================================
     @Transactional
     public Producto guardarProductoConVariantes(Producto productoForm,
@@ -157,7 +157,7 @@ public class ProductoService {
         Map<Long, VarianteProducto> mapaPorId = variantesActuales.stream()
                 .collect(Collectors.toMap(VarianteProducto::getId, v -> v, (a, b) -> a));
 
-        // 4. Procesar filas
+        // 4. Procesar filas (validación de SKU duplicado en formulario)
         Set<String> skusEnFormulario = new HashSet<>();
         Set<Long> idsMantenidos = new HashSet<>();
         List<VarianteProducto> nuevasVariantes = new ArrayList<>();
