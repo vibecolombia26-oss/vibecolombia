@@ -79,7 +79,7 @@ public class ProductoService {
     }
 
     // ============================================================
-    // GUARDAR PRODUCTO CON VARIANTES (TRANSACCIONAL)
+    // GUARDAR PRODUCTO CON VARIANTES (TRANSACCIONAL) - CORREGIDO
     // ============================================================
     @Transactional
     public Producto guardarProductoConVariantes(Producto productoForm,
@@ -157,7 +157,7 @@ public class ProductoService {
         Map<Long, VarianteProducto> mapaPorId = variantesActuales.stream()
                 .collect(Collectors.toMap(VarianteProducto::getId, v -> v, (a, b) -> a));
 
-        // 4. Procesar filas (validación de SKU duplicado en formulario)
+        // 4. Procesar filas
         Set<String> skusEnFormulario = new HashSet<>();
         Set<Long> idsMantenidos = new HashSet<>();
         List<VarianteProducto> nuevasVariantes = new ArrayList<>();
@@ -203,7 +203,6 @@ public class ProductoService {
                     throw new IllegalArgumentException("La variante con ID " + id + " no pertenece a este producto.");
                 }
 
-                // Actualizar campos
                 varianteExistente.setSku(sku.trim());
                 varianteExistente.setColor(color.trim());
                 varianteExistente.setTalla(talla.trim());
@@ -213,7 +212,6 @@ public class ProductoService {
                 varianteExistente.setPeso(peso);
                 varianteExistente.setActivo(activo);
 
-                // Validar (incluye SKU único)
                 validarVariante(varianteExistente);
                 idsMantenidos.add(id);
             }
@@ -243,7 +241,7 @@ public class ProductoService {
         if (!variantesAEliminar.isEmpty()) {
             productoGuardado.getVariantes().removeAll(variantesAEliminar);
             varianteProductoRepository.deleteAll(variantesAEliminar);
-            varianteProductoRepository.flush(); // FORZAR DELETE ANTES DE INSERT
+            varianteProductoRepository.flush();
         }
 
         // 6. AGREGAR nuevas variantes
