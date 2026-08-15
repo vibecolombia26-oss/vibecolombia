@@ -54,9 +54,16 @@ public class ProductoService {
         return productoRepository.findById(id).orElse(null);
     }
 
-    // Fase 2: nuevo método para el detalle usando findDetalleById
+    // Fase 2: método corregido para cargar imágenes y variantes en la misma transacción
+    @Transactional(readOnly = true)
     public Producto obtenerDetalleProducto(Long id) {
-        return productoRepository.findDetalleById(id).orElse(null);
+        // 1. Cargar producto con imágenes
+        Producto producto = productoRepository.findDetalleById(id).orElse(null);
+        if (producto != null) {
+            // 2. Cargar variantes en el mismo Persistence Context
+            productoRepository.findWithVariantes(id).orElse(null);
+        }
+        return producto;
     }
 
     public Producto obtenerPorSku(String sku) {
