@@ -395,17 +395,15 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPTS (MODIFICADO FASE 2) -->
+<!-- SCRIPTS (MODIFICADO: th:inline="javascript") -->
 <!-- ============================================================ -->
-<script>
+<script th:inline="javascript">
     // ============================================================
     // DATOS DE VARIANTES (desde el backend)
     // ============================================================
     const variantes = /*[[${producto.variantes}]]*/ [];
     const productoId = /*[[${producto.id}]]*/ null;
     const productoNombre = /*[[${producto.nombre}]]*/ '';
-
-    // 🔥 MODIFICADO FASE 2: usa ProductoImagen como fuente principal con fallback a imagen1
     const productoImagen = /*[[${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : producto.imagen1}]]*/ '';
 
     let varianteSeleccionada = null;
@@ -684,7 +682,7 @@
     // INICIALIZACIÓN (MODIFICADO FASE 2)
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
-        // 🔥 Calcular totalSlides dinámicamente
+        // Calcular totalSlides dinámicamente
         const slides = document.querySelectorAll('.imagenes-slide');
         totalSlides = slides.length;
 
