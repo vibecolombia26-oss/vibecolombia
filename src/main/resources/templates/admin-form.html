@@ -6,14 +6,115 @@
     <title th:if="${producto.id == null}">Nuevo Producto - FLOW COLOMBIA</title>
     <title th:if="${producto.id != null}">Editar Producto - FLOW COLOMBIA</title>
     <style>
-        /* (todos los estilos iguales a los que ya tenías, sin cambios) */
-        /* Mantén tus estilos actuales, no los cambio */
+        /* ===== ESTILOS BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; padding: 20px; background: rgba(20,20,20,0.8); border: 2px solid #ff00ff; border-radius: 16px; }
+        .header h1 { font-size: 1.8rem; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .btn-back { padding: 10px 20px; border-radius: 25px; text-decoration: none; color: #00ffff; border: 1px solid #00ffff; background: transparent; transition: all 0.3s; }
+        .btn-back:hover { background: rgba(0,255,255,0.1); }
+
+        /* ===== SECCIONES ===== */
+        .section-card { background: rgba(20,20,20,0.6); border: 1px solid rgba(255,0,255,0.15); border-radius: 16px; padding: 25px; margin-bottom: 25px; transition: border-color 0.3s; }
+        .section-card:hover { border-color: rgba(255,0,255,0.4); }
+        .section-title { color: #ff00ff; font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid rgba(255,0,255,0.2); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .section-title .icon { font-size: 1.5rem; }
+
+        /* ===== FORMULARIOS ===== */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { color: #00ffff; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; background: #111; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 0.95rem; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .full { grid-column: 1 / -1; }
+
+        /* ===== IMÁGENES ===== */
+        .imagenes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .imagen-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .imagen-preview img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid #333; transition: border-color 0.3s; }
+        .imagen-preview img:hover { border-color: #ff00ff; }
+
+        /* ===== ESPECIFICACIONES ===== */
+        .specs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+        /* ===== VARIANTES ===== */
+        .variantes-table-wrap { overflow-x: auto; margin-top: 10px; }
+        .variantes-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .variantes-table th { background: rgba(255,0,255,0.1); color: #ff00ff; padding: 10px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #ff00ff; }
+        .variantes-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .variantes-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .variantes-table tbody tr:hover { background: rgba(255,0,255,0.05); }
+        .variantes-table input, .variantes-table select { width: 100%; padding: 6px 8px; background: #111; border: 1px solid #333; border-radius: 4px; color: #fff; font-size: 0.8rem; }
+        .variantes-table input:focus, .variantes-table select:focus { border-color: #ff00ff; outline: none; }
+        .btn-eliminar-variante { background: #ff0044; color: #fff; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
+        .btn-eliminar-variante:hover { box-shadow: 0 0 15px rgba(255,0,68,0.4); }
+        .btn-agregar-variante { background: #00ffff; color: #000; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+        .btn-agregar-variante:hover { box-shadow: 0 0 20px rgba(0,255,255,0.4); }
+
+        /* ===== RESEÑAS ===== */
+        .resenas-section { margin-top: 10px; }
+        .resumen-calificacion { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .resumen-calificacion .label { color: #888; }
+        .resumen-calificacion .nota { font-size: 1.8rem; font-weight: 900; color: #ffd700; }
+        .resumen-calificacion .estrellas { color: #ffd700; font-size: 1.2rem; letter-spacing: 2px; }
+        .resumen-calificacion .total { color: #888; }
+        .resena-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 3px solid #ffd700; }
+        .resena-item .nombre { font-weight: 600; color: #fff; }
+        .resena-item .estrellas-item { color: #ffd700; font-size: 0.9rem; margin-left: 10px; }
+        .resena-item .fecha-item { color: #666; font-size: 0.7rem; }
+        .resena-item .comentario-item { color: #ccc; margin-top: 5px; }
+        .resena-item .imagen-resena { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; margin-top: 10px; cursor: pointer; border: 1px solid #333; transition: border-color 0.3s; }
+        .resena-item .imagen-resena:hover { border-color: #ff00ff; }
+        .btn-eliminar-resena { display: inline-block; margin-top: 8px; color: #ff4444; text-decoration: none; font-size: 0.8rem; }
+        .btn-eliminar-resena:hover { text-decoration: underline; }
+        .no-resenas { color: #666; font-style: italic; padding: 15px 0; }
+        .btn-agregar-resena { background: transparent; color: #00ffff; border: 1px solid #00ffff; border-radius: 20px; padding: 8px 20px; cursor: pointer; transition: 0.3s; }
+        .btn-agregar-resena:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 20px rgba(0,255,255,0.2); }
+
+        /* ===== BOTONES DE ACCIÓN ===== */
+        .acciones-fijas { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding: 20px 0; border-top: 2px solid rgba(255,0,255,0.2); margin-top: 20px; }
+        .btn-save { padding: 14px 40px; background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; border: none; border-radius: 30px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s; }
+        .btn-save:hover { box-shadow: 0 0 30px rgba(255,0,255,0.4); transform: scale(1.02); }
+        .btn-eliminar { padding: 14px 30px; background: #ff0044; color: #fff; border: none; border-radius: 30px; font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; }
+        .btn-eliminar:hover { box-shadow: 0 0 30px rgba(255,0,68,0.4); transform: scale(1.02); }
+
+        /* ===== TOAST ===== */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 25px; border-radius: 8px; color: #fff; font-weight: 600; animation: slideIn 0.3s ease; }
+        .toast.success { background: rgba(0,255,0,0.2); border: 1px solid #0f0; }
+        .toast.error { background: rgba(255,0,0,0.2); border: 1px solid #f00; }
+        @keyframes slideIn { 0% { transform: translateX(100%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+
+        /* ===== MODAL DE IMÁGENES ===== */
+        .image-modal { display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 30px; cursor: pointer; }
+        .image-modal.active { display: flex; }
+        .image-modal-content { max-width: min(90vw, 1000px); max-height: 85vh; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15); cursor: default; }
+        .image-modal-close { position: fixed; top: 20px; right: 25px; z-index: 10001; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: rgba(20,20,20,0.9); color: #fff; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .image-modal-close:hover { background: #ff0044; transform: scale(1.05); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .imagenes-grid { grid-template-columns: 1fr 1fr; }
+            .specs-grid { grid-template-columns: 1fr 1fr; }
+            .acciones-fijas { flex-direction: column; align-items: stretch; }
+            .btn-save, .btn-eliminar { width: 100%; text-align: center; }
+        }
+        @media (max-width: 500px) {
+            .imagenes-grid { grid-template-columns: 1fr; }
+            .specs-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- ============================================================ -->
+    <!-- ENCABEZADO -->
+    <!-- ============================================================ -->
     <div class="header">
         <h1 th:if="${producto.id == null}">➕ Nuevo Producto</h1>
         <h1 th:if="${producto.id != null}">✏️ Editar Producto</h1>
@@ -21,14 +122,16 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- FORMULARIO PRINCIPAL (PRODUCTO) - UN SOLO FORM -->
+    <!-- FORMULARIO PRINCIPAL -->
     <!-- ============================================================ -->
     <form id="productoForm" th:action="@{/admin/guardar}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="id" th:value="${producto.id}">
 
-        <!-- ===== INFORMACIÓN BÁSICA ===== -->
-        <div class="form-section">
-            <h2>📋 Información básica</h2>
+        <!-- ========================================================== -->
+        <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
+        <!-- ========================================================== -->
+        <div class="section-card">
+            <div class="section-title"><span class="icon">📋</span> Información básica</div>
             <div class="form-row">
                 <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" th:value="${producto.nombre}" required></div>
                 <div class="form-group"><label>SKU base *</label><input type="text" name="sku" th:value="${producto.sku}" required></div>
@@ -46,13 +149,19 @@
                     </select>
                 </div>
             </div>
-            <div class="form-group full"><label>Descripción corta</label><textarea name="descripcion" rows="2">[[${producto.descripcion}]]</textarea></div>
-            <div class="form-group full"><label>Descripción larga (detalle)</label><textarea name="descripcionLarga" rows="4">[[${producto.descripcionLarga}]]</textarea></div>
+            <div class="form-row">
+                <div class="form-group full"><label>Descripción corta</label><textarea name="descripcion" rows="2">[[${producto.descripcion}]]</textarea></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full"><label>Descripción larga (detalle)</label><textarea name="descripcionLarga" rows="4">[[${producto.descripcionLarga}]]</textarea></div>
+            </div>
         </div>
 
-        <!-- ===== IMÁGENES ===== -->
-        <div class="form-section">
-            <h2>🖼️ Imágenes (URLs de Cloudinary)</h2>
+        <!-- ========================================================== -->
+        <!-- SECCIÓN 2: IMÁGENES (legacy, se mantienen) -->
+        <!-- ========================================================== -->
+        <div class="section-card">
+            <div class="section-title"><span class="icon">🖼️</span> Imágenes (URLs de Cloudinary)</div>
             <div class="imagenes-grid">
                 <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 0)"></div>
                 <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 1)"></div>
@@ -62,13 +171,15 @@
                 <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 5)"></div>
             </div>
             <div id="previewContainer" class="imagen-preview"></div>
-            <small style="color:#666;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
+            <small style="color:#666; display:block; margin-top:10px;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
         </div>
 
-        <!-- ===== ESPECIFICACIONES TÉCNICAS ===== -->
-        <div class="form-section">
-            <h2>⚙️ Especificaciones técnicas</h2>
-            <div class="form-row">
+        <!-- ========================================================== -->
+        <!-- SECCIÓN 3: ESPECIFICACIONES TÉCNICAS -->
+        <!-- ========================================================== -->
+        <div class="section-card">
+            <div class="section-title"><span class="icon">⚙️</span> Especificaciones técnicas</div>
+            <div class="specs-grid">
                 <div class="form-group"><label>Largo</label><input type="text" name="largo" th:value="${producto.largo}"></div>
                 <div class="form-group"><label>Ancho</label><input type="text" name="ancho" th:value="${producto.ancho}"></div>
                 <div class="form-group"><label>Alto</label><input type="text" name="alto" th:value="${producto.alto}"></div>
@@ -76,9 +187,11 @@
             </div>
         </div>
 
-        <!-- ===== VARIANTES ===== -->
-        <div class="form-section">
-            <h2>📦 Variantes de producto</h2>
+        <!-- ========================================================== -->
+        <!-- SECCIÓN 4: VARIANTES -->
+        <!-- ========================================================== -->
+        <div class="section-card">
+            <div class="section-title"><span class="icon">📦</span> Variantes de producto</div>
             <div class="variantes-table-wrap">
                 <table class="variantes-table" id="variantesTable">
                     <thead>
@@ -117,9 +230,7 @@
                     </tr>
                     <!-- Fila para agregar nueva variante -->
                     <tr id="filaNuevaVariante">
-                        <td>
-                            <input type="text" id="nuevoSku" placeholder="SKU" class="sku-input">
-                        </td>
+                        <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input"></td>
                         <td><input type="text" id="nuevoColor" placeholder="Color" class="color-input"></td>
                         <td><input type="text" id="nuevaTalla" placeholder="Talla" class="talla-input"></td>
                         <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input"></td>
@@ -137,13 +248,15 @@
                     </tbody>
                 </table>
             </div>
-            <small style="color:#666;">Cada fila representa una variante real (color + talla). Los SKU deben ser únicos.</small>
+            <small style="color:#666; display:block; margin-top:10px;">Cada fila representa una variante real (color + talla). Los SKU deben ser únicos.</small>
         </div>
 
-        <!-- ===== BOTONES FIJOS ===== -->
+        <!-- ========================================================== -->
+        <!-- SECCIÓN 5: BOTONES DE ACCIÓN -->
+        <!-- ========================================================== -->
         <div class="acciones-fijas">
             <div>
-                <button type="submit" class="btn btn-save" id="btnGuardar">💾 Guardar producto</button>
+                <button type="submit" class="btn-save" id="btnGuardar">💾 Guardar producto</button>
             </div>
             <div>
                 <a th:if="${producto.id != null}" th:href="@{/admin/eliminar/{id}(id=${producto.id})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️ Eliminar producto</a>
@@ -152,10 +265,10 @@
     </form>
 
     <!-- ============================================================ -->
-    <!-- SECCIÓN DE RESEÑAS (FUERA DEL FORMULARIO PRINCIPAL) -->
+    <!-- SECCIÓN 6: RESEÑAS (fuera del formulario principal) -->
     <!-- ============================================================ -->
-    <div class="form-section resenas-section" th:if="${producto.id != null}">
-        <h2>⭐ Reseñas y calificación</h2>
+    <div class="section-card resenas-section" th:if="${producto.id != null}">
+        <div class="section-title"><span class="icon">⭐</span> Reseñas y calificación</div>
         <div class="resumen-calificacion">
             <span class="label">Calificación promedio:</span>
             <span class="nota" th:text="${producto.promedioCalificacion != null ? #numbers.formatDecimal(producto.promedioCalificacion, 1, 'COMMA', 1, 'POINT') : '0.0'}">0.0</span>
@@ -219,23 +332,25 @@
                     <label>URL de imagen (Cloudinary)</label>
                     <input type="text" name="imagenUrl" placeholder="https://res.cloudinary.com/.../imagen.jpg">
                 </div>
-                <button type="submit" class="btn-guardar-resena">💾 Guardar reseña</button>
-                <button type="button" class="btn-cancelar-resena" onclick="toggleResenaForm()">Cancelar</button>
+                <button type="submit" class="btn-save" style="padding:10px 25px; font-size:0.9rem;">💾 Guardar reseña</button>
+                <button type="button" class="btn-back" onclick="toggleResenaForm()" style="margin-left:10px;">Cancelar</button>
             </form>
         </div>
     </div>
 </div>
 
+<!-- ============================================================ -->
 <!-- Modal y scripts (igual que antes) -->
+<!-- ============================================================ -->
 <div id="imageModal" class="image-modal" onclick="cerrarImagenModalPorFondo(event)">
     <button type="button" class="image-modal-close" onclick="cerrarImagenModal(event)">×</button>
     <img id="imageModalContent" class="image-modal-content" src="" alt="Vista ampliada de la reseña" onclick="event.stopPropagation()">
 </div>
 
+<!-- ============================================================ -->
+<!-- SCRIPTS (EXACTAMENTE IGUALES, SIN CAMBIOS) -->
+<!-- ============================================================ -->
 <script>
-    // ============================================================
-    // PREVISUALIZACIÓN DE IMÁGENES
-    // ============================================================
     function previewImage(input, index) {
         const container = document.getElementById('previewContainer');
         const url = input.value.trim();
@@ -266,9 +381,6 @@
         });
     });
 
-    // ============================================================
-    // MANEJO DE VARIANTES
-    // ============================================================
     function agregarVariante() {
         const sku = document.getElementById('nuevoSku').value.trim();
         const color = document.getElementById('nuevoColor').value.trim();
@@ -284,7 +396,6 @@
             return;
         }
 
-        // Validar SKU duplicado en el formulario
         const skus = document.querySelectorAll('.sku-input');
         for (let input of skus) {
             if (input.value.trim().toUpperCase() === sku.toUpperCase()) {
@@ -296,7 +407,6 @@
         const tbody = document.getElementById('variantesBody');
         const row = document.createElement('tr');
 
-        // Escape de caracteres para evitar inyección HTML
         const escapeHtml = (text) => {
             const map = {
                 '&': '&amp;',
@@ -338,7 +448,6 @@
         const filaNueva = document.getElementById('filaNuevaVariante');
         tbody.insertBefore(row, filaNueva);
 
-        // Limpiar campos de la fila nueva
         document.getElementById('nuevoSku').value = '';
         document.getElementById('nuevoColor').value = '';
         document.getElementById('nuevaTalla').value = '';
@@ -361,9 +470,6 @@
         form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
     }
 
-    // ============================================================
-    // MODAL DE IMÁGENES
-    // ============================================================
     function abrirImagenModal(url) {
         const modal = document.getElementById('imageModal');
         const imagen = document.getElementById('imageModalContent');
@@ -393,9 +499,6 @@
         if (event.key === 'Escape') cerrarImagenModal(event);
     });
 
-    // ============================================================
-    // TOAST
-    // ============================================================
     function mostrarToast(mensaje, tipo = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -405,15 +508,11 @@
         setTimeout(() => toast.remove(), 5000);
     }
 
-    // ============================================================
-    // VALIDACIONES DEL FORMULARIO
-    // ============================================================
     document.getElementById('productoForm').addEventListener('submit', function(e) {
         const btn = document.getElementById('btnGuardar');
         btn.disabled = true;
         btn.innerHTML = '⏳ Guardando...';
 
-        // Validar producto base
         const nombre = document.querySelector('input[name="nombre"]');
         const skuBase = document.querySelector('input[name="sku"]');
         const precioBase = document.querySelector('input[name="precio"]');
@@ -425,7 +524,6 @@
             return;
         }
 
-        // Validar fila temporal
         const nuevoSku = document.getElementById('nuevoSku').value.trim();
         const nuevoPrecio = document.getElementById('nuevoPrecio').value.trim();
         const nuevoStock = document.getElementById('nuevoStock').value.trim();
@@ -437,7 +535,6 @@
             return;
         }
 
-        // Validar variantes
         const skuInputs = document.querySelectorAll('.sku-input');
         for (let input of skuInputs) {
             if (input.id === 'nuevoSku') continue;
@@ -461,7 +558,6 @@
             }
         }
 
-        // Validar SKU duplicado
         const skus = [];
         for (let input of skuInputs) {
             const val = input.value.trim().toUpperCase();
