@@ -5,35 +5,57 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+/**
+ * Migra los campos legacy (imagen1..imagen6 y variacionesDisponibles) a las
+ * tablas normalizadas (producto_imagenes y variantes).
+ *
+ * IMPORTANTE (coste en Neon): antes este runner recorría TODOS los productos
+ * en cada arranque y lanzaba 2 consultas por producto (imágenes + variantes).
+ * Con 50 productos eso son ~100 consultas contra Neon cada despliegue.
+ * Ahora primero pregunta a la BD qué productos están pendientes (2 consultas)
+ * y solo trabaja con esos. Si no hay nada pendiente, no toca nada más.
+ */
 @Component
 public class DataMigrationRunner implements CommandLineRunner {
 
     private final ProductoRepository productoRepository;
-    private final ProductoImagenRepository productoImagenRepository;
-    private final VarianteProductoRepository varianteProductoRepository;
 
-    public DataMigrationRunner(ProductoRepository productoRepository,
-                               ProductoImagenRepository productoImagenRepository,
-                               VarianteProductoRepository varianteProductoRepository) {
+    public DataMigrationRunner(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
-        this.productoImagenRepository = productoImagenRepository;
-        this.varianteProductoRepository = varianteProductoRepository;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        List<Producto> productos = productoRepository.findAll();
+        Set<Long> idsSinImagenes = new HashSet<>(productoRepository.findIdsSinImagenes());
+        Set<Long> idsSinVariantes = new HashSet<>(productoRepository.findIdsSinVariantes());
 
-        for (Producto producto : productos) {
+        if (idsSinImagenes.isEmpty() && idsSinVariantes.isEmpty()) {
+            System.out.println("✅ Migración de productos: nada pendiente.");
+            return;
+        }
+
+        Set<Long> pendientes = new TreeSet<>();
+        pendientes.addAll(idsSinImagenes);
+        pendientes.addAll(idsSinVariantes);
+
+        for (Long id : pendientes) {
+            Producto producto = productoRepository.findById(id).orElse(null);
+            if (producto == null) {
+                continue;
+            }
+
             boolean necesitaMigracion = false;
 
             // ============================================================
             // MIGRAR IMÁGENES (si no hay imágenes en la nueva estructura)
             // ============================================================
-            if (productoImagenRepository.findByProductoIdOrderByOrdenAsc(producto.getId()).isEmpty()) {
+            if (idsSinImagenes.contains(id)) {
                 List<String> imagenes = Arrays.asList(
                         producto.getImagen1(),
                         producto.getImagen2(),
@@ -54,7 +76,7 @@ public class DataMigrationRunner implements CommandLineRunner {
             // ============================================================
             // MIGRAR VARIANTES (si no hay variantes en la nueva estructura)
             // ============================================================
-            if (varianteProductoRepository.findByProductoId(producto.getId()).isEmpty()) {
+            if (idsSinVariantes.contains(id)) {
                 String variacionesStr = producto.getVariacionesDisponibles();
                 if (variacionesStr != null && variacionesStr.contains("|")) {
                     String[] partes = variacionesStr.split("\\|", -1);
@@ -65,8 +87,7 @@ public class DataMigrationRunner implements CommandLineRunner {
                     List<String> tallas = Arrays.asList(tallasStr.split(","));
 
                     // Generar variantes solo si hay colores o tallas definidos
-                    if ((coloresStr != null && !coloresStr.trim().isEmpty()) ||
-                            (tallasStr != null && !tallasStr.trim().isEmpty())) {
+                    if (!coloresStr.trim().isEmpty() || !tallasStr.trim().isEmpty()) {
 
                         // Si solo hay colores, crear variantes con color y talla vacía
                         // Si solo hay tallas, crear variantes con color vacío y talla
@@ -97,6 +118,6 @@ public class DataMigrationRunner implements CommandLineRunner {
             }
         }
 
-        System.out.println("✅ Migración de productos completada.");
+        System.out.println("✅ Migración de productos completada (" + pendientes.size() + " producto(s) revisado(s)).");
     }
 }

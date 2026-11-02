@@ -874,7 +874,40 @@
 
 <script>
     var chatCodigo = '';
-    function toggleChat() { var box = document.getElementById('chatBox'); box.style.display = box.style.display === 'none' ? 'block' : 'none'; }
+    var chatPollTimer = null;
+
+    function toggleChat() {
+        var box = document.getElementById('chatBox');
+        var abriendo = box.style.display === 'none';
+        box.style.display = abriendo ? 'block' : 'none';
+        if (!abriendo) {
+            // Al cerrar el chat se detiene el sondeo: cada consulta mantiene
+            // despierta la compute de Neon y consume free tier.
+            clearTimeout(chatPollTimer);
+        } else if (chatCodigo) {
+            cargarMensajesChat();
+        }
+    }
+
+    // Programa la siguiente consulta de mensajes.
+    // - No consulta si la pestaña está en segundo plano.
+    // - No consulta si el chat está cerrado.
+    // - 15 s de espera (10 s mientras el cliente escribe).
+    function programarConsultaMensajes() {
+        clearTimeout(chatPollTimer);
+        if (!chatCodigo) return;
+        if (document.hidden) return;
+        var box = document.getElementById('chatBox');
+        if (box && box.style.display === 'none') return;
+        var escribiendo = document.activeElement === document.getElementById('chatMensajeInput');
+        chatPollTimer = setTimeout(cargarMensajesChat, escribiendo ? 10000 : 15000);
+    }
+
+    // Al volver a la pestaña se retoma el sondeo una sola vez.
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && chatCodigo) { cargarMensajesChat(); }
+    });
+
     function iniciarChat() {
         var codigo = document.getElementById('chatCodigoInput').value.trim(); if (!codigo) return; document.getElementById('chatError').textContent = '';
         fetch('/api/pedido/' + codigo).then(r => r.json()).then(data => {
@@ -884,11 +917,12 @@
     }
     function mostrarChatInfo(data) { document.getElementById('chatLogin').style.display = 'none'; document.getElementById('chatContent').style.display = 'flex'; document.getElementById('chatPedidoInfo').innerHTML = '<strong style="color:#ff00ff;">📦 ' + data.codigo + '</strong> | Estado: ' + data.estado + (data.transportadora ? ' | 🚚 ' + data.transportadora + ' - ' + data.numeroGuia : ''); cargarMensajesChat(); }
     function cargarMensajesChat() {
+        if (!chatCodigo) return;
         fetch('/api/chat/mensajes?codigo=' + chatCodigo).then(r => r.json()).then(mensajes => {
             var html = ''; mensajes.forEach(function(m) { if (m.esCliente) { html += '<div style="align-self:flex-end; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } else { html += '<div style="align-self:flex-start; background:#333; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } });
             document.getElementById('chatMensajes').innerHTML = html || '<p style="color:#666; text-align:center;">Envía un mensaje</p>'; document.getElementById('chatMensajes').scrollTop = document.getElementById('chatMensajes').scrollHeight;
-        });
-        if (document.activeElement !== document.getElementById('chatMensajeInput')) { setTimeout(cargarMensajesChat, 3000); } else { setTimeout(cargarMensajesChat, 10000); }
+        }).catch(function() { /* si falla, se reintenta en el siguiente ciclo */ })
+          .finally(programarConsultaMensajes);
     }
     function enviarMensajeChat() { var mensaje = document.getElementById('chatMensajeInput').value.trim(); if (!mensaje) return; fetch('/api/chat/enviar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo:chatCodigo, telefono:'', mensaje:mensaje}) }).then(function() { document.getElementById('chatMensajeInput').value = ''; cargarMensajesChat(); }); }
 </script>

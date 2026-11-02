@@ -40,14 +40,13 @@ public class ProductoService {
         return productoRepository.findByCategoria(categoria);
     }
 
+    /**
+     * Categorías distintas. Se resuelven en la BD con un SELECT DISTINCT:
+     * antes se traía la tabla completa de productos en cada carga de la
+     * home solo para quedarse con 4 cadenas.
+     */
     public List<String> listarCategorias() {
-        return productoRepository.findAll()
-                .stream()
-                .map(Producto::getCategoria)
-                .filter(cat -> cat != null && !cat.isEmpty())
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
+        return productoRepository.findCategoriasDistintas();
     }
 
     public Producto obtenerPorId(Long id) {

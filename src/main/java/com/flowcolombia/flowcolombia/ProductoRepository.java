@@ -25,6 +25,31 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findBySku(String sku);
 
+    /**
+     * Categorías distintas calculadas en la base de datos.
+     * Antes se hacía findAll() + stream en Java (leía toda la tabla en
+     * cada carga de la home). Con esto Neon devuelve solo las cadenas.
+     */
+    @Query("SELECT DISTINCT p.categoria FROM Producto p " +
+           "WHERE p.categoria IS NOT NULL AND p.categoria <> '' ORDER BY p.categoria")
+    List<String> findCategoriasDistintas();
+
+    /**
+     * IDs de productos que aún no tienen filas en la tabla de imágenes.
+     * Permite que DataMigrationRunner trabaje solo con lo pendiente en
+     * lugar de recorrer todos los productos en cada arranque.
+     */
+    @Query("SELECT p.id FROM Producto p WHERE NOT EXISTS " +
+           "(SELECT i.id FROM ProductoImagen i WHERE i.producto.id = p.id)")
+    List<Long> findIdsSinImagenes();
+
+    /**
+     * IDs de productos que aún no tienen filas en la tabla de variantes.
+     */
+    @Query("SELECT p.id FROM Producto p WHERE NOT EXISTS " +
+           "(SELECT v.id FROM VarianteProducto v WHERE v.producto.id = p.id)")
+    List<Long> findIdsSinVariantes();
+
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
 
     long countByCategoria(String categoria);

@@ -1,5 +1,6 @@
 package com.flowcolombia.flowcolombia;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,13 @@ public interface VarianteProductoRepository extends JpaRepository<VarianteProduc
 
     List<VarianteProducto> findByProductoId(Long productoId);
 
+    /**
+     * Trae la variante junto con su producto en la misma consulta.
+     * El endpoint /api/variante/detalle hace variante.getProducto(), que con
+     * carga perezosa generaba una segunda consulta (y otra conexión a Neon)
+     * por cada interacción del carrito.
+     */
+    @EntityGraph(attributePaths = "producto")
     Optional<VarianteProducto> findBySku(String sku);
 
     void deleteByProductoId(Long productoId);

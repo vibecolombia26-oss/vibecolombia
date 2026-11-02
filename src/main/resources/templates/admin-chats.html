@@ -63,7 +63,19 @@
     }
 
     cargarChats();
-    setInterval(function() { if (document.activeElement && document.activeElement.tagName !== 'INPUT') cargarChats(); }, 10000);
+    // Refresco cada 30 s y SOLO si la pestaña está visible y el admin no está
+    // escribiendo. Antes eran 10 s fijos: con la pestaña abierta todo el día
+    // son ~8.600 consultas diarias que impiden que Neon se suspenda.
+    setInterval(function() {
+        if (document.hidden) return;
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        cargarChats();
+    }, 30000);
+
+    // Al volver a la pestaña se refresca una vez.
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) cargarChats();
+    });
 </script>
 </body>
 </html>

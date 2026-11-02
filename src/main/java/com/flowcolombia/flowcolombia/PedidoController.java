@@ -70,8 +70,9 @@ public class PedidoController {
     @GetMapping("/api/pedido/{codigo}")
     @ResponseBody
     public Map<String, Object> buscarPedido(@PathVariable String codigo) {
-        Pedido pedido = pedidoRepository.findAll().stream()
-                .filter(p -> codigo.equals(p.getCodigo())).findFirst().orElse(null);
+        // Consulta directa por código (antes: findAll() + filtro en memoria,
+        // que traía TODOS los pedidos en cada consulta de seguimiento).
+        Pedido pedido = pedidoRepository.findFirstByCodigoOrderByIdDesc(codigo).orElse(null);
         Map<String, Object> response = new HashMap<>();
         if (pedido == null) {
             response.put("error", "Pedido no encontrado");
@@ -90,8 +91,7 @@ public class PedidoController {
     @GetMapping("/api/pedido/telefono/{telefono}")
     @ResponseBody
     public Map<String, Object> buscarPorTelefono(@PathVariable String telefono) {
-        Pedido pedido = pedidoRepository.findAll().stream()
-                .filter(p -> telefono.equals(p.getTelefono())).findFirst().orElse(null);
+        Pedido pedido = pedidoRepository.findFirstByTelefonoOrderByIdDesc(telefono).orElse(null);
         Map<String, Object> response = new HashMap<>();
         if (pedido == null) {
             response.put("error", "Pedido no encontrado");
@@ -129,6 +129,8 @@ public class PedidoController {
     @GetMapping("/api/chat/todos")
     @ResponseBody
     public List<Mensaje> obtenerTodosMensajes() {
-        return mensajeRepository.findAll();
+        // Solo los últimos 200: este endpoint se consulta en bucle desde el
+        // panel de administración y antes devolvía la tabla completa.
+        return mensajeRepository.findTop200ByOrderByFechaDesc();
     }
 }

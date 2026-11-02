@@ -46,17 +46,13 @@ public class WebController {
             optimizarImagenes(p);
         }
 
-        Producto productoDestacado = productoService.obtenerPorSku("2169621");
-        if (productoDestacado != null) {
-            optimizarImagenes(productoDestacado);
-        }
-
+        // NOTA: se eliminaron dos consultas por carga de home que no se usaban
+        // en la plantilla (findBySku del producto destacado y COUNT(*) total).
+        // Cada consulta extra abría una conexión más contra Neon.
         model.addAttribute("productos", productosFiltrados);
         model.addAttribute("categoriaActiva", categoriaActiva);
         model.addAttribute("categorias", categoriasDisponibles);
         model.addAttribute("categoriaDefault", CATEGORIA_DEFAULT);
-        model.addAttribute("productoDestacado", productoDestacado);
-        model.addAttribute("totalProductos", productoService.contarTodos());
 
         return "index";
     }
@@ -95,8 +91,13 @@ public class WebController {
 
             List<Resena> resenas = resenaService.listarAprobadasPorProducto(id);
             model.addAttribute("resenas", resenas);
-            model.addAttribute("promedioCalificacion", producto.getPromedioCalificacion());
-            model.addAttribute("totalResenas", producto.getCantidadResenas());
+
+            // Total y promedio en una sola consulta agregada: antes se
+            // inicializaba la colección completa de reseñas del producto
+            // (consulta + conexión extra por cada visita).
+            ResenaService.EstadisticasResenas estadisticas = resenaService.estadisticasAprobadas(id);
+            model.addAttribute("promedioCalificacion", estadisticas.promedio());
+            model.addAttribute("totalResenas", estadisticas.total());
             model.addAttribute("producto", producto);
 
             return "producto-detalle";
