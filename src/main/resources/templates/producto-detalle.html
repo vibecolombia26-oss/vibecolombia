@@ -44,12 +44,18 @@
         .variantes-selector { margin: 15px 0; }
         .selector-group { margin-bottom: 15px; }
         .selector-group label { display: block; color: #00ffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
-        .opciones-color { display: flex; flex-wrap: wrap; gap: 10px; }
-        .opcion-color { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background-size: cover; background-position: center; }
-        .opcion-color:hover { transform: scale(1.1); border-color: #ff00ff; }
-        .opcion-color.seleccionado { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
-        .opcion-color.agotado { opacity: 0.4; cursor: not-allowed; border-color: #444; }
-        .opcion-color.agotado::after { content: '✕'; color: #ff4444; font-size: 1.2rem; }
+        .opciones-color { display: flex; flex-wrap: wrap; gap: 14px; }
+        /* Cada opción = círculo de color + nombre completo visible debajo */
+        .opcion-color-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: transparent; border: none; padding: 2px 4px; cursor: pointer; font: inherit; transition: transform 0.2s; }
+        .opcion-color-item:hover { transform: translateY(-2px); }
+        .opcion-color { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background-size: cover; background-position: center; pointer-events: none; }
+        .opcion-color-item:hover .opcion-color { border-color: #ff00ff; }
+        .opcion-color-item.seleccionado .opcion-color { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .opcion-color-nombre { font-size: 0.72rem; line-height: 1.2; color: #bbb; max-width: 78px; text-align: center; word-break: break-word; transition: color 0.3s; }
+        .opcion-color-item:hover .opcion-color-nombre { color: #fff; }
+        .opcion-color-item.seleccionado .opcion-color-nombre { color: #ffd700; font-weight: 700; }
+        .opcion-color-item.agotado { opacity: 0.45; cursor: not-allowed; }
+        .opcion-color-item.agotado .opcion-color::after { content: '✕'; color: #ff4444; font-size: 1.2rem; }
         .opciones-talla { display: flex; flex-wrap: wrap; gap: 8px; }
         .opcion-talla { padding: 8px 16px; border-radius: 8px; border: 2px solid #333; background: transparent; color: #fff; cursor: pointer; transition: all 0.3s; font-weight: 600; }
         .opcion-talla:hover { background: rgba(255,0,255,0.1); border-color: #ff00ff; }
@@ -183,14 +189,17 @@
             .whatsapp-float { bottom: 160px !important; z-index: 9999 !important; width: 48px; height: 48px; }
             #cartFloat { z-index: 9998 !important; }
             .opcion-color { width: 32px; height: 32px; }
+            .opcion-color-nombre { font-size: 0.65rem; max-width: 62px; }
             .image-modal { padding: 15px; }
             .image-modal-content { max-width: 95vw; max-height: 80vh; }
             .image-modal-close { top:10px; right:10px; width:36px; height:36px; font-size:24px; }
         }
         body.light-mode .opcion-color { border-color: #ccc; }
+        body.light-mode .opcion-color-nombre { color: #444; }
+        body.light-mode .opcion-color-item.seleccionado .opcion-color-nombre { color: #b8860b; }
         body.light-mode .opcion-talla { border-color: #ccc; color: #222; }
         body.light-mode .opcion-talla.seleccionado { background: #ff00ff; color: #fff; }
-        body.light-mode .opcion-color.seleccionado { border-color: #ffd700; }
+        body.light-mode .opcion-color-item.seleccionado .opcion-color { border-color: #ffd700; }
         body.light-mode .imagen-resena { border-color: #ddd; }
         body.light-mode .resena-item { background: rgba(0,0,0,0.03); }
         body.light-mode .resena-item .nombre { color: #222; }
@@ -463,17 +472,30 @@
         });
 
         // ---- Colores ----
+        // Cada opción se compone de un círculo con el color y su nombre
+        // completo visible debajo ("Negro", "Azul marino", ...), para que el
+        // cliente no tenga que adivinar qué significa la inicial.
         if (coloresContainer) {
             coloresContainer.innerHTML = '';
             colores.forEach(color => {
-                const btn = document.createElement('div');
-                btn.className = 'opcion-color';
-                btn.dataset.color = color;
-                btn.style.background = colorToHex(color);
-                btn.textContent = color.charAt(0).toUpperCase();
-                btn.title = color;
-                btn.addEventListener('click', () => seleccionarColor(color));
-                coloresContainer.appendChild(btn);
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'opcion-color-item';
+                item.dataset.color = color;
+                item.title = color;
+
+                const circulo = document.createElement('span');
+                circulo.className = 'opcion-color';
+                circulo.style.background = colorToHex(color);
+
+                const nombre = document.createElement('span');
+                nombre.className = 'opcion-color-nombre';
+                nombre.textContent = color;
+
+                item.appendChild(circulo);
+                item.appendChild(nombre);
+                item.addEventListener('click', () => seleccionarColor(color));
+                coloresContainer.appendChild(item);
             });
         }
         if (colorGroup) colorGroup.style.display = colores.length > 0 ? '' : 'none';
@@ -555,7 +577,7 @@
 
     function seleccionarColor(color) {
         colorSeleccionado = color;
-        document.querySelectorAll('.opcion-color').forEach(el => {
+        document.querySelectorAll('.opcion-color-item').forEach(el => {
             el.classList.toggle('seleccionado', el.dataset.color === color);
         });
         actualizarVariante();
@@ -621,67 +643,241 @@
     // ============================================================
     // UTILIDAD: color a hexadecimal
     // ============================================================
+    /**
+     * Traduce el nombre del color a un valor CSS.
+     * - Si el nombre ya es un HEX o rgb(), se usa tal cual.
+     * - Normaliza mayúsculas y tildes ("Café" -> "cafe").
+     * - Admite coincidencias parciales ("azul marino" -> azul oscuro).
+     */
     function colorToHex(color) {
+        const original = (color == null) ? '' : String(color).trim();
+
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(original)) return original;
+        if (/^rgba?\(/i.test(original)) return original;
+
+        const clave = original
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
         const mapa = {
             'negro': '#000000',
+            'negro azabache': '#0a0a0a',
             'blanco': '#FFFFFF',
-            'rojo': '#FF0000',
-            'azul': '#0000FF',
-            'verde': '#00FF00',
-            'amarillo': '#FFFF00',
-            'naranja': '#FFA500',
-            'morado': '#800080',
-            'rosa': '#FFC0CB',
-            'gris': '#808080',
-            'cafe': '#8B4513',
+            'blanco perla': '#F8F6F0',
+            'crema': '#F5F0DC',
             'beige': '#F5F5DC',
+            'rojo': '#FF0000',
+            'rojo vino': '#722F37',
+            'vinotinto': '#722F37',
+            'burdeos': '#6D071A',
+            'azul': '#0000FF',
+            'azul marino': '#001F5B',
+            'azul oscuro': '#001845',
+            'azul cielo': '#87CEEB',
+            'azul rey': '#4169E1',
+            'celeste': '#A8D8EA',
+            'verde': '#00FF00',
+            'verde oliva': '#6B8E23',
+            'verde militar': '#4B5320',
+            'verde limon': '#9ACD32',
+            'menta': '#98FF98',
+            'amarillo': '#FFFF00',
+            'mostaza': '#FFDB58',
+            'naranja': '#FFA500',
+            'terracota': '#E2725B',
+            'morado': '#800080',
+            'violeta': '#8F00FF',
+            'lila': '#C8A2C8',
+            'rosa': '#FFC0CB',
+            'rosado': '#FFC0CB',
+            'fucsia': '#FF00FF',
+            'gris': '#808080',
+            'gris claro': '#D3D3D3',
+            'gris oscuro': '#404040',
+            'gris jaspe': '#B2B2B2',
+            'grafito': '#383838',
             'plateado': '#C0C0C0',
-            'dorado': '#FFD700'
+            'dorado': '#FFD700',
+            'oro': '#FFD700',
+            'bronce': '#CD7F32',
+            'cobre': '#B87333',
+            'cafe': '#8B4513',
+            'marron': '#8B4513',
+            'chocolate': '#7B3F00',
+            'camel': '#C19A6B',
+            'nude': '#E3BC9A',
+            'turquesa': '#40E0D0',
+            'aguamarina': '#7FFFD4',
+            'melocoton': '#FFDAB9',
+            'salmon': '#FA8072',
+            'transparente': '#DDDDDD'
         };
-        return mapa[color.toLowerCase()] || '#888';
+
+        if (mapa[clave]) return mapa[clave];
+
+        // Coincidencia parcial: "azul oscuro" ya está, pero cubre casos como
+        // "negro mate" o "rojo con detalles blancos".
+        for (const nombre in mapa) {
+            if (clave.indexOf(nombre) !== -1) return mapa[nombre];
+        }
+
+        return '#888888';
     }
 
     // ============================================================
-    // CARRITO (usando SKU)
+    // CARRITO (estructura compatible con carrito.html)
+    // ------------------------------------------------------------
+    // carrito.html espera EXACTAMENTE estos campos:
+    //   { sku, nombre, precio (Number), imagen, cantidad (Number), color, talla }
+    // Si falta alguno o el precio viaja como texto, el item se rompe.
     // ============================================================
+    function leerCarrito() {
+        try {
+            const raw = localStorage.getItem('carritoFlowColombia');
+            if (!raw) return [];
+            const datos = JSON.parse(raw);
+            return Array.isArray(datos) ? datos : [];
+        } catch (e) {
+            console.error('El carrito guardado no se pudo leer, se reinicia:', e);
+            return [];
+        }
+    }
+
+    function guardarCarrito(carrito) {
+        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+    }
+
+    function obtenerCantidadSeleccionada() {
+        const input = document.getElementById('cantidad');
+        const valor = Math.round(Number(input ? input.value : 1));
+        return (isFinite(valor) && valor >= 1) ? valor : 1;
+    }
+
+    /** Una variante está disponible si está activa y tiene stock. */
+    function esComprable(variante) {
+        return !!variante && variante.activo !== false && (Number(variante.stock) || 0) > 0;
+    }
+
     /**
-     * Agrega la variante seleccionada al carrito (localStorage).
+     * Construye el item con los 7 campos y los tipos que espera carrito.html.
+     * El precio y la cantidad se fuerzan SIEMPRE a número.
+     * Devuelve null si faltan datos mínimos (SKU o precio válidos).
+     */
+    function construirItemCarrito(variante, cantidad) {
+        if (!variante) return null;
+
+        const sku = String(variante.sku == null ? '' : variante.sku).trim();
+        const precio = Number(variante.precio);
+        const cant = Math.round(Number(cantidad));
+
+        if (!sku) {
+            console.error('La variante no tiene SKU; no se puede guardar en el carrito.');
+            return null;
+        }
+        if (!isFinite(precio) || precio <= 0) {
+            console.error('Precio inválido para la variante ' + sku + ': ' + variante.precio);
+            return null;
+        }
+
+        return {
+            sku: sku,
+            nombre: String(productoNombre || 'Producto'),
+            precio: Number(precio),                                  // SIEMPRE número
+            imagen: String(productoImagen || ''),
+            cantidad: (isFinite(cant) && cant >= 1) ? cant : 1,      // SIEMPRE número
+            color: String(variante.color || ''),
+            talla: String(variante.talla || '')
+        };
+    }
+
+    /**
+     * Resuelve qué variante se va a comprar cuando "Pagar contra entrega"
+     * se pulsa sin haber terminado de elegir talla/color, para que el
+     * carrito nunca quede vacío por falta de selección.
+     */
+    function resolverVarianteCompra() {
+        if (varianteSeleccionada) return varianteSeleccionada;
+
+        // El cliente ya eligió algo: se respeta su selección.
+        if (colorSeleccionado || tallaSeleccionada) {
+            const parcial = buscarVariante(colorSeleccionado, tallaSeleccionada);
+            if (parcial && parcial.activo !== false) return parcial;
+
+            // Completar el eje que falta cuando solo hay una opción posible.
+            if (colorSeleccionado && !tallaSeleccionada) {
+                const opciones = variantesLista.filter(v => normalizarColor(v) === colorSeleccionado);
+                if (opciones.length === 1) return opciones[0];
+            }
+            if (tallaSeleccionada && !colorSeleccionado) {
+                const opciones = variantesLista.filter(v => normalizarTalla(v) === tallaSeleccionada);
+                if (opciones.length === 1) return opciones[0];
+            }
+            return null;
+        }
+
+        // Nada seleccionado: si solo hay una variante, se usa automáticamente.
+        if (variantesLista.length === 1) return variantesLista[0];
+
+        // Si solo hay una variante realmente comprable, se selecciona sola.
+        const comprables = variantesLista.filter(esComprable);
+        if (comprables.length === 1) {
+            const elegida = comprables[0];
+            if (normalizarColor(elegida)) seleccionarColor(normalizarColor(elegida));
+            if (normalizarTalla(elegida)) seleccionarTalla(normalizarTalla(elegida));
+            return varianteSeleccionada || elegida;
+        }
+
+        // Producto sin variantes: se compra como unidad simple.
+        if (variantesLista.length === 0) {
+            return {
+                sku: productoSku,
+                color: '',
+                talla: '',
+                precio: precioBase,
+                stock: null,
+                activo: true
+            };
+        }
+
+        return null;
+    }
+
+    /**
+     * Agrega el producto al carrito (localStorage).
      *
      * @param {boolean} silencioso si es true no muestra alertas; se usa desde
-     *        "Pagar contra entrega", donde la redirección ocurre igual.
-     * @returns {boolean} true si el producto quedó guardado en el carrito.
+     *        "Pagar contra entrega".
+     * @returns {boolean} true SOLO si el item quedó guardado en el carrito.
      */
     function agregarAlCarrito(silencioso) {
         try {
-            if (!varianteSeleccionada) {
+            const variante = resolverVarianteCompra();
+            const item = construirItemCarrito(variante, obtenerCantidadSeleccionada());
+
+            if (!item) {
                 if (!silencioso) {
                     alert('Selecciona una combinación de talla y color.');
                 }
                 return false;
             }
 
-            const inputCantidad = document.getElementById('cantidad');
-            const cantidad = Math.max(1, parseInt(inputCantidad ? inputCantidad.value : '1', 10) || 1);
-            const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-
-            const sku = varianteSeleccionada.sku;
-            const existente = carrito.find(item => item && item.sku === sku);
+            const carrito = leerCarrito();
+            const existente = carrito.find(i => i && String(i.sku) === item.sku);
 
             if (existente) {
-                existente.cantidad = (Number(existente.cantidad) || 0) + cantidad;
+                existente.cantidad = (Number(existente.cantidad) || 0) + item.cantidad;
+                existente.precio = item.precio;
+                existente.nombre = item.nombre;
+                existente.imagen = item.imagen;
             } else {
-                carrito.push({
-                    sku: sku,
-                    nombre: productoNombre,
-                    precio: Number(varianteSeleccionada.precio) || 0,
-                    imagen: productoImagen,
-                    cantidad: cantidad,
-                    color: varianteSeleccionada.color || '',
-                    talla: varianteSeleccionada.talla || ''
-                });
+                carrito.push(item);
             }
 
-            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+            guardarCarrito(carrito);
+
             if (!silencioso) {
                 mostrarToast('✅ Producto agregado al carrito', '🛒');
             }
@@ -689,7 +885,6 @@
             actualizarBarraCarrito();
             return true;
         } catch (e) {
-            // Un error aquí NUNCA debe romper la redirección del checkout.
             console.error('No se pudo agregar el producto al carrito:', e);
             if (!silencioso) {
                 alert('No se pudo agregar el producto al carrito. Intenta de nuevo.');
@@ -699,18 +894,25 @@
     }
 
     /**
-     * "Pagar contra entrega": agrega el producto y SIEMPRE redirige al
-     * carrito con el flag contraentrega=true, incluso si la selección de
-     * variantes falla. El botón nunca queda sin acción.
+     * "Pagar contra entrega": agrega el producto y redirige al carrito.
+     * Solo redirige si el item se guardó de verdad, para no llevar al
+     * cliente a un carrito vacío.
      */
     function comprarContraEntrega() {
+        let agregado = false;
+
         try {
-            agregarAlCarrito(true);
+            agregado = agregarAlCarrito(true);
         } catch (e) {
-            console.error('comprarContraEntrega: se redirige igualmente al carrito:', e);
-        } finally {
-            window.location.href = '/carrito?contraentrega=true';
+            console.error('comprarContraEntrega: error al agregar el producto:', e);
         }
+
+        if (agregado) {
+            window.location.href = '/carrito?contraentrega=true';
+            return;
+        }
+
+        alert('No se pudo agregar el producto. Selecciona una talla y un color disponibles.');
     }
 
     // ============================================================
@@ -744,7 +946,7 @@
     }
 
     function actualizarContadorCarrito() {
-        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        const carrito = leerCarrito();
         const countEl = document.getElementById('cartCount');
         if (countEl) countEl.textContent = carrito.length;
     }

@@ -280,7 +280,13 @@ public class ProductoService {
             productoGuardado = productoRepository.save(productoForm);
         }
 
-        // 2. Validar longitud de listas
+        // 2. Sincronizar la colección normalizada de imágenes (ProductoImagen)
+        //    con los campos legacy imagen1..imagen6, que es lo que edita el
+        //    administrador. Se hace en esta misma transacción para que el
+        //    borrado de las filas antiguas y el alta de las nuevas sean atómicos.
+        sincronizarImagenes(productoGuardado);
+
+        // 3. Validar longitud de listas
         int size = (varianteSku != null) ? varianteSku.size() : 0;
 
         if (varianteId != null && varianteId.size() != size) {
@@ -308,12 +314,12 @@ public class ProductoService {
             throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
         }
 
-        // 3. Obtener mapa de variantes actuales
+        // 4. Obtener mapa de variantes actuales
         List<VarianteProducto> variantesActuales = new ArrayList<>(productoGuardado.getVariantes());
         Map<Long, VarianteProducto> mapaPorId = variantesActuales.stream()
                 .collect(Collectors.toMap(VarianteProducto::getId, v -> v, (a, b) -> a));
 
-        // 4. Procesar filas (validación de SKU duplicado en formulario)
+        // 5. Procesar filas (validación de SKU duplicado en formulario)
         Set<String> skusEnFormulario = new HashSet<>();
         Set<Long> idsMantenidos = new HashSet<>();
         List<VarianteProducto> nuevasVariantes = new ArrayList<>();
@@ -389,7 +395,7 @@ public class ProductoService {
             }
         }
 
-        // 5. ELIMINAR variantes que ya no están en el formulario
+        // 6. ELIMINAR variantes que ya no están en el formulario
         List<VarianteProducto> variantesAEliminar = variantesActuales.stream()
                 .filter(v -> v.getId() != null && !idsMantenidos.contains(v.getId()))
                 .collect(Collectors.toList());
@@ -400,16 +406,80 @@ public class ProductoService {
             varianteProductoRepository.flush();
         }
 
-        // 6. AGREGAR nuevas variantes
+        // 7. AGREGAR nuevas variantes
         for (VarianteProducto nueva : nuevasVariantes) {
             productoGuardado.getVariantes().add(nueva);
         }
 
-        // 7. GUARDAR PRODUCTO (CASCADE ALL)
+        // 8. GUARDAR PRODUCTO (CASCADE ALL)
         Producto resultado = productoRepository.save(productoGuardado);
         productoRepository.flush();
 
         return resultado;
+    }
+
+    // ============================================================
+    // SINCRONIZACIÓN DE IMÁGENES (LEGACY -> ProductoImagen)
+    // ============================================================
+
+    /**
+     * Alinea la colección normalizada {@code producto.imagenes} (entidad
+     * ProductoImagen, que es la fuente principal de la ficha de producto)
+     * con los campos legacy {@code imagen1..imagen6}, que son los que edita
+     * el administrador en el textarea de URLs.
+     *
+     * <p>Se ejecuta dentro de la transacción de
+     * {@link #guardarProductoConVariantes}, por lo que el borrado de las
+     * filas antiguas (orphanRemoval) y el alta de las nuevas se confirman
+     * juntos: si algo falla, no queda la colección a medias.</p>
+     *
+     * <p>Si la colección ya coincide con los campos legacy no se toca, para
+     * no borrar y reinsertar filas en cada guardado (por ejemplo, cuando el
+     * administrador solo cambia el stock).</p>
+     *
+     * @param producto producto gestionado con los campos legacy ya copiados
+     */
+    private void sincronizarImagenes(Producto producto) {
+        if (producto == null) {
+            return;
+        }
+
+        // 1. URLs deseadas, en orden, tal y como las dejó el administrador
+        //    (las líneas vacías del textarea no llegan aquí).
+        List<String> deseadas = new ArrayList<>();
+        String[] legacy = {
+                producto.getImagen1(), producto.getImagen2(), producto.getImagen3(),
+                producto.getImagen4(), producto.getImagen5(), producto.getImagen6()
+        };
+        for (String url : legacy) {
+            if (url != null && !url.isBlank()) {
+                deseadas.add(url.trim());
+            }
+        }
+
+        // 2. URLs actuales de la colección normalizada (ordenadas por "orden")
+        List<String> actuales = new ArrayList<>();
+        if (producto.getImagenes() != null) {
+            for (ProductoImagen imagen : producto.getImagenes()) {
+                if (imagen != null && imagen.getUrl() != null) {
+                    actuales.add(imagen.getUrl().trim());
+                }
+            }
+        }
+
+        if (deseadas.equals(actuales)) {
+            return; // ya está sincronizada
+        }
+
+        // 3. Limpiar las anteriores. Con orphanRemoval = true, Hibernate
+        //    borra las filas de producto_imagen que ya no están en la lista.
+        producto.getImagenes().clear();
+
+        // 4. Recrear una ProductoImagen por URL, con su orden (0 = principal)
+        int orden = 0;
+        for (String url : deseadas) {
+            producto.addImagen(url, orden++);
+        }
     }
 
     // ============================================================

@@ -124,7 +124,9 @@
     <!-- ============================================================ -->
     <!-- FORMULARIO PRINCIPAL -->
     <!-- ============================================================ -->
-    <form id="productoForm" th:action="@{/admin/guardar}" method="post" enctype="multipart/form-data">
+    <!-- Formulario NORMAL (sin multipart): las imágenes ya están en Cloudinary
+         y solo se envían como URLs de texto, así que no se sube ningún archivo. -->
+    <form id="productoForm" th:action="@{/admin/guardar}" method="post">
         <input type="hidden" name="id" th:value="${producto.id}">
 
         <!-- ========================================================== -->
@@ -158,20 +160,21 @@
         </div>
 
         <!-- ========================================================== -->
-        <!-- SECCIÓN 2: IMÁGENES (legacy, se mantienen) -->
+        <!-- SECCIÓN 2: IMÁGENES (URLs de Cloudinary, sin subida de archivos) -->
         <!-- ========================================================== -->
         <div class="section-card">
             <div class="section-title"><span class="icon">🖼️</span> Imágenes (URLs de Cloudinary)</div>
-            <div class="imagenes-grid">
-                <div class="form-group"><label>Imagen 1</label><input type="text" name="imagen1File" th:value="${producto.imagen1}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 0)"></div>
-                <div class="form-group"><label>Imagen 2</label><input type="text" name="imagen2File" th:value="${producto.imagen2}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 1)"></div>
-                <div class="form-group"><label>Imagen 3</label><input type="text" name="imagen3File" th:value="${producto.imagen3}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 2)"></div>
-                <div class="form-group"><label>Imagen 4</label><input type="text" name="imagen4File" th:value="${producto.imagen4}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 3)"></div>
-                <div class="form-group"><label>Imagen 5</label><input type="text" name="imagen5File" th:value="${producto.imagen5}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 4)"></div>
-                <div class="form-group"><label>Imagen 6</label><input type="text" name="imagen6File" th:value="${producto.imagen6}" placeholder="https://res.cloudinary.com/..." oninput="previewImage(this, 5)"></div>
+            <div class="form-group full">
+                <label>URLs de imágenes (una por línea)</label>
+                <!-- Se pegan las URLs directamente: no hay <input type="file"> ni
+                     multipart, por lo que nunca se supera el límite de subida. -->
+                <textarea name="imagenesUrls" id="imagenesUrls" rows="6"
+                          placeholder="https://res.cloudinary.com/.../imagen-1.jpg&#10;https://res.cloudinary.com/.../imagen-2.jpg"
+                          oninput="previewImagenes()"
+                          th:text="${imagenesTexto}"></textarea>
             </div>
             <div id="previewContainer" class="imagen-preview"></div>
-            <small style="color:#666; display:block; margin-top:10px;">📸 Sube tus imágenes a Cloudinary y pega los enlaces aquí</small>
+            <small style="color:#666; display:block; margin-top:10px;">📸 Sube tus imágenes a Cloudinary y pega aquí los enlaces, una URL por línea (la primera será la principal). No se suben archivos.</small>
         </div>
 
         <!-- ========================================================== -->
@@ -348,15 +351,34 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPTS (EXACTAMENTE IGUALES, SIN CAMBIOS) -->
+<!-- SCRIPTS DEL FORMULARIO (vista previa de URLs + validaciones) -->
 <!-- ============================================================ -->
-<script>
-    function previewImage(input, index) {
+<script th:inline="javascript">
+    /**
+     * Devuelve las URLs escritas en el textarea (una por línea),
+     * ignorando líneas vacías y espacios sobrantes.
+     */
+    function urlsDeImagenes() {
+        const textarea = document.getElementById('imagenesUrls');
+        if (!textarea) return [];
+        return textarea.value
+            .split(/\r?\n/)
+            .map(url => url.trim())
+            .filter(url => url.length > 0);
+    }
+
+    /**
+     * Previsualiza (solo las URLs de texto) las imágenes pegadas.
+     */
+    function previewImagenes() {
         const container = document.getElementById('previewContainer');
-        const url = input.value.trim();
-        let img = container.querySelector(`[data-index="${index}"]`);
-        if (!img) {
-            img = document.createElement('img');
+        if (!container) return;
+
+        container.innerHTML = '';
+        urlsDeImagenes().forEach((url, index) => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Imagen ' + (index + 1);
             img.dataset.index = index;
             img.style.width = '80px';
             img.style.height = '80px';
@@ -364,21 +386,13 @@
             img.style.border = '2px solid #333';
             img.style.objectFit = 'cover';
             img.style.margin = '4px';
+            img.onerror = function () { this.style.display = 'none'; };
             container.appendChild(img);
-        }
-        if (url) {
-            img.src = url;
-            img.style.display = 'block';
-        } else {
-            img.style.display = 'none';
-        }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const inputs = document.querySelectorAll('input[name^="imagen"]');
-        inputs.forEach((input, idx) => {
-            if (input.value.trim()) previewImage(input, idx);
-        });
+        previewImagenes();
     });
 
     function agregarVariante() {

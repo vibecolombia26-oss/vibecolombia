@@ -38,7 +38,9 @@ public class ProductoController {
 
     @GetMapping("/nuevo")
     public String nuevoProducto(Model model) {
-        model.addAttribute("producto", new Producto());
+        Producto producto = new Producto();
+        model.addAttribute("producto", producto);
+        model.addAttribute("imagenesTexto", textoImagenes(producto));
         model.addAttribute("resenas", new ArrayList<>());
         return "admin-form";
     }
@@ -51,12 +53,43 @@ public class ProductoController {
         }
         List<Resena> resenas = resenaService.listarPorProducto(id);
         model.addAttribute("producto", producto);
+        model.addAttribute("imagenesTexto", textoImagenes(producto));
         model.addAttribute("resenas", resenas);
         return "admin-form";
     }
 
+    /**
+     * Concatena imagen1..imagen6 (solo las que tienen contenido) para
+     * precargar el textarea de URLs del formulario, una por línea.
+     */
+    private String textoImagenes(Producto producto) {
+        if (producto == null) {
+            return "";
+        }
+        String[] urls = {
+                producto.getImagen1(), producto.getImagen2(), producto.getImagen3(),
+                producto.getImagen4(), producto.getImagen5(), producto.getImagen6()
+        };
+        StringBuilder texto = new StringBuilder();
+        for (String url : urls) {
+            if (url != null && !url.isBlank()) {
+                if (texto.length() > 0) {
+                    texto.append('\n');
+                }
+                texto.append(url.trim());
+            }
+        }
+        return texto.toString();
+    }
+
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto,
+                                  // Formato nuevo: una única textarea con una URL por línea.
+                                  // Son cadenas de texto: este endpoint NO recibe MultipartFile,
+                                  // así que el formulario viaja como x-www-form-urlencoded y
+                                  // nunca se dispara el límite de subida.
+                                  @RequestParam(required = false) String imagenesUrls,
+                                  // Formato antiguo (compatibilidad): un campo por imagen.
                                   @RequestParam(required = false) String imagen1File,
                                   @RequestParam(required = false) String imagen2File,
                                   @RequestParam(required = false) String imagen3File,
@@ -75,25 +108,47 @@ public class ProductoController {
                                   RedirectAttributes redirect) {
 
         // ============================================================
-        // 1. ACTUALIZAR IMÁGENES (si se enviaron nuevas)
+        // 1. IMÁGENES (URLs de texto pegadas desde Cloudinary)
+        // ------------------------------------------------------------
+        // Las imágenes ya están alojadas en Cloudinary: aquí solo se
+        // guardan cadenas de texto (imagen1..imagen6 legacy). No hay
+        // ficheros ni multipart en ningún punto del flujo.
         // ============================================================
-        if (producto.getId() != null) {
-            Producto existente = productoService.obtenerPorId(producto.getId());
-            if (existente != null) {
-                if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
-                if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
-                if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
-                if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
-                if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
-                if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
+        if (imagenesUrls != null) {
+            // Formato nuevo: textarea "imagenesUrls" (una URL por línea)
+            List<String> urls = new ArrayList<>();
+            for (String linea : imagenesUrls.split("\\R")) {
+                String url = (linea == null) ? "" : linea.trim();
+                if (!url.isEmpty()) {
+                    urls.add(url);
+                }
             }
+            producto.setImagen1(urls.size() > 0 ? urls.get(0) : null);
+            producto.setImagen2(urls.size() > 1 ? urls.get(1) : null);
+            producto.setImagen3(urls.size() > 2 ? urls.get(2) : null);
+            producto.setImagen4(urls.size() > 3 ? urls.get(3) : null);
+            producto.setImagen5(urls.size() > 4 ? urls.get(4) : null);
+            producto.setImagen6(urls.size() > 5 ? urls.get(5) : null);
+        } else {
+            // Formato antiguo: campos individuales imagen1File..imagen6File
+            if (producto.getId() != null) {
+                Producto existente = productoService.obtenerPorId(producto.getId());
+                if (existente != null) {
+                    if (imagen1File == null || imagen1File.isEmpty()) producto.setImagen1(existente.getImagen1());
+                    if (imagen2File == null || imagen2File.isEmpty()) producto.setImagen2(existente.getImagen2());
+                    if (imagen3File == null || imagen3File.isEmpty()) producto.setImagen3(existente.getImagen3());
+                    if (imagen4File == null || imagen4File.isEmpty()) producto.setImagen4(existente.getImagen4());
+                    if (imagen5File == null || imagen5File.isEmpty()) producto.setImagen5(existente.getImagen5());
+                    if (imagen6File == null || imagen6File.isEmpty()) producto.setImagen6(existente.getImagen6());
+                }
+            }
+            if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
+            if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
+            if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
+            if (imagen4File != null && !imagen4File.isEmpty()) producto.setImagen4(imagen4File);
+            if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
+            if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
         }
-        if (imagen1File != null && !imagen1File.isEmpty()) producto.setImagen1(imagen1File);
-        if (imagen2File != null && !imagen2File.isEmpty()) producto.setImagen2(imagen2File);
-        if (imagen3File != null && !imagen3File.isEmpty()) producto.setImagen3(imagen3File);
-        if (imagen4File != null && !imagen4File.isEmpty()) producto.setImagen4(imagen4File);
-        if (imagen5File != null && !imagen5File.isEmpty()) producto.setImagen5(imagen5File);
-        if (imagen6File != null && !imagen6File.isEmpty()) producto.setImagen6(imagen6File);
 
         // ============================================================
         // 2. GUARDAR PRODUCTO Y VARIANTES
