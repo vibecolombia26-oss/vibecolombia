@@ -74,18 +74,17 @@ public class WebController {
     @GetMapping("/producto/{id}")
     public String detalle(@PathVariable Long id, Model model) {
         try {
-            Producto producto = productoService.obtenerDetalleProducto(id);
-            if (producto == null) {
+            // El servicio carga imágenes + variantes (eager, dentro de la
+            // transacción) y devuelve además DTOs planos para la vista.
+            ProductoService.DetalleProductoVista vista = productoService.obtenerDetalleVista(id);
+            if (vista == null) {
                 return "redirect:/?error=Producto no encontrado";
             }
 
+            Producto producto = vista.producto();
             if (producto.getTieneColor() == null) producto.setTieneColor(false);
             if (producto.getTieneTalla() == null) producto.setTieneTalla(false);
             if (producto.getTieneVariaciones() == null) producto.setTieneVariaciones(false);
-
-            if (producto.getImagen1() == null) {
-                producto.setImagen1("https://res.cloudinary.com/bcpwhn6o/image/upload/v1783699365/1780606143WhatsApp_Image_2026-06-04_at_3.18.44_PM_hygiom.jpg");
-            }
 
             optimizarImagenes(producto);
 
@@ -99,6 +98,17 @@ public class WebController {
             model.addAttribute("promedioCalificacion", estadisticas.promedio());
             model.addAttribute("totalResenas", estadisticas.total());
             model.addAttribute("producto", producto);
+
+            // ============================================================
+            // DTOs para el JavaScript de la vista.
+            // NUNCA se envía la entidad (Producto -> VarianteProducto ->
+            // Producto) porque Thymeleaf/Jackson entra en bucle infinito y
+            // rompe todo el <script> de la página.
+            // ============================================================
+            model.addAttribute("variantes", vista.variantes());
+            model.addAttribute("imagenesProducto", vista.imagenes());
+            model.addAttribute("imagenesLegacy", vista.imagenesLegacy());
+            model.addAttribute("imagenPrincipal", vista.imagenPrincipal());
 
             return "producto-detalle";
         } catch (Exception e) {

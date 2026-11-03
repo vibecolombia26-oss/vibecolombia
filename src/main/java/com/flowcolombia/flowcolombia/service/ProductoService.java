@@ -1,6 +1,7 @@
 package com.flowcolombia.flowcolombia.service;
 
 import com.flowcolombia.flowcolombia.Producto;
+import com.flowcolombia.flowcolombia.ProductoImagen;
 import com.flowcolombia.flowcolombia.ProductoImagenRepository;
 import com.flowcolombia.flowcolombia.ProductoRepository;
 import com.flowcolombia.flowcolombia.VarianteProducto;
@@ -53,16 +54,159 @@ public class ProductoService {
         return productoRepository.findById(id).orElse(null);
     }
 
-    // Fase 2: método corregido para cargar imágenes y variantes en la misma transacción
+    /**
+     * Imagen de reemplazo cuando el producto no tiene ninguna imagen
+     * (ni en ProductoImagen ni en los campos legacy imagen1..imagen6).
+     */
+    private static final String IMAGEN_FALLBACK =
+            "https://res.cloudinary.com/bcpwhn6o/image/upload/v1783699365/"
+            + "1780606143WhatsApp_Image_2026-06-04_at_3.18.44_PM_hygiom.jpg";
+
+    /**
+     * DTO plano (sin entidades JPA) con todo lo que la vista de detalle
+     * necesita. Se construye dentro de la transacción, de modo que la
+     * plantilla nunca toca una colección Lazy ni serializa entidades con
+     * relaciones bidireccionales (Producto -> VarianteProducto -> Producto),
+     * que era lo que rompía el JavaScript con Thymeleaf.
+     */
+    public record DetalleProductoVista(
+            Producto producto,
+            List<Map<String, Object>> variantes,
+            List<Map<String, Object>> imagenes,
+            List<String> imagenesLegacy,
+            String imagenPrincipal
+    ) {
+    }
+
+    /**
+     * Carga el producto con sus imágenes y sus variantes inicializadas.
+     *
+     * Las dos colecciones son "bags" (@OneToMany List) y no se pueden traer
+     * en el mismo JOIN FETCH sin lanzar MultipleBagFetchException, así que se
+     * resuelven en dos consultas dentro de la MISMA transacción: la segunda
+     * reutiliza la misma instancia gestionada del Persistence Context y
+     * termina de inicializar sus colecciones. Además se fuerza la
+     * inicialización de forma defensiva, para que el Controlador/Thymeleaf
+     * nunca reciban una colección Lazy sin sesión abierta.
+     */
     @Transactional(readOnly = true)
     public Producto obtenerDetalleProducto(Long id) {
-        // 1. Cargar producto con imágenes
-        Producto producto = productoRepository.findDetalleById(id).orElse(null);
-        if (producto != null) {
-            // 2. Cargar variantes en el mismo Persistence Context
-            productoRepository.findWithVariantes(id).orElse(null);
+        if (id == null) {
+            return null;
         }
+
+        // 1. Producto + imágenes (JOIN FETCH p.imagenes)
+        Producto producto = productoRepository.findDetalleById(id).orElse(null);
+        if (producto == null) {
+            return null;
+        }
+
+        // 2. Variantes en el mismo Persistence Context (JOIN FETCH p.variantes)
+        productoRepository.findWithVariantes(id).ifPresent(this::inicializarColecciones);
+
+        // 3. Red de seguridad: inicializar lo que falte dentro de la transacción
+        inicializarColecciones(producto);
+
         return producto;
+    }
+
+    /**
+     * Fuerza la carga de las colecciones Lazy mientras la sesión sigue abierta.
+     * Acceder a size() es suficiente: Hibernate ejecuta el SELECT pendiente.
+     */
+    private void inicializarColecciones(Producto producto) {
+        if (producto == null) {
+            return;
+        }
+        if (producto.getImagenes() != null) {
+            producto.getImagenes().size();
+        }
+        if (producto.getVariantes() != null) {
+            producto.getVariantes().size();
+        }
+    }
+
+    /**
+     * Versión "lista para pintar" del detalle: producto con colecciones
+     * inicializadas + listas planas de Mapas para el JavaScript de la vista.
+     *
+     * Las variantes se envían con exactamente los campos que consume el
+     * frontend (sku, color, talla, precio, stock, activo), sin el backreference
+     * a Producto que provocaba el bucle infinito de serialización.
+     *
+     * @param id identificador del producto
+     * @return la vista o {@code null} si el producto no existe
+     */
+    @Transactional(readOnly = true)
+    public DetalleProductoVista obtenerDetalleVista(Long id) {
+        Producto producto = obtenerDetalleProducto(id);
+        if (producto == null) {
+            return null;
+        }
+
+        // ------------------------------------------------------------
+        // VARIANTES -> lista de mapas planos
+        // ------------------------------------------------------------
+        List<Map<String, Object>> variantesDTO = new ArrayList<>();
+        if (producto.getVariantes() != null) {
+            for (VarianteProducto variante : producto.getVariantes()) {
+                if (variante == null) {
+                    continue;
+                }
+                Map<String, Object> dto = new LinkedHashMap<>();
+                dto.put("sku", variante.getSku() != null ? variante.getSku() : "");
+                dto.put("color", variante.getColor() != null ? variante.getColor() : "");
+                dto.put("talla", variante.getTalla() != null ? variante.getTalla() : "");
+                dto.put("precio", variante.getPrecio());
+                dto.put("stock", variante.getStock() != null ? variante.getStock() : 0);
+                dto.put("activo", Boolean.TRUE.equals(variante.getActivo()));
+                variantesDTO.add(dto);
+            }
+        }
+
+        // ------------------------------------------------------------
+        // IMÁGENES -> ProductoImagen es la fuente principal
+        // ------------------------------------------------------------
+        List<Map<String, Object>> imagenesDTO = new ArrayList<>();
+        if (producto.getImagenes() != null) {
+            for (ProductoImagen imagen : producto.getImagenes()) {
+                if (imagen == null || imagen.getUrl() == null || imagen.getUrl().isBlank()) {
+                    continue;
+                }
+                Map<String, Object> dto = new LinkedHashMap<>();
+                dto.put("url", imagen.getUrl());
+                dto.put("orden", imagen.getOrden() != null ? imagen.getOrden() : 0);
+                imagenesDTO.add(dto);
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Retrocompatibilidad: campos legacy imagen1..imagen6
+        // (solo se usan si todavía no hay filas en producto_imagen)
+        // ------------------------------------------------------------
+        List<String> imagenesLegacy = new ArrayList<>();
+        if (imagenesDTO.isEmpty()) {
+            String[] legacy = {
+                    producto.getImagen1(), producto.getImagen2(), producto.getImagen3(),
+                    producto.getImagen4(), producto.getImagen5(), producto.getImagen6()
+            };
+            for (String url : legacy) {
+                if (url != null && !url.isBlank()) {
+                    imagenesLegacy.add(url);
+                }
+            }
+        }
+
+        String imagenPrincipal;
+        if (!imagenesDTO.isEmpty()) {
+            imagenPrincipal = String.valueOf(imagenesDTO.get(0).get("url"));
+        } else if (!imagenesLegacy.isEmpty()) {
+            imagenPrincipal = imagenesLegacy.get(0);
+        } else {
+            imagenPrincipal = IMAGEN_FALLBACK;
+        }
+
+        return new DetalleProductoVista(producto, variantesDTO, imagenesDTO, imagenesLegacy, imagenPrincipal);
     }
 
     public Producto obtenerPorSku(String sku) {

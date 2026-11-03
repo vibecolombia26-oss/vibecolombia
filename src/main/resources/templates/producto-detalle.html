@@ -204,32 +204,36 @@
     <div class="producto-card">
 
         <!-- ============================================================ -->
-        <!-- CARRUSEL DE IMÁGENES (MODIFICADO FASE 2) -->
+        <!-- CARRUSEL DE IMÁGENES (fuente principal: ProductoImagen)      -->
         <!-- ============================================================ -->
         <div class="imagenes-container" id="carruselContainer">
             <div class="imagenes-slider" id="carruselSlider">
-                <!-- Imágenes desde la colección ProductoImagen -->
-                <div th:each="img, iter : ${producto.imagenes}" class="imagenes-slide"
+                <!-- 1) Colección normalizada: producto.imagenes (ProductoImagen),
+                        ya inicializada en el controlador y ordenada por "orden". -->
+                <div th:each="img, iter : ${imagenesProducto}" class="imagenes-slide"
                      th:attr="data-index=${iter.index}">
                     <img class="imagen-principal" th:src="${img.url}" th:alt="${producto.nombre}"
-                         th:id="${iter.index == 0 ? 'imgPrincipal' : ''}">
+                         th:attr="data-index=${iter.index}" loading="lazy">
                 </div>
-                <!-- Fallback: si la colección está vacía, usar imagen1 -->
-                <div th:if="${#lists.isEmpty(producto.imagenes)}" class="imagenes-slide">
-                    <img class="imagen-principal" th:src="${producto.imagen1}" th:alt="${producto.nombre}" id="imgPrincipal">
+                <!-- 2) Retrocompatibilidad: productos que todavía no tienen filas
+                        en producto_imagen usan los campos legacy imagen1..imagen6. -->
+                <div th:if="${#lists.isEmpty(imagenesProducto)}"
+                     th:each="url, iter : ${imagenesLegacy}" class="imagenes-slide"
+                     th:attr="data-index=${iter.index}">
+                    <img class="imagen-principal" th:src="${url}" th:alt="${producto.nombre}"
+                         th:attr="data-index=${iter.index}" loading="lazy">
+                </div>
+                <!-- 3) Último recurso: imagen de reemplazo (nunca dejar el carrusel vacío). -->
+                <div th:if="${#lists.isEmpty(imagenesProducto) and #lists.isEmpty(imagenesLegacy)}"
+                     class="imagenes-slide" data-index="0">
+                    <img class="imagen-principal" th:src="${imagenPrincipal}" th:alt="${producto.nombre}"
+                         data-index="0">
                 </div>
             </div>
-            <button class="carrusel-btn prev" id="carruselPrev">‹</button>
-            <button class="carrusel-btn next" id="carruselNext">›</button>
-            <div class="carrusel-dots" id="carruselDots">
-                <!-- Dots dinámicos para cada imagen de la colección -->
-                <span th:each="img, iter : ${producto.imagenes}"
-                      class="carrusel-dot" th:classappend="${iter.index == 0 ? 'active' : ''}"
-                      th:attr="data-index=${iter.index}"></span>
-                <!-- Fallback: un solo dot si la colección está vacía -->
-                <span th:if="${#lists.isEmpty(producto.imagenes)}"
-                      class="carrusel-dot active" data-index="0"></span>
-            </div>
+            <button type="button" class="carrusel-btn prev" id="carruselPrev" aria-label="Imagen anterior">‹</button>
+            <button type="button" class="carrusel-btn next" id="carruselNext" aria-label="Imagen siguiente">›</button>
+            <!-- Los puntos se generan en JS a partir de los slides que existan en el DOM -->
+            <div class="carrusel-dots" id="carruselDots"></div>
         </div>
 
         <div class="info-section">
@@ -249,12 +253,15 @@
             </div>
 
             <!-- ======== SELECTORES DE VARIANTES ======== -->
-            <div class="variantes-selector" id="variantesSelector" th:if="${not #lists.isEmpty(producto.variantes)}">
-                <div class="selector-group" id="colorGroup">
+            <!-- Se rellena desde el array plano "variantes" (Mapas), nunca
+                 desde las entidades JPA. Los grupos se muestran solo si
+                 realmente hay colores/tallas disponibles. -->
+            <div class="variantes-selector" id="variantesSelector" th:if="${not #lists.isEmpty(variantes)}">
+                <div class="selector-group" id="colorGroup" style="display: none;">
                     <label>🎨 Color</label>
                     <div class="opciones-color" id="coloresContainer"></div>
                 </div>
-                <div class="selector-group" id="tallaGroup">
+                <div class="selector-group" id="tallaGroup" style="display: none;">
                     <label>📏 Talla</label>
                     <div class="opciones-talla" id="tallasContainer"></div>
                 </div>
@@ -399,59 +406,145 @@
 <!-- ============================================================ -->
 <script th:inline="javascript">
     // ============================================================
-    // DATOS DE VARIANTES (desde el backend)
+    // DATOS DE LA VISTA (DTOs planos generados por el controlador)
+    // ------------------------------------------------------------
+    // NUNCA se serializa la entidad JPA: el backend envía una lista de
+    // Mapas con { sku, color, talla, precio, stock, activo }, de modo que
+    // Thymeleaf no tiene que recorrer Producto -> VarianteProducto ->
+    // Producto (bucle infinito) ni resolver colecciones Lazy.
     // ============================================================
-    const variantes = /*[[${producto.variantes}]]*/ [];
+    const variantes = /*[[${variantes}]]*/ [];
     const productoId = /*[[${producto.id}]]*/ null;
     const productoNombre = /*[[${producto.nombre}]]*/ '';
-    const productoImagen = /*[[${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : producto.imagen1}]]*/ '';
+    const productoSku = /*[[${producto.sku}]]*/ '';
+    const productoImagen = /*[[${imagenPrincipal}]]*/ '';
+    const precioBaseInicial = Number(/*[[${producto.precio}]]*/ 0) || 0;
+
+    // Normalización defensiva: si por cualquier motivo el backend no
+    // enviara la lista, el script sigue funcionando sin romperse.
+    const variantesLista = Array.isArray(variantes) ? variantes : [];
 
     let varianteSeleccionada = null;
-    let precioBase = /*[[${producto.precio}]]*/ 0;
+    let precioBase = precioBaseInicial;
+
+    // ============================================================
+    // UTILIDADES
+    // ============================================================
+    function normalizarColor(v) {
+        return (v && typeof v.color === 'string') ? v.color.trim() : '';
+    }
+
+    function normalizarTalla(v) {
+        return (v && typeof v.talla === 'string') ? v.talla.trim() : '';
+    }
+
+    function formatearPrecio(valor) {
+        return '$' + (Number(valor) || 0).toLocaleString('es-CO');
+    }
 
     // ============================================================
     // RENDERIZAR SELECTORES DE VARIANTES
     // ============================================================
     function renderizarSelectores() {
-        const coloresSet = new Set();
-        const tallasSet = new Set();
-        const variantesMap = {};
-
-        variantes.forEach(v => {
-            if (v.color && v.color.trim()) coloresSet.add(v.color.trim());
-            if (v.talla && v.talla.trim()) tallasSet.add(v.talla.trim());
-            const key = (v.color || '').trim() + '|' + (v.talla || '').trim();
-            variantesMap[key] = v;
-        });
-
-        const colores = Array.from(coloresSet);
-        const tallas = Array.from(tallasSet);
-
-        // Colores
         const coloresContainer = document.getElementById('coloresContainer');
-        coloresContainer.innerHTML = '';
-        colores.forEach(color => {
-            const btn = document.createElement('div');
-            btn.className = 'opcion-color';
-            btn.dataset.color = color;
-            btn.style.background = colorToHex(color);
-            btn.textContent = color.charAt(0).toUpperCase();
-            btn.title = color;
-            btn.addEventListener('click', () => seleccionarColor(color));
-            coloresContainer.appendChild(btn);
+        const tallasContainer = document.getElementById('tallasContainer');
+        const colorGroup = document.getElementById('colorGroup');
+        const tallaGroup = document.getElementById('tallaGroup');
+
+        const colores = [];
+        const tallas = [];
+
+        variantesLista.forEach(v => {
+            if (!v) return;
+            const color = normalizarColor(v);
+            const talla = normalizarTalla(v);
+            if (color && colores.indexOf(color) === -1) colores.push(color);
+            if (talla && tallas.indexOf(talla) === -1) tallas.push(talla);
         });
 
-        // Tallas
-        const tallasContainer = document.getElementById('tallasContainer');
-        tallasContainer.innerHTML = '';
-        tallas.forEach(talla => {
-            const btn = document.createElement('button');
-            btn.className = 'opcion-talla';
-            btn.dataset.talla = talla;
-            btn.textContent = talla;
-            btn.addEventListener('click', () => seleccionarTalla(talla));
-            tallasContainer.appendChild(btn);
-        });
+        // ---- Colores ----
+        if (coloresContainer) {
+            coloresContainer.innerHTML = '';
+            colores.forEach(color => {
+                const btn = document.createElement('div');
+                btn.className = 'opcion-color';
+                btn.dataset.color = color;
+                btn.style.background = colorToHex(color);
+                btn.textContent = color.charAt(0).toUpperCase();
+                btn.title = color;
+                btn.addEventListener('click', () => seleccionarColor(color));
+                coloresContainer.appendChild(btn);
+            });
+        }
+        if (colorGroup) colorGroup.style.display = colores.length > 0 ? '' : 'none';
+
+        // ---- Tallas ----
+        if (tallasContainer) {
+            tallasContainer.innerHTML = '';
+            tallas.forEach(talla => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'opcion-talla';
+                btn.dataset.talla = talla;
+                btn.textContent = talla;
+                btn.addEventListener('click', () => seleccionarTalla(talla));
+                tallasContainer.appendChild(btn);
+            });
+        }
+        if (tallaGroup) tallaGroup.style.display = tallas.length > 0 ? '' : 'none';
+
+        actualizarStockInicial();
+
+        // Sin colores ni tallas: producto simple (una sola variante o ninguna)
+        if (colores.length === 0 && tallas.length === 0) {
+            const disponible = variantesLista.find(v => v && v.activo !== false && (Number(v.stock) || 0) > 0);
+            const unica = disponible || variantesLista[0] || null;
+            if (unica) {
+                aplicarVariante(unica);
+            } else {
+                usarProductoSinVariantes();
+            }
+            return;
+        }
+
+        // Preselección cuando solo hay una opción posible de cada tipo.
+        if (colores.length === 1) seleccionarColor(colores[0]);
+        if (tallas.length === 1) seleccionarTalla(tallas[0]);
+    }
+
+    /**
+     * Muestra el stock total mientras el cliente no ha elegido variante.
+     */
+    function actualizarStockInicial() {
+        const stockEl = document.getElementById('stockCantidad');
+        const cont = document.getElementById('stockDisplay');
+        if (!stockEl || !cont || variantesLista.length === 0) return;
+        const total = variantesLista.reduce((acc, v) => acc + (Number(v && v.stock) || 0), 0);
+        stockEl.textContent = total;
+        cont.className = 'stock-display' + (total > 0 ? '' : ' agotado');
+    }
+
+    /**
+     * Fallback cuando el producto no tiene ninguna variante: se compra con
+     * el SKU y el precio base en vez de dejar el botón bloqueado para siempre.
+     */
+    function usarProductoSinVariantes() {
+        varianteSeleccionada = {
+            sku: productoSku,
+            color: '',
+            talla: '',
+            precio: precioBase,
+            stock: null,
+            activo: true
+        };
+        const btn = document.getElementById('btnAgregarCarrito');
+        const precioDisplay = document.getElementById('precioProducto');
+        if (precioDisplay) precioDisplay.textContent = formatearPrecio(precioBase);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🛒 Agregar al carrito';
+        }
+        actualizarSubtotal();
     }
 
     // ============================================================
@@ -476,36 +569,51 @@
         actualizarVariante();
     }
 
-    function actualizarVariante() {
-        const key = (colorSeleccionado || '') + '|' + (tallaSeleccionada || '');
-        const variante = variantes.find(v => {
-            const vKey = (v.color || '').trim() + '|' + (v.talla || '').trim();
-            return vKey === key;
-        });
+    function buscarVariante(color, talla) {
+        const c = (color || '').trim();
+        const t = (talla || '').trim();
+        return variantesLista.find(v => v && normalizarColor(v) === c && normalizarTalla(v) === t) || null;
+    }
 
+    function actualizarVariante() {
+        try {
+            const variante = buscarVariante(colorSeleccionado, tallaSeleccionada);
+            aplicarVariante(variante);
+        } catch (e) {
+            console.error('Error al buscar la variante seleccionada:', e);
+            aplicarVariante(null);
+        }
+    }
+
+    /**
+     * Pinta en pantalla el precio/stock/botón de la variante recibida.
+     */
+    function aplicarVariante(variante) {
         const btn = document.getElementById('btnAgregarCarrito');
         const precioDisplay = document.getElementById('precioProducto');
         const stockDisplay = document.getElementById('stockCantidad');
         const stockContainer = document.getElementById('stockDisplay');
 
-        if (variante && variante.activo && variante.stock > 0) {
+        const activo = !!variante && variante.activo !== false;
+        const stock = (variante && Number(variante.stock)) || 0;
+
+        if (variante && activo && stock > 0) {
             varianteSeleccionada = variante;
-            precioDisplay.textContent = '$' + Number(variante.precio).toLocaleString('es-CO');
-            stockDisplay.textContent = variante.stock;
-            stockContainer.className = 'stock-display';
-            btn.disabled = false;
-            btn.textContent = '🛒 Agregar al carrito';
+            if (precioDisplay) precioDisplay.textContent = formatearPrecio(variante.precio);
+            if (stockDisplay) stockDisplay.textContent = stock;
+            if (stockContainer) stockContainer.className = 'stock-display';
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '🛒 Agregar al carrito';
+            }
         } else {
             varianteSeleccionada = null;
-            if (variante) {
-                stockDisplay.textContent = '0 (agotado)';
-                stockContainer.className = 'stock-display agotado';
-            } else {
-                stockDisplay.textContent = '0';
-                stockContainer.className = 'stock-display';
+            if (stockDisplay) stockDisplay.textContent = '0';
+            if (stockContainer) stockContainer.className = 'stock-display' + (variante ? ' agotado' : '');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = variante ? '🚫 Sin stock' : '🛒 Selecciona talla y color';
             }
-            btn.disabled = true;
-            btn.textContent = variante ? '🚫 Sin stock' : '🛒 Selecciona talla y color';
         }
         actualizarSubtotal();
     }
@@ -536,38 +644,73 @@
     // ============================================================
     // CARRITO (usando SKU)
     // ============================================================
-    function agregarAlCarrito() {
-        if (!varianteSeleccionada) {
-            alert('Selecciona una combinación de talla y color.');
-            return;
+    /**
+     * Agrega la variante seleccionada al carrito (localStorage).
+     *
+     * @param {boolean} silencioso si es true no muestra alertas; se usa desde
+     *        "Pagar contra entrega", donde la redirección ocurre igual.
+     * @returns {boolean} true si el producto quedó guardado en el carrito.
+     */
+    function agregarAlCarrito(silencioso) {
+        try {
+            if (!varianteSeleccionada) {
+                if (!silencioso) {
+                    alert('Selecciona una combinación de talla y color.');
+                }
+                return false;
+            }
+
+            const inputCantidad = document.getElementById('cantidad');
+            const cantidad = Math.max(1, parseInt(inputCantidad ? inputCantidad.value : '1', 10) || 1);
+            const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+
+            const sku = varianteSeleccionada.sku;
+            const existente = carrito.find(item => item && item.sku === sku);
+
+            if (existente) {
+                existente.cantidad = (Number(existente.cantidad) || 0) + cantidad;
+            } else {
+                carrito.push({
+                    sku: sku,
+                    nombre: productoNombre,
+                    precio: Number(varianteSeleccionada.precio) || 0,
+                    imagen: productoImagen,
+                    cantidad: cantidad,
+                    color: varianteSeleccionada.color || '',
+                    talla: varianteSeleccionada.talla || ''
+                });
+            }
+
+            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+            if (!silencioso) {
+                mostrarToast('✅ Producto agregado al carrito', '🛒');
+            }
+            actualizarContadorCarrito();
+            actualizarBarraCarrito();
+            return true;
+        } catch (e) {
+            // Un error aquí NUNCA debe romper la redirección del checkout.
+            console.error('No se pudo agregar el producto al carrito:', e);
+            if (!silencioso) {
+                alert('No se pudo agregar el producto al carrito. Intenta de nuevo.');
+            }
+            return false;
         }
-
-        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-
-        const existente = carrito.find(item => item.sku === varianteSeleccionada.sku);
-        if (existente) {
-            existente.cantidad += cantidad;
-        } else {
-            carrito.push({
-                sku: varianteSeleccionada.sku,
-                nombre: productoNombre,
-                precio: varianteSeleccionada.precio,
-                imagen: productoImagen,
-                cantidad: cantidad,
-                color: varianteSeleccionada.color || '',
-                talla: varianteSeleccionada.talla || ''
-            });
-        }
-
-        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        mostrarToast('✅ Producto agregado al carrito', '🛒');
-        actualizarContadorCarrito();
     }
 
+    /**
+     * "Pagar contra entrega": agrega el producto y SIEMPRE redirige al
+     * carrito con el flag contraentrega=true, incluso si la selección de
+     * variantes falla. El botón nunca queda sin acción.
+     */
     function comprarContraEntrega() {
-        agregarAlCarrito();
-        window.location.href = '/carrito?contraentrega=true';
+        try {
+            agregarAlCarrito(true);
+        } catch (e) {
+            console.error('comprarContraEntrega: se redirige igualmente al carrito:', e);
+        } finally {
+            window.location.href = '/carrito?contraentrega=true';
+        }
     }
 
     // ============================================================
@@ -575,17 +718,22 @@
     // ============================================================
     function cambiarCantidad(delta) {
         const input = document.getElementById('cantidad');
-        let val = parseInt(input.value) || 1;
+        if (!input) return;
+        let val = parseInt(input.value, 10) || 1;
         val = Math.max(1, val + delta);
         input.value = val;
         actualizarSubtotal();
     }
 
     function actualizarSubtotal() {
-        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-        const precio = varianteSeleccionada ? varianteSeleccionada.precio : precioBase;
+        const input = document.getElementById('cantidad');
+        const cantidad = Math.max(1, parseInt(input ? input.value : '1', 10) || 1);
+        const precio = varianteSeleccionada
+            ? (Number(varianteSeleccionada.precio) || 0)
+            : precioBase;
         const subtotal = precio * cantidad;
-        document.getElementById('subtotalDisplay').innerHTML = '= $' + subtotal.toLocaleString('es-CO');
+        const display = document.getElementById('subtotalDisplay');
+        if (display) display.innerHTML = '= $' + subtotal.toLocaleString('es-CO');
     }
 
     // ============================================================
@@ -648,90 +796,139 @@
     });
 
     // ============================================================
-    // CARRUSEL (MODIFICADO FASE 2)
+    // CARRUSEL DE IMÁGENES
+    // ------------------------------------------------------------
+    // totalSlides NO es un número fijo: se calcula desde el DOM contando
+    // los .imagenes-slide que Thymeleaf ha renderizado (ProductoImagen o,
+    // en su defecto, los campos legacy imagen1..imagen6).
     // ============================================================
     let totalSlides = 0;
     let slideActual = 0;
 
+    function obtenerSlides() {
+        const slider = document.getElementById('carruselSlider');
+        if (!slider) return [];
+        return Array.prototype.slice.call(slider.querySelectorAll('.imagenes-slide'));
+    }
+
+    function construirDots(total) {
+        const contenedor = document.getElementById('carruselDots');
+        if (!contenedor) return;
+        contenedor.innerHTML = '';
+        if (total <= 1) {
+            contenedor.style.display = 'none';
+            return;
+        }
+        contenedor.style.display = 'flex';
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('span');
+            dot.className = 'carrusel-dot' + (i === 0 ? ' active' : '');
+            dot.dataset.index = String(i);
+            dot.setAttribute('role', 'button');
+            dot.setAttribute('aria-label', 'Ir a la imagen ' + (i + 1));
+            dot.addEventListener('click', function () { irASlide(i); });
+            contenedor.appendChild(dot);
+        }
+    }
+
     function irASlide(index) {
         const slider = document.getElementById('carruselSlider');
-        const slides = slider.querySelectorAll('.imagenes-slide');
-        if (index < 0) index = 0;
-        if (index >= totalSlides) index = totalSlides - 1;
-        slideActual = index;
-        slider.style.transform = 'translateX(-' + (index * 100) + '%)';
+        if (!slider) return;
+
+        // Se recalcula desde el DOM en cada movimiento: nunca queda desfasado.
+        totalSlides = obtenerSlides().length;
+        if (totalSlides === 0) return;
+
+        // Navegación circular: ‹ en la primera pasa a la última y viceversa.
+        const destino = ((index % totalSlides) + totalSlides) % totalSlides;
+        slideActual = destino;
+        slider.style.transform = 'translateX(-' + (destino * 100) + '%)';
         actualizarDots();
     }
 
     function actualizarDots() {
-        const dots = document.querySelectorAll('.carrusel-dot');
-        dots.forEach((dot, i) => {
+        const dots = document.querySelectorAll('#carruselDots .carrusel-dot');
+        dots.forEach(function (dot, i) {
             dot.classList.toggle('active', i === slideActual);
         });
     }
 
-    document.getElementById('carruselPrev').addEventListener('click', function() {
-        irASlide(slideActual - 1);
-    });
+    function inicializarCarrusel() {
+        totalSlides = obtenerSlides().length;
+        construirDots(totalSlides);
 
-    document.getElementById('carruselNext').addEventListener('click', function() {
-        irASlide(slideActual + 1);
-    });
+        const prev = document.getElementById('carruselPrev');
+        const next = document.getElementById('carruselNext');
 
-    // ============================================================
-    // INICIALIZACIÓN (MODIFICADO FASE 2)
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Calcular totalSlides dinámicamente
-        const slides = document.querySelectorAll('.imagenes-slide');
-        totalSlides = slides.length;
-
-        const dots = document.querySelectorAll('.carrusel-dot');
-        // Si hay menos slides que dots, ocultar los sobrantes
-        if (slides.length < totalSlides) {
-            dots.forEach((dot, i) => {
-                if (i >= slides.length) {
-                    dot.style.display = 'none';
-                }
-            });
+        if (totalSlides <= 1) {
+            // Con una sola imagen no tiene sentido navegar.
+            if (prev) prev.style.display = 'none';
+            if (next) next.style.display = 'none';
+        } else {
+            if (prev) prev.addEventListener('click', function () { irASlide(slideActual - 1); });
+            if (next) next.addEventListener('click', function () { irASlide(slideActual + 1); });
         }
-        // Si solo hay 1 imagen, ocultar botones de navegación
-        if (slides.length <= 1) {
-            document.getElementById('carruselPrev').style.display = 'none';
-            document.getElementById('carruselNext').style.display = 'none';
+
+        // Deslizar con el dedo en móvil (el CSS ya declara touch-action: pan-y)
+        const contenedor = document.getElementById('carruselContainer');
+        if (contenedor && totalSlides > 1) {
+            let inicioX = null;
+            contenedor.addEventListener('touchstart', function (e) {
+                inicioX = (e.touches && e.touches.length) ? e.touches[0].clientX : null;
+            }, { passive: true });
+            contenedor.addEventListener('touchend', function (e) {
+                if (inicioX === null) return;
+                const finX = (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0].clientX : null;
+                if (finX === null) return;
+                const dx = finX - inicioX;
+                inicioX = null;
+                if (Math.abs(dx) < 40) return;
+                irASlide(dx < 0 ? slideActual + 1 : slideActual - 1);
+            }, { passive: true });
         }
-        // Asegurar que el primer slide esté visible
+
         irASlide(0);
+    }
 
-        // Renderizar selectores de variantes
-        renderizarSelectores();
-
-        // Actualizar precio base
-        const precioElement = document.getElementById('precioProducto');
-        if (precioElement) {
-            const texto = precioElement.textContent.replace(/[^0-9,]/g, '').replace(',', '.');
-            precioBase = parseFloat(texto) || 0;
+    // ============================================================
+    // INICIALIZACIÓN
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            inicializarCarrusel();
+        } catch (e) {
+            console.error('Error al inicializar el carrusel:', e);
         }
+
+        try {
+            renderizarSelectores();
+        } catch (e) {
+            console.error('Error al renderizar las variantes:', e);
+        }
+
         actualizarSubtotal();
         actualizarContadorCarrito();
+        actualizarBarraCarrito();
 
         // Fondo animado
         const bg = document.getElementById('bgAnimado');
-        const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
-        for (let i=0;i<15;i++) {
-            const el = document.createElement('div');
-            el.className='particula';
-            const t = Math.random()*3+1;
-            el.style.cssText = 'width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;';
-            bg.appendChild(el);
-        }
-        const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
-        for (let i=0;i<8;i++) {
-            const el = document.createElement('div');
-            el.className='particula-emoji';
-            el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-            el.style.cssText = 'left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
-            bg.appendChild(el);
+        if (bg) {
+            const colores = ['#ff00ff','#00ffff','#ff66ff','#66ffff'];
+            for (let i=0;i<15;i++) {
+                const el = document.createElement('div');
+                el.className='particula';
+                const t = Math.random()*3+1;
+                el.style.cssText = 'width:'+t+'px;height:'+t+'px;background:'+colores[Math.floor(Math.random()*colores.length)]+';left:'+Math.random()*95+'%;box-shadow:0 0 '+(t*3)+'px;animation-duration:'+(Math.random()*15+10)+'s;';
+                bg.appendChild(el);
+            }
+            const emojis = ['☕','🌺','🦜','🏔️','🌴','💎','🇨🇴','🎵'];
+            for (let i=0;i<8;i++) {
+                const el = document.createElement('div');
+                el.className='particula-emoji';
+                el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+                el.style.cssText = 'left:'+Math.random()*95+'%;animation-duration:'+(Math.random()*20+15)+'s;';
+                bg.appendChild(el);
+            }
         }
     });
 
@@ -739,18 +936,26 @@
     // BARRA FLOTANTE DE CARRITO
     // ============================================================
     function actualizarBarraCarrito() {
-        const carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
         const floatDiv = document.getElementById('cartFloat');
         const countSpan = document.getElementById('cartFloatCount');
         const totalSpan = document.getElementById('cartFloatTotal');
+        if (!floatDiv || !countSpan || !totalSpan) return;
+
+        let carrito = [];
+        try {
+            carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
+        } catch (e) {
+            carrito = [];
+        }
+
         if (carrito.length === 0) {
             floatDiv.classList.remove('show');
             return;
         }
         let total = 0;
         carrito.forEach(item => {
-            const precio = Number(item.precio) || 0;
-            const cantidad = Number(item.cantidad) || 1;
+            const precio = Number(item && item.precio) || 0;
+            const cantidad = Number(item && item.cantidad) || 1;
             total += precio * cantidad;
         });
         countSpan.textContent = carrito.length;
@@ -758,11 +963,8 @@
         floatDiv.classList.add('show');
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        actualizarBarraCarrito();
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
-        });
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
     });
 </script>
 
