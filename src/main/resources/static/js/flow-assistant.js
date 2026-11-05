@@ -238,6 +238,26 @@
         });
     }
 
+    /**
+     * Botón grande de acción: puente del asistente con Flow Track.
+     * El backend lo pide con `accion: "ir_a_seguimiento"` cuando el usuario
+     * pregunta por el estado de su pedido.
+     */
+    function addTrackButton() {
+        var wrap = document.createElement('div');
+        wrap.className = 'flow-ai-msg flow-ai-msg--bot';
+
+        var link = document.createElement('a');
+        link.className = 'flow-ai-track';
+        link.href = '/seguimiento';
+        link.setAttribute('aria-label', 'Ir a la página de seguimiento de pedidos');
+        link.innerHTML = '<span aria-hidden="true">◎</span> Ir a Flow Track';
+
+        wrap.appendChild(link);
+        feed.appendChild(wrap);
+        scrollToEnd();
+    }
+
     function setBusy(value) {
         busy = value;
         if (input) input.disabled = value;
@@ -288,7 +308,11 @@
                 addBubble('bot', respuesta);
                 history.push({ role: 'assistant', content: respuesta });
 
-                if (data && Array.isArray(data.productos) && data.productos.length) {
+                if (data && data.accion === 'ir_a_seguimiento') {
+                    // El pedido se consulta SOLO en Flow Track (código +
+                    // teléfono). Aquí no se muestra ningún dato del pedido.
+                    addTrackButton();
+                } else if (data && Array.isArray(data.productos) && data.productos.length) {
                     addProducts(data.productos);
                 }
 

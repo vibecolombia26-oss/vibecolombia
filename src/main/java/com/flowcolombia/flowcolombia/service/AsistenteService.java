@@ -54,6 +54,31 @@ public class AsistenteService {
     private static final int MAX_HISTORIAL = 6;
     private static final int MAX_MENSAJE = 600;
 
+    // ============================================================
+    // RASTREO DE PEDIDOS (puente con la página Flow Track)
+    // ============================================================
+    /** Respuesta canónica cuando el usuario quiere rastrear su pedido. */
+    private static final String RESPUESTA_RASTREO =
+            "Por tu seguridad, puedes ver el estado exacto de tu pedido en nuestra página de seguimiento.";
+
+    /** Acción que interpreta el frontend (flow-assistant.js). */
+    private static final String ACCION_IR_A_SEGUIMIENTO = "ir_a_seguimiento";
+
+    /** Token que la IA añade al final de su respuesta para señalar la acción. */
+    private static final String MARCA_SEGUIMIENTO = "[[IR_A_SEGUIMIENTO]]";
+
+    /**
+     * Frases que indican intención de rastreo. Se resuelven en local: no se
+     * gastan tokens de DeepSeek y funciona igual sin clave configurada.
+     */
+    private static final String[] INTENCION_RASTREO = {
+            "rastre", "seguimiento", "tracking",
+            "mi pedido", "mi envio",
+            "estado de mi pedido", "estado del pedido",
+            "donde esta mi pedido", "donde va mi pedido",
+            "numero de guia", "guia de envio"
+    };
+
     private static final String SYSTEM_PROMPT =
             "Eres el asistente de compras de FLOW COLOMBIA, una tienda colombiana. " +
             "Solo puedes recomendar productos del catálogo proporcionado. " +
@@ -62,7 +87,12 @@ public class AsistenteService {
             "Sé breve, amable y enfocado en ayudar a elegir. " +
             "Reglas adicionales: responde en español, en un máximo de 90 palabras, sin markdown; " +
             "nunca inventes productos, precios ni stock; cuando recomiendes algo, usa el nombre " +
-            "exacto del producto tal como aparece en el catálogo y menciona a lo sumo 3 productos.";
+            "exacto del producto tal como aparece en el catálogo y menciona a lo sumo 3 productos. " +
+            "REGLA DE SEGUIMIENTO: si el usuario pregunta por el estado, la ubicación o el rastreo " +
+            "de un pedido, o pide consultar su pedido, NO inventes estados, fechas ni guías y NO pidas " +
+            "datos personales: responde exactamente \"" + RESPUESTA_RASTREO + "\" y añade al final, " +
+            "en una línea aparte, el token " + MARCA_SEGUIMIENTO + ". " +
+            "En cualquier otro caso no menciones el seguimiento ni escribas ese token.";
 
     private final ProductoRepository productoRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -170,6 +200,13 @@ public class AsistenteService {
         }
         texto = recortar(texto, MAX_MENSAJE);
 
+        // Camino rápido: intención de rastreo resuelta en local.
+        // Ni base de datos, ni tokens de DeepSeek, ni riesgo de que la IA
+        // invente un estado de pedido.
+        if (esConsultaDeRastreo(texto)) {
+            return new RespuestaAsistente(RESPUESTA_RASTREO, List.of(), ACCION_IR_A_SEGUIMIENTO);
+        }
+
         asegurarCatalogo();
         if (catalogo.isEmpty()) {
             return new RespuestaAsistente(
@@ -190,8 +227,25 @@ public class AsistenteService {
             respuesta = respuestaLocal(sugeridos);
         }
 
+        // La IA señaló la acción con el token: se descarta su redacción y se
+        // responde con el texto canónico, para no inventar estados de pedido.
+        if (respuesta != null && respuesta.contains(MARCA_SEGUIMIENTO)) {
+            return new RespuestaAsistente(RESPUESTA_RASTREO, List.of(), ACCION_IR_A_SEGUIMIENTO);
+        }
+
         List<ProductoRecomendado> productos = recomendar(respuesta, texto);
         return new RespuestaAsistente(respuesta.trim(), productos);
+    }
+
+    /** ¿El mensaje pide rastrear o consultar un pedido? */
+    private static boolean esConsultaDeRastreo(String mensaje) {
+        String normalizado = normalizar(mensaje);
+        for (String clave : INTENCION_RASTREO) {
+            if (normalizado.contains(clave)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -424,7 +478,20 @@ public class AsistenteService {
     public record ProductoRecomendado(Long id, String nombre, Double precio, String imagen) {
     }
 
-    public record RespuestaAsistente(String respuesta, List<ProductoRecomendado> productos) {
+    /**
+     * Respuesta del asistente.
+     *
+     * @param respuesta texto para el usuario
+     * @param productos recomendaciones del catálogo real
+     * @param accion    acción de interfaz a ejecutar (por ejemplo
+     *                  {@code ir_a_seguimiento}); {@code null} si no hay
+     */
+    public record RespuestaAsistente(String respuesta, List<ProductoRecomendado> productos, String accion) {
+
+        /** Respuesta normal, sin acción especial para el frontend. */
+        public RespuestaAsistente(String respuesta, List<ProductoRecomendado> productos) {
+            this(respuesta, productos, null);
+        }
     }
 
     public record MensajeHistorial(String role, String content) {

@@ -1,5 +1,7 @@
 package com.flowcolombia.flowcolombia;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -41,6 +43,70 @@ public class PedidoController {
             codigo.append(ALFABETO_CODIGO[AZAR.nextInt(ALFABETO_CODIGO.length)]);
         }
         return codigo.toString();
+    }
+
+    /**
+     * Datos públicos de seguimiento. Es a propósito un DTO mínimo:
+     * <strong>nunca</strong> sale de aquí nombre, dirección, correo, notas ni
+     * importes. Lo que no está en este record no se puede filtrar.
+     */
+    public record PedidoTracking(String codigo,
+                                 String estado,
+                                 LocalDateTime fechaActualizacion,
+                                 String transportadora,
+                                 String numeroGuia) {
+    }
+
+    /**
+     * Seguimiento público con doble candado: código <em>y</em> teléfono.
+     *
+     * <p>Si la pareja no coincide en el mismo pedido se responde un 404
+     * genérico: nunca se confirma si el código existe, para que no se pueda
+     * usar como oráculo de enumeración.</p>
+     *
+     * <p>La ruta literal tiene prioridad sobre {@code /api/pedido/{codigo}},
+     * así que no colisiona con los endpoints anteriores. Hereda además el
+     * límite de 30 peticiones por minuto de {@code RateLimitFilter}.</p>
+     */
+    @GetMapping("/api/pedido/track")
+    public ResponseEntity<Object> rastrearPedido(@RequestParam(required = false) String codigo,
+                                                 @RequestParam(required = false) String telefono) {
+
+        String codigoLimpio = codigo == null ? "" : codigo.trim();
+        String telefonoLimpio = soloDigitos(telefono);
+
+        // Mínimo de datos: corta los barridos con valores vacíos o basura.
+        if (codigoLimpio.length() < 4 || telefonoLimpio.length() < 7) {
+            return pedidoNoEncontrado();
+        }
+
+        Pedido pedido = pedidoRepository
+                .findFirstByCodigoIgnoreCaseAndTelefono(codigoLimpio, telefonoLimpio)
+                .orElse(null);
+
+        if (pedido == null) {
+            return pedidoNoEncontrado();
+        }
+
+        // No existe columna "actualizadoEn" (y no se toca el esquema): la
+        // fecha registrada del pedido es el último movimiento conocido.
+        return ResponseEntity.ok(new PedidoTracking(
+                pedido.getCodigo(),
+                pedido.getEstado(),
+                pedido.getFecha(),
+                pedido.getTransportadora(),
+                pedido.getNumeroGuia()));
+    }
+
+    /** Respuesta única e idéntica para cualquier fallo de coincidencia. */
+    private ResponseEntity<Object> pedidoNoEncontrado() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "No encontramos un pedido con esos datos."));
+    }
+
+    /** El teléfono se guarda sin espacios ni símbolos; se compara igual. */
+    private static String soloDigitos(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
     }
 
     @PostMapping("/api/pedido")

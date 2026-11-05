@@ -694,6 +694,11 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
 
 .flow-ai-fab:hover { transform: translateY(-2px) scale(1.03); }
 
+/* La barra flotante del carrito ocupa la franja inferior: el botón del
+   asistente sube por encima con la altura real que inyecta flow-cart.js.
+   (En móvil el ajuste se refina más abajo, dentro del media query.) */
+body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h, 0px) + 18px); }
+
 .flow-ai-fab__dot {
     position: absolute;
     top: 5px;
@@ -949,6 +954,36 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     font-size: 0.64rem;
     color: var(--flow-muted-2);
     background: rgba(13, 20, 46, 0.92);
+}
+
+/* Acción destacada dentro del chat (por ejemplo "Ir a Flow Track").
+   Botón grande, azul eléctrico, con el peso visual de una acción principal. */
+.flow-ai-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--flow-accent);
+    background: linear-gradient(135deg, var(--flow-accent) 0%, #3b82f6 100%);
+    color: #fff;
+    font: 700 0.88rem/1.2 var(--flow-font);
+    text-decoration: none;
+    box-shadow: 0 16px 32px -18px rgba(37, 99, 235, 0.95);
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.flow-ai-track:hover {
+    background: linear-gradient(135deg, var(--flow-accent-hover) 0%, var(--flow-accent) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 20px 36px -18px rgba(37, 99, 235, 1);
+}
+
+.flow-ai-track:focus-visible {
+    outline: 2px solid var(--flow-accent-light);
+    outline-offset: 2px;
 }
 
 .flow-ai-typing { display: inline-flex; align-items: center; gap: 4px; }

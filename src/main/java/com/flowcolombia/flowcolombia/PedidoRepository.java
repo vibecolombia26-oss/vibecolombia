@@ -34,4 +34,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     Optional<Pedido> findFirstByCodigoOrderByIdDesc(String codigo);
 
     Optional<Pedido> findFirstByTelefonoOrderByIdDesc(String telefono);
+
+    /**
+     * Doble candado del seguimiento público: el código y el teléfono deben
+     * coincidir en el MISMO pedido.
+     *
+     * <p>Una sola consulta que resuelve la base de datos: no se trae la lista
+     * de pedidos ni se compara en memoria, así que no despierta Neon de más.</p>
+     */
+    Optional<Pedido> findFirstByCodigoIgnoreCaseAndTelefono(String codigo, String telefono);
 }

@@ -1,68 +1,915 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seguimiento - FLOW COLOMBIA</title>
+    <title>Flow Track · Seguimiento de pedido · FLOW COLOMBIA</title>
+    <meta name="theme-color" content="#050914">
+    <meta name="description" content="Consulta el estado de tu pedido en FLOW COLOMBIA con tu código y tu teléfono.">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=2)}" href="/css/flow-ui.css">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
-        .container { background:rgba(20,20,20,0.9); border:2px solid #ff00ff; border-radius:20px; padding:40px; max-width:550px; width:100%; text-align:center; box-shadow:0 0 40px rgba(255,0,255,0.2); }
-        h1 { font-size:1.5rem; font-weight:700; color:#ff00ff; letter-spacing:3px; margin-bottom:20px; }
-        input { width:100%; padding:15px; background:#111; border:2px solid #333; border-radius:8px; color:#fff; font-size:1rem; text-align:center; margin-bottom:15px; }
-        input:focus { border-color:#ff00ff; outline:none; box-shadow:0 0 15px rgba(255,0,255,0.3); }
-        button { width:100%; padding:15px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:25px; font-weight:700; cursor:pointer; font-size:0.95rem; text-transform:uppercase; letter-spacing:2px; }
-        button:hover { box-shadow:0 0 25px rgba(255,0,255,0.6); }
-        .resultado { margin-top:20px; padding:20px; background:#111; border-radius:12px; text-align:left; display:none; }
-        .label { color:#ff00ff; font-size:0.8rem; text-transform:uppercase; }
-        .value { color:#fff; margin-bottom:10px; }
-        .estado { display:inline-block; padding:5px 15px; border-radius:20px; font-size:0.8rem; font-weight:600; }
-        .estado-pendiente { background:rgba(255,193,7,0.15); color:#ffc107; border:1px solid #ffc107; }
-        .error { color:#ff4444; margin-top:10px; }
+        /* ============================================================
+           FLOW TRACK — seguimiento de pedidos
+           Azul noche #050914 · tarjetas #0d142e · acento #2563EB
+           Mobile-first: stepper vertical en móvil, horizontal en PC.
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--flow-bg, #050914);
+            color: var(--flow-text, #fff);
+            font-family: var(--flow-font, system-ui, sans-serif);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, p, ol, dl, dd { margin: 0; }
+        ol { padding: 0; list-style: none; }
+
+        .track-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+            background: rgba(5, 9, 20, 0.9);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .track-header__back {
+            color: var(--flow-muted, #9aa4bf);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .track-header__back:hover { color: #fff; }
+
+        .track-header__brand {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            color: #dbe4ff;
+        }
+
+        .track-page {
+            width: 100%;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 26px 16px 70px;
+        }
+
+        @media (min-width: 760px) {
+            .track-page { padding: 44px 24px 90px; }
+        }
+
+        /* ---------------- Hero ---------------- */
+        .track-hero { text-align: center; margin-bottom: 24px; }
+
+        .track-hero__eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(37, 99, 235, 0.4);
+            background: rgba(37, 99, 235, 0.12);
+            color: #93c5fd;
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .track-hero h1 {
+            font-size: clamp(1.75rem, 6vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            background: linear-gradient(120deg, #ffffff 15%, #93c5fd 60%, #2563eb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .track-hero p {
+            margin: 12px auto 0;
+            max-width: 46ch;
+            color: var(--flow-muted, #9aa4bf);
+            font-size: 0.9rem;
+        }
+
+        /* ---------------- Tarjetas ---------------- */
+        .track-card {
+            background: var(--flow-surface, #0d142e);
+            border: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+            border-radius: var(--flow-radius, 16px);
+            padding: 18px;
+        }
+
+        @media (min-width: 760px) {
+            .track-card { padding: 24px; }
+        }
+
+        /* ---------------- Formulario ---------------- */
+        .track-form { display: grid; gap: 16px; }
+
+        .track-fields { display: grid; gap: 14px; }
+
+        @media (min-width: 640px) {
+            .track-fields { grid-template-columns: 1fr 1fr; }
+        }
+
+        .track-input {
+            padding: 15px 14px;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        #codigo { text-transform: uppercase; }
+        #codigo::placeholder { text-transform: none; letter-spacing: 0.04em; }
+
+        .track-hint {
+            font-size: 0.76rem;
+            color: var(--flow-muted-2, #6b7794);
+            text-align: center;
+        }
+
+        .track-alert {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            background: rgba(248, 113, 113, 0.1);
+            color: #fca5a5;
+            font-size: 0.84rem;
+        }
+
+        .track-alert.is-visible { display: block; }
+
+        .flow-error.is-visible, .flow-error[style*="display: block"] { display: block; }
+
+        /* ---------------- Resultado ---------------- */
+        .track-result { display: grid; gap: 16px; margin-top: 26px; scroll-margin-top: 90px; }
+        .track-result[hidden] { display: none; }
+
+        .track-status__top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .track-code {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 0.86rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #dbe4ff;
+            padding: 5px 11px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--flow-border-strong, rgba(255, 255, 255, 0.14));
+        }
+
+        .track-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .track-badge--pendiente { color: #fbbf24; background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.35); }
+        .track-badge--procesando { color: #93c5fd; background: rgba(96, 165, 250, 0.12); border-color: rgba(96, 165, 250, 0.35); }
+        .track-badge--enviado { color: #67e8f9; background: rgba(34, 211, 238, 0.12); border-color: rgba(34, 211, 238, 0.35); }
+        .track-badge--entregado { color: #6ee7b7; background: rgba(52, 211, 153, 0.12); border-color: rgba(52, 211, 153, 0.35); }
+        .track-badge--cancelado { color: #fca5a5; background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35); }
+
+        .track-status h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .track-status__mensaje {
+            margin-top: 8px;
+            color: var(--flow-muted, #9aa4bf);
+            font-size: 0.88rem;
+        }
+
+        .track-status__fecha {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+            font-size: 0.76rem;
+            color: var(--flow-muted-2, #6b7794);
+        }
+
+        .track-status__fecha strong { color: #c7d2fe; font-weight: 600; }
+
+        /* ---------------- Stepper ---------------- */
+        .track-timeline {
+            background: var(--flow-surface, #0d142e);
+            border: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+            border-radius: var(--flow-radius, 16px);
+            padding: 20px 18px;
+        }
+
+        .track-timeline[hidden] { display: none; }
+
+        .track-timeline h3 {
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--flow-muted-2, #6b7794);
+            margin-bottom: 18px;
+        }
+
+        /* Vertical: móvil primero */
+        .track-steps { display: grid; }
+
+        .track-step {
+            position: relative;
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 12px;
+            padding-bottom: 22px;
+        }
+
+        .track-step:last-child { padding-bottom: 0; }
+
+        .track-step::before {
+            content: "";
+            position: absolute;
+            left: 16px;
+            top: 34px;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .track-step:last-child::before { display: none; }
+
+        .track-step.is-done::before {
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.65), rgba(37, 99, 235, 0.25));
+        }
+
+        .track-step__dot {
+            position: relative;
+            z-index: 1;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--flow-surface, #0d142e);
+            border: 2px solid rgba(255, 255, 255, 0.14);
+            color: var(--flow-muted-2, #6b7794);
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .track-step.is-done .track-step__dot {
+            background: rgba(37, 99, 235, 0.18);
+            border-color: rgba(37, 99, 235, 0.6);
+            color: #93c5fd;
+        }
+
+        .track-step.is-current .track-step__dot {
+            background: var(--flow-accent, #2563eb);
+            border-color: var(--flow-accent, #2563eb);
+            color: #fff;
+            box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.16);
+        }
+
+        .track-step__body { min-width: 0; padding-top: 5px; }
+        .track-step__body strong { display: block; font-size: 0.88rem; font-weight: 700; color: #e2e8f0; }
+        .track-step__body span { display: block; font-size: 0.76rem; color: var(--flow-muted-2, #6b7794); }
+
+        .track-step.is-current .track-step__body strong { color: var(--flow-accent-light, #60a5fa); }
+        .track-step.is-current .track-step__body span { color: #c7d2fe; }
+
+        .track-step.is-pending .track-step__body strong { color: var(--flow-muted-2, #6b7794); }
+
+        /* Horizontal: escritorio */
+        @media (min-width: 720px) {
+            .track-steps { grid-template-columns: repeat(5, 1fr); }
+
+            .track-step {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                text-align: center;
+                padding: 0 4px;
+            }
+
+            .track-step::before {
+                left: calc(50% + 19px);
+                top: 16px;
+                bottom: auto;
+                width: calc(100% - 38px);
+                height: 2px;
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .track-step.is-done::before {
+                background: linear-gradient(90deg, rgba(37, 99, 235, 0.65), rgba(37, 99, 235, 0.25));
+            }
+
+            .track-step__body { padding-top: 10px; }
+            .track-step__body span { display: none; }
+            .track-step.is-current .track-step__body span { display: block; margin-top: 2px; }
+        }
+
+        /* ---------------- Info de envío ---------------- */
+        .track-ship[hidden] { display: none; }
+
+        .track-ship h3 {
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--flow-muted-2, #6b7794);
+            margin-bottom: 14px;
+        }
+
+        .track-ship__data { display: grid; gap: 12px; margin-bottom: 16px; }
+
+        @media (min-width: 560px) {
+            .track-ship__data { grid-template-columns: 1fr 1fr; }
+        }
+
+        .track-ship__item {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+            min-width: 0;
+        }
+
+        .track-ship__item dt {
+            font-size: 0.64rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--flow-muted-2, #6b7794);
+            margin-bottom: 4px;
+        }
+
+        .track-ship__item dd {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            word-break: break-word;
+        }
+
+        .track-guia {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .track-guia strong {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 0.92rem;
+            letter-spacing: 0.04em;
+        }
+
+        .track-copy {
+            border: 1px solid var(--flow-border-strong, rgba(255, 255, 255, 0.14));
+            background: rgba(255, 255, 255, 0.04);
+            color: #dbe4ff;
+            font: 600 0.72rem/1 var(--flow-font, system-ui, sans-serif);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .track-copy:hover { border-color: rgba(37, 99, 235, 0.6); background: rgba(37, 99, 235, 0.12); }
+        .track-copy.is-copied { border-color: rgba(52, 211, 153, 0.55); color: #6ee7b7; }
+
+        .track-ship .flow-btn + .flow-btn { margin-top: 10px; }
+
+        .track-footnote {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--flow-muted-2, #6b7794);
+            margin-top: 22px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🔍 Seguimiento VIBE</h1>
-    <p style="color:#aaa; margin-bottom:20px;">Ingresa tu código de seguimiento o celular</p>
-    <input type="text" id="codigoInput" placeholder="Ej: VB-123456789 o 3001234567">
-    <button onclick="buscarPedido()">Consultar</button>
-    <div class="error" id="errorMsg"></div>
-    <div class="resultado" id="resultado">
-        <div class="label">Código</div><div class="value" id="rCodigo"></div>
-        <div class="label">Estado</div><div id="rEstado"></div>
-        <div class="label" style="margin-top:10px;">Productos</div><div class="value" id="rProductos"></div>
-        <div id="infoEnvio" style="display:none; margin-top:15px; padding:15px; background:rgba(255,0,255,0.05); border:1px solid #ff00ff; border-radius:8px;">
-            <div class="label">🚚 Transportadora</div><div class="value" id="rTransportadora"></div>
-            <div class="label">📋 Guía</div><div class="value" id="rGuia"></div>
+
+<header class="track-header">
+    <a class="track-header__back" href="/"><span aria-hidden="true">←</span> Seguir comprando</a>
+    <span class="track-header__brand">FLOW COLOMBIA</span>
+</header>
+
+<main class="track-page">
+
+    <section class="track-hero">
+        <p class="track-hero__eyebrow"><span aria-hidden="true">◎</span> Flow Track</p>
+        <h1>Tu pedido, en movimiento.</h1>
+        <p>Consulta su estado con el código de pedido y el teléfono que usaste al comprar.</p>
+    </section>
+
+    <form class="track-card track-form" id="trackForm" novalidate autocomplete="on">
+        <div class="track-fields">
+            <div class="flow-field">
+                <label class="flow-label" for="codigo">Código de pedido</label>
+                <input class="flow-input track-input" id="codigo" name="codigo" type="text"
+                       placeholder="FLOW-AB12CD34EF" autocomplete="off" autocapitalize="characters"
+                       spellcheck="false" maxlength="24" aria-describedby="error-codigo">
+                <span class="flow-error" id="error-codigo"></span>
+            </div>
+
+            <div class="flow-field">
+                <label class="flow-label" for="telefono">Teléfono</label>
+                <input class="flow-input track-input" id="telefono" name="telefono" type="tel"
+                       inputmode="tel" placeholder="300 123 4567" autocomplete="tel"
+                       maxlength="20" aria-describedby="error-telefono">
+                <span class="flow-error" id="error-telefono"></span>
+            </div>
         </div>
-    </div>
-</div>
+
+        <button type="submit" class="flow-btn flow-btn--primary flow-btn--block" id="btnConsultar">
+            Ver mi pedido
+        </button>
+
+        <p class="track-hint">
+            Por tu seguridad pedimos los dos datos. Nunca mostramos tu dirección ni tu nombre completo.
+        </p>
+
+        <div class="track-alert" id="trackError" role="alert"></div>
+    </form>
+
+    <!-- ==================== RESULTADO ==================== -->
+    <section class="track-result" id="trackResult" hidden aria-live="polite" tabindex="-1">
+
+        <div class="track-card track-status">
+            <div class="track-status__top">
+                <span class="track-code" id="rCodigo">—</span>
+                <span class="track-badge track-badge--pendiente" id="rBadge">—</span>
+            </div>
+            <h2 id="rTitulo">—</h2>
+            <p class="track-status__mensaje" id="rMensaje"></p>
+            <p class="track-status__fecha">Última actualización: <strong id="rFecha">—</strong></p>
+        </div>
+
+        <div class="track-timeline" id="trackTimeline">
+            <h3>Recorrido del pedido</h3>
+            <ol class="track-steps" id="trackSteps"></ol>
+        </div>
+
+        <div class="track-card track-ship" id="trackShip" hidden>
+            <h3>Información de envío</h3>
+
+            <div class="track-ship__data">
+                <div class="track-ship__item">
+                    <dt>Transportadora</dt>
+                    <dd id="rTransportadora">—</dd>
+                </div>
+                <div class="track-ship__item">
+                    <dt>Número de guía</dt>
+                    <dd class="track-guia">
+                        <strong id="rGuia">—</strong>
+                        <button type="button" class="track-copy" id="btnCopiarGuia">Copiar</button>
+                    </dd>
+                </div>
+            </div>
+
+            <a class="flow-btn flow-btn--primary flow-btn--block" id="btnRastrear"
+               target="_blank" rel="noopener" hidden>Rastrear con transportadora</a>
+        </div>
+
+        <a class="flow-btn flow-btn--ghost flow-btn--block" id="btnAyuda"
+           target="_blank" rel="noopener">
+            ✆ Necesito ayuda con este pedido
+        </a>
+    </section>
+
+    <p class="track-footnote">
+        FLOW COLOMBIA · Envío gratis a todo Colombia · Pago contra entrega
+    </p>
+</main>
+
 <script>
-    function buscarPedido() {
-        var codigo = document.getElementById('codigoInput').value.trim();
-        if (!codigo) { document.getElementById('errorMsg').textContent = 'Ingresa un código o teléfono'; return; }
-        fetch('/api/pedido/' + codigo).then(r => r.json()).then(data => {
-            if (!data.error) { mostrarResultado(data); }
-            else {
-                var tel = codigo.replace(/[^0-9]/g, '');
-                if (tel.length >= 10) {
-                    fetch('/api/pedido/telefono/' + tel).then(r => r.json()).then(d => {
-                        if (!d.error) mostrarResultado(d);
-                        else { document.getElementById('errorMsg').textContent = 'Pedido no encontrado'; document.getElementById('resultado').style.display = 'none'; }
-                    });
-                } else { document.getElementById('errorMsg').textContent = 'Pedido no encontrado'; document.getElementById('resultado').style.display = 'none'; }
+    (function () {
+        'use strict';
+
+        /* ============================================================
+           Estados del pedido y su recorrido.
+           El backend solo manda el texto del estado; aquí se traduce a
+           un paso del stepper. "Enviado" salta a "En camino" en cuanto
+           existe número de guía.
+           ============================================================ */
+        var PASOS = [
+            { titulo: 'Pedido recibido', detalle: 'Confirmamos disponibilidad.' },
+            { titulo: 'En preparación', detalle: 'Alistamos tu pedido.' },
+            { titulo: 'Despachado', detalle: 'Salió de nuestras instalaciones.' },
+            { titulo: 'En camino', detalle: 'La transportadora lo lleva a tu ciudad.' },
+            { titulo: 'Entregado', detalle: 'Llegó a tu dirección.' }
+        ];
+
+        var ESTADOS = {
+            pendiente: {
+                paso: 1, etiqueta: 'Pedido recibido', tono: 'pendiente',
+                mensaje: 'Recibimos tu pedido y estamos confirmando disponibilidad. Te contactaremos al celular para validar la entrega.'
+            },
+            procesando: {
+                paso: 2, etiqueta: 'En preparación', tono: 'procesando',
+                mensaje: 'Estamos alistando tu pedido en bodega. Muy pronto saldrá hacia tu ciudad.'
+            },
+            enviado: {
+                paso: 3, etiqueta: 'Despachado', tono: 'enviado',
+                mensaje: 'Tu pedido ya salió de nuestras instalaciones. Estamos generando el número de guía para que lo rastrees.'
+            },
+            en_camino: {
+                paso: 4, etiqueta: 'En camino', tono: 'enviado',
+                mensaje: 'Tu pedido va en camino. Puedes rastrearlo con la transportadora usando el número de guía.'
+            },
+            entregado: {
+                paso: 5, etiqueta: 'Entregado', tono: 'entregado',
+                mensaje: '¡Tu pedido llegó! Gracias por comprar en FLOW COLOMBIA. Cuéntanos cómo te fue.'
+            },
+            cancelado: {
+                paso: 0, etiqueta: 'Pedido cancelado', tono: 'cancelado',
+                mensaje: 'Este pedido fue cancelado. Si no lo esperabas, escríbenos y lo revisamos juntos.'
+            }
+        };
+
+        /* Página oficial de cada transportadora. Se abre en otra pestaña y,
+           antes, la guía queda copiada al portapapeles para pegarla allí. */
+        var TRANSPORTADORAS = {
+            interrapidisimo: 'https://www.interrapidisimo.com/sigue-tu-envio/',
+            servientrega: 'https://www.servientrega.com/',
+            coordinadora: 'https://www.coordinadora.com/',
+            tcc: 'https://www.tcc.com.co/',
+            envia: 'https://www.envia.co/',
+            deprisa: 'https://www.deprisa.com/'
+        };
+
+        var WHATSAPP = '573150152056';
+
+        var form = document.getElementById('trackForm');
+        var inputCodigo = document.getElementById('codigo');
+        var inputTelefono = document.getElementById('telefono');
+        var btnConsultar = document.getElementById('btnConsultar');
+        var alerta = document.getElementById('trackError');
+
+        var resultado = document.getElementById('trackResult');
+        var rCodigo = document.getElementById('rCodigo');
+        var rBadge = document.getElementById('rBadge');
+        var rTitulo = document.getElementById('rTitulo');
+        var rMensaje = document.getElementById('rMensaje');
+        var rFecha = document.getElementById('rFecha');
+        var timeline = document.getElementById('trackTimeline');
+        var steps = document.getElementById('trackSteps');
+
+        var envio = document.getElementById('trackShip');
+        var rTransportadora = document.getElementById('rTransportadora');
+        var rGuia = document.getElementById('rGuia');
+        var btnCopiarGuia = document.getElementById('btnCopiarGuia');
+        var btnRastrear = document.getElementById('btnRastrear');
+        var btnAyuda = document.getElementById('btnAyuda');
+
+        var pedidoActual = null;
+        var consultando = false;
+
+        /* ------------------------------------------------------------
+           Utilidades
+           ------------------------------------------------------------ */
+        function soloDigitos(valor) {
+            return String(valor || '').replace(/\D/g, '');
+        }
+
+        function formatearFecha(valor) {
+            if (!valor) return '—';
+            var fecha = new Date(valor);
+            if (isNaN(fecha.getTime())) return '—';
+            return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' }) +
+                ' · ' + fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function resolverEstado(estado, tieneGuia) {
+            var clave = String(estado || '').trim().toLowerCase();
+            if (clave === 'enviado' && tieneGuia) return ESTADOS.en_camino;
+            return ESTADOS[clave] || ESTADOS.pendiente;
+        }
+
+        function tonoDeEtiqueta(etiqueta) {
+            var tonos = { 'Pendiente': 'pendiente', 'Procesando': 'procesando', 'Enviado': 'enviado', 'Entregado': 'entregado', 'Cancelado': 'cancelado' };
+            return tonos[etiqueta] || 'pendiente';
+        }
+
+        function mostrarErrorCampo(input, texto) {
+            var error = document.getElementById('error-' + input.id);
+            if (!error) return;
+            if (texto) {
+                input.setAttribute('aria-invalid', 'true');
+                error.textContent = texto;
+                error.classList.add('is-visible');
+            } else {
+                input.removeAttribute('aria-invalid');
+                error.textContent = '';
+                error.classList.remove('is-visible');
+            }
+        }
+
+        function mostrarAlerta(texto) {
+            alerta.textContent = texto || '';
+            alerta.classList.toggle('is-visible', !!texto);
+        }
+
+        /* ------------------------------------------------------------
+           Stepper
+           ------------------------------------------------------------ */
+        function pintarPasos(pasoActual) {
+            steps.innerHTML = '';
+
+            PASOS.forEach(function (paso, indice) {
+                var numero = indice + 1;
+                var li = document.createElement('li');
+                li.className = 'track-step';
+
+                if (pasoActual > 0) {
+                    if (numero < pasoActual) li.className += ' is-done';
+                    else if (numero === pasoActual) li.className += ' is-current';
+                    else li.className += ' is-pending';
+                } else {
+                    li.className += ' is-pending';
+                }
+
+                var dot = document.createElement('span');
+                dot.className = 'track-step__dot';
+                dot.textContent = numero < pasoActual ? '✓' : String(numero);
+                dot.setAttribute('aria-hidden', 'true');
+
+                var body = document.createElement('div');
+                body.className = 'track-step__body';
+
+                var titulo = document.createElement('strong');
+                titulo.textContent = paso.titulo;
+
+                var detalle = document.createElement('span');
+                detalle.textContent = paso.detalle;
+
+                body.appendChild(titulo);
+                body.appendChild(detalle);
+
+                li.appendChild(dot);
+                li.appendChild(body);
+                steps.appendChild(li);
+            });
+        }
+
+        /* ------------------------------------------------------------
+           Portapapeles (con respaldo para navegadores antiguos)
+           ------------------------------------------------------------ */
+        function copiarTexto(texto) {
+            if (!texto) return Promise.reject(new Error('sin texto'));
+
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(texto);
+            }
+
+            return new Promise(function (resolve, reject) {
+                try {
+                    var area = document.createElement('textarea');
+                    area.value = texto;
+                    area.setAttribute('readonly', '');
+                    area.style.position = 'fixed';
+                    area.style.opacity = '0';
+                    document.body.appendChild(area);
+                    area.select();
+                    var ok = document.execCommand('copy');
+                    document.body.removeChild(area);
+                    ok ? resolve() : reject(new Error('execCommand'));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        function marcarCopiado() {
+            btnCopiarGuia.textContent = '¡Copiado!';
+            btnCopiarGuia.classList.add('is-copied');
+            setTimeout(function () {
+                btnCopiarGuia.textContent = 'Copiar';
+                btnCopiarGuia.classList.remove('is-copied');
+            }, 2000);
+        }
+
+        /* ------------------------------------------------------------
+           Pintar resultado
+           ------------------------------------------------------------ */
+        function pintarResultado(pedido) {
+            pedidoActual = pedido;
+
+            var tieneGuia = !!(pedido.numeroGuia && String(pedido.numeroGuia).trim());
+            var estado = resolverEstado(pedido.estado, tieneGuia);
+
+            rCodigo.textContent = pedido.codigo || '—';
+            // La insignia muestra el estado tal como lo registró el panel
+            // ("Pendiente", "Enviado"...) y el título, el paso del recorrido.
+            rBadge.textContent = pedido.estado ? String(pedido.estado) : estado.etiqueta;
+            rBadge.className = 'track-badge track-badge--' + tonoDeEtiqueta(pedido.estado);
+            rTitulo.textContent = estado.etiqueta;
+            rMensaje.textContent = estado.mensaje;
+            rFecha.textContent = formatearFecha(pedido.fechaActualizacion);
+
+            pintarPasos(estado.paso);
+            timeline.hidden = estado.paso === 0;
+
+            // ---- Info de envío ----
+            var hayEnvio = !!(pedido.transportadora || tieneGuia);
+            envio.hidden = !hayEnvio;
+
+            if (hayEnvio) {
+                rTransportadora.textContent = pedido.transportadora || 'Por asignar';
+                rGuia.textContent = tieneGuia ? String(pedido.numeroGuia).trim() : 'Pendiente';
+                btnCopiarGuia.hidden = !tieneGuia;
+
+                var url = urlTransportadora(pedido.transportadora);
+                btnRastrear.hidden = !url;
+                if (url) btnRastrear.href = url;
+            }
+
+            // ---- Ayuda con el código prellenado ----
+            btnAyuda.href = urlWhatsApp(pedido.codigo);
+
+            resultado.hidden = false;
+            mostrarAlerta('');
+
+            if (resultado.scrollIntoView) {
+                resultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            resultado.focus({ preventScroll: true });
+        }
+
+        function urlTransportadora(nombre) {
+            var clave = String(nombre || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z]/g, '');
+            return TRANSPORTADORAS[clave] || '';
+        }
+
+        function urlWhatsApp(codigo) {
+            var texto = 'Hola FLOW COLOMBIA, necesito ayuda con mi pedido ' + (codigo || '');
+            return 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(texto.trim());
+        }
+
+        /* ------------------------------------------------------------
+           Consulta
+           ------------------------------------------------------------ */
+        function validar() {
+            var codigo = inputCodigo.value.trim();
+            var telefono = soloDigitos(inputTelefono.value);
+            var ok = true;
+
+            mostrarErrorCampo(inputCodigo, '');
+            mostrarErrorCampo(inputTelefono, '');
+
+            if (codigo.length < 4) {
+                mostrarErrorCampo(inputCodigo, 'Escribe el código que te enviamos, ej. FLOW-AB12CD34EF.');
+                ok = false;
+            }
+
+            if (telefono.length < 7) {
+                mostrarErrorCampo(inputTelefono, 'Escribe el celular con el que hiciste la compra.');
+                ok = false;
+            }
+
+            if (!ok) {
+                var primero = document.querySelector('.flow-input[aria-invalid="true"]');
+                if (primero) primero.focus();
+            }
+            return ok;
+        }
+
+        function consultar() {
+            if (consultando) return;
+            if (!validar()) return;
+
+            consultando = true;
+            btnConsultar.disabled = true;
+            btnConsultar.textContent = 'Consultando…';
+            mostrarAlerta('');
+
+            var params = new URLSearchParams({
+                codigo: inputCodigo.value.trim(),
+                telefono: soloDigitos(inputTelefono.value)
+            });
+
+            fetch('/api/pedido/track?' + params.toString(), {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            })
+                .then(function (res) {
+                    if (res.status === 404) throw new Error('NO_ENCONTRADO');
+                    if (res.status === 429) throw new Error('RATE_LIMIT');
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (!data || !data.codigo) throw new Error('NO_ENCONTRADO');
+                    pintarResultado(data);
+                })
+                .catch(function (error) {
+                    resultado.hidden = true;
+
+                    if (error.message === 'NO_ENCONTRADO') {
+                        mostrarAlerta('Datos incorrectos. Revisa el código y el teléfono: deben coincidir con los de tu compra.');
+                    } else if (error.message === 'RATE_LIMIT') {
+                        mostrarAlerta('Hiciste varias consultas seguidas. Espera un minuto y vuelve a intentarlo.');
+                    } else {
+                        mostrarAlerta('No pudimos consultar tu pedido. Revisa tu conexión e inténtalo de nuevo.');
+                    }
+                })
+                .finally(function () {
+                    consultando = false;
+                    btnConsultar.disabled = false;
+                    btnConsultar.textContent = 'Ver mi pedido';
+                });
+        }
+
+        /* ------------------------------------------------------------
+           Eventos
+           ------------------------------------------------------------ */
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            consultar();
+        });
+
+        inputCodigo.addEventListener('input', function () {
+            // Códigos siempre en mayúsculas, sin espacios.
+            var cursorAlFinal = inputCodigo.selectionStart === inputCodigo.value.length;
+            var limpio = inputCodigo.value.toUpperCase().replace(/\s+/g, '');
+            if (limpio !== inputCodigo.value) {
+                inputCodigo.value = limpio;
+                if (cursorAlFinal) inputCodigo.setSelectionRange(limpio.length, limpio.length);
+            }
+            if (inputCodigo.hasAttribute('aria-invalid')) mostrarErrorCampo(inputCodigo, '');
+        });
+
+        inputTelefono.addEventListener('input', function () {
+            if (inputTelefono.hasAttribute('aria-invalid')) mostrarErrorCampo(inputTelefono, '');
+        });
+
+        btnCopiarGuia.addEventListener('click', function () {
+            if (!pedidoActual || !pedidoActual.numeroGuia) return;
+            copiarTexto(String(pedidoActual.numeroGuia).trim())
+                .then(marcarCopiado)
+                .catch(function () {
+                    btnCopiarGuia.textContent = 'Copia manual';
+                    setTimeout(function () { btnCopiarGuia.textContent = 'Copiar'; }, 2000);
+                });
+        });
+
+        btnRastrear.addEventListener('click', function () {
+            // La guía queda en el portapapeles antes de salir a la
+            // transportadora: allí solo hay que pegarla.
+            if (pedidoActual && pedidoActual.numeroGuia) {
+                copiarTexto(String(pedidoActual.numeroGuia).trim()).then(marcarCopiado).catch(function () { /* silencioso */ });
             }
         });
-    }
-    function mostrarResultado(data) {
-        document.getElementById('errorMsg').textContent = ''; document.getElementById('resultado').style.display = 'block';
-        document.getElementById('rCodigo').textContent = data.codigo;
-        document.getElementById('rEstado').innerHTML = '<span class="estado estado-pendiente">' + data.estado + '</span>';
-        document.getElementById('rProductos').textContent = data.productos;
-        if (data.transportadora) { document.getElementById('rTransportadora').textContent = data.transportadora; document.getElementById('rGuia').textContent = data.numeroGuia || 'Pendiente'; document.getElementById('infoEnvio').style.display = 'block'; }
-        else { document.getElementById('infoEnvio').style.display = 'none'; }
-    }
+
+        // Enlace de ayuda por si se llega sin haber consultado.
+        btnAyuda.href = urlWhatsApp('');
+
+        // Permite compartir un enlace directo: /seguimiento?codigo=FLOW-XXXX
+        var params = new URLSearchParams(window.location.search);
+        var codigoParam = params.get('codigo');
+        if (codigoParam) inputCodigo.value = codigoParam.trim().toUpperCase();
+    })();
 </script>
+
 </body>
 </html>

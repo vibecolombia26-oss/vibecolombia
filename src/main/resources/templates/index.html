@@ -6,7 +6,7 @@
     <meta name="description" content="FLOW COLOMBIA — Productos que le ponen flow a tu día. Envío gratis y pago contra entrega en toda Colombia.">
     <meta name="theme-color" content="#050914">
     <title>FLOW COLOMBIA</title>
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=1)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=2)}" href="/css/flow-ui.css">
     <style>
         /* ============================================================
            TOKENS DE DISEÑO
@@ -866,7 +866,8 @@
         }
 
         /* ============================================================
-           FLOTANTES: CARRITO, WHATSAPP, CHAT, VOLVER ARRIBA
+           FLOTANTES: CARRITO, WHATSAPP, ASISTENTE (F), VOLVER ARRIBA
+           El botón del asistente vive en flow-ui.css (.flow-ai-fab).
            ============================================================ */
         .cart-float {
             position: fixed;
@@ -987,119 +988,8 @@
         /* Jerarquía: con la barra del carrito visible, los flotantes suben
            por encima de ella (la altura real la inyecta el JS en --cart-bar-h). */
         body.has-cart-bar .whatsapp-float { bottom: calc(var(--cart-bar-h) + 14px); }
-        body.has-cart-bar #chatFloating { bottom: calc(var(--cart-bar-h) + 82px); }
         body.has-cart-bar .back-to-top { bottom: calc(var(--cart-bar-h) + 146px); }
 
-        /* ============================================================
-           CHAT DE SOPORTE
-           ============================================================ */
-        #chatFloating { position: fixed; right: 20px; bottom: 88px; z-index: 950; }
-
-        .chat-fab {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: 1px solid rgba(37, 99, 235, 0.5);
-            background: linear-gradient(180deg, var(--accent) 0%, var(--accent-hover) 100%);
-            color: #fff;
-            cursor: pointer;
-            display: grid;
-            place-items: center;
-            box-shadow: 0 18px 34px -14px rgba(37, 99, 235, 0.9);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .chat-fab:hover { transform: translateY(-2px); box-shadow: 0 22px 40px -14px rgba(37, 99, 235, 1); }
-        .chat-fab svg { width: 26px; height: 26px; }
-
-        .chat-panel {
-            position: absolute;
-            right: 0;
-            bottom: 72px;
-            width: min(380px, calc(100vw - 32px));
-            border: 1px solid var(--border-strong);
-            border-radius: 16px;
-            background: rgba(10, 15, 36, 0.97);
-            -webkit-backdrop-filter: blur(18px);
-            backdrop-filter: blur(18px);
-            overflow: hidden;
-            box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.95);
-        }
-
-        .chat-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 14px 16px;
-            background: linear-gradient(180deg, rgba(37, 99, 235, 0.22) 0%, rgba(37, 99, 235, 0) 100%);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .chat-head strong { display: block; font-size: 0.82rem; letter-spacing: 0.1em; }
-        .chat-head span { color: var(--muted); font-size: 0.74rem; }
-
-        .chat-close {
-            border: 0;
-            background: transparent;
-            color: var(--muted);
-            font-size: 1rem;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 8px;
-        }
-
-        .chat-close:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
-
-        .chat-login { padding: 18px 16px; }
-        .chat-login p { color: var(--muted); font-size: 0.8rem; margin-bottom: 10px; }
-
-        .chat-login input,
-        .chat-input-row input {
-            width: 100%;
-            padding: 11px 12px;
-            border: 1px solid var(--border-strong);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text);
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .chat-login input:focus,
-        .chat-input-row input:focus { border-color: rgba(37, 99, 235, 0.7); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
-
-        .btn-block { width: 100%; margin-top: 10px; padding: 11px 14px; font-size: 0.85rem; }
-
-        .chat-error { color: #f87171; font-size: 0.75rem; margin-top: 8px; }
-
-        #chatContent { flex-direction: column; height: 420px; max-height: 62vh; }
-
-        .chat-info {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(37, 99, 235, 0.08);
-            color: #bfdbfe;
-            font-size: 0.76rem;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .chat-input-row {
-            display: flex;
-            gap: 8px;
-            padding: 12px;
-            border-top: 1px solid var(--border);
-        }
-
-        .chat-input-row input { flex: 1; }
 
         /* ============================================================
            RESPONSIVE (MOBILE-FIRST)
@@ -1166,9 +1056,6 @@
             /* Flotantes más compactos para no competir con la barra */
             .whatsapp-float { width: 48px; height: 48px; left: 14px; }
             .whatsapp-float svg { width: 23px; height: 23px; }
-            #chatFloating { right: 14px; bottom: 76px; }
-            .chat-fab { width: 50px; height: 50px; }
-            .chat-fab svg { width: 23px; height: 23px; }
             .back-to-top { width: 38px; height: 38px; right: 16px; }
 
             /* Tarjetas de categoría cómodas a 360px */
@@ -1592,50 +1479,12 @@
     </svg>
 </a>
 
-<!-- ============================================================
-     CHAT DE SOPORTE (misma lógica, nueva piel)
-     ============================================================ -->
-<div id="chatFloating">
-    <button class="chat-fab" type="button" onclick="toggleChat()" aria-label="Abrir chat de soporte">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12a8.5 8.5 0 0 1-8.5 8.5H7L3 23v-6.2A8.5 8.5 0 1 1 21 12z"></path>
-            <path d="M8 12h.01M12 12h.01M16 12h.01"></path>
-        </svg>
-    </button>
-
-    <div id="chatBox" class="chat-panel" style="display:none">
-        <div class="chat-head">
-            <div>
-                <strong>FLOW COLOMBIA</strong>
-                <span>Seguimiento de tu pedido</span>
-            </div>
-            <button class="chat-close" type="button" onclick="toggleChat()" aria-label="Cerrar chat">✕</button>
-        </div>
-
-        <div id="chatLogin" class="chat-login">
-            <p>Ingresa tu código de seguimiento o celular</p>
-            <input type="text" id="chatCodigoInput" placeholder="Código o celular..." autocomplete="off">
-            <button type="button" class="btn-primary btn-block" onclick="iniciarChat()">Ver mi pedido</button>
-            <div id="chatError" class="chat-error"></div>
-        </div>
-
-        <div id="chatContent" style="display:none">
-            <div id="chatPedidoInfo" class="chat-info"></div>
-            <div id="chatMensajes" class="chat-messages"></div>
-            <div class="chat-input-row">
-                <input type="text" id="chatMensajeInput" placeholder="Escribe..." autocomplete="off">
-                <button type="button" class="btn-primary btn-sm" onclick="enviarMensajeChat()">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- ============================================================
      SCRIPTS DE LA TIENDA
      ============================================================ -->
 <script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
-<script th:src="@{/js/flow-assistant.js(v=1)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=2)}" src="/js/flow-assistant.js"></script>
 <script>
     // ============================================================
     // AGREGAR AL CARRITO (misma firma y mismo localStorage)
@@ -1765,63 +1614,6 @@
     });
 </script>
 
-<!-- ============================================================
-     CHAT DE SOPORTE (misma lógica de polling, sin cambios funcionales)
-     ============================================================ -->
-<script>
-    var chatCodigo = '';
-    var chatPollTimer = null;
-
-    function toggleChat() {
-        var box = document.getElementById('chatBox');
-        var abriendo = box.style.display === 'none';
-        box.style.display = abriendo ? 'block' : 'none';
-        if (!abriendo) {
-            // Al cerrar el chat se detiene el sondeo: cada consulta mantiene
-            // despierta la compute de Neon y consume free tier.
-            clearTimeout(chatPollTimer);
-        } else if (chatCodigo) {
-            cargarMensajesChat();
-        }
-    }
-
-    // Programa la siguiente consulta de mensajes.
-    // - No consulta si la pestaña está en segundo plano.
-    // - No consulta si el chat está cerrado.
-    // - 15 s de espera (10 s mientras el cliente escribe).
-    function programarConsultaMensajes() {
-        clearTimeout(chatPollTimer);
-        if (!chatCodigo) return;
-        if (document.hidden) return;
-        var box = document.getElementById('chatBox');
-        if (box && box.style.display === 'none') return;
-        var escribiendo = document.activeElement === document.getElementById('chatMensajeInput');
-        chatPollTimer = setTimeout(cargarMensajesChat, escribiendo ? 10000 : 15000);
-    }
-
-    // Al volver a la pestaña se retoma el sondeo una sola vez.
-    document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && chatCodigo) { cargarMensajesChat(); }
-    });
-
-    function iniciarChat() {
-        var codigo = document.getElementById('chatCodigoInput').value.trim(); if (!codigo) return; document.getElementById('chatError').textContent = '';
-        fetch('/api/pedido/' + codigo).then(r => r.json()).then(data => {
-            if (!data.error) { chatCodigo = data.codigo; mostrarChatInfo(data); }
-            else { var telefono = codigo.replace(/[^0-9]/g, ''); if (telefono.length >= 10) { fetch('/api/pedido/telefono/' + telefono).then(r => r.json()).then(data2 => { if (!data2.error) { chatCodigo = data2.codigo; mostrarChatInfo(data2); } else { document.getElementById('chatError').textContent = 'No se encontró el pedido.'; } }); } else { document.getElementById('chatError').textContent = 'No se encontró el pedido.'; } }
-        });
-    }
-    function mostrarChatInfo(data) { document.getElementById('chatLogin').style.display = 'none'; document.getElementById('chatContent').style.display = 'flex'; document.getElementById('chatPedidoInfo').innerHTML = '<strong style="color:#93c5fd;">📦 ' + data.codigo + '</strong> | Estado: ' + data.estado + (data.transportadora ? ' | 🚚 ' + data.transportadora + ' - ' + data.numeroGuia : ''); cargarMensajesChat(); }
-    function cargarMensajesChat() {
-        if (!chatCodigo) return;
-        fetch('/api/chat/mensajes?codigo=' + chatCodigo).then(r => r.json()).then(mensajes => {
-            var html = ''; mensajes.forEach(function(m) { if (m.esCliente) { html += '<div style="align-self:flex-end; background:#2563eb; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } else { html += '<div style="align-self:flex-start; background:#1e293b; color:#e2e8f0; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; margin:4px 0;">' + m.mensaje + '</div>'; } });
-            document.getElementById('chatMensajes').innerHTML = html || '<p style="color:#6b7794; text-align:center; font-size:0.8rem;">Envía un mensaje</p>'; document.getElementById('chatMensajes').scrollTop = document.getElementById('chatMensajes').scrollHeight;
-        }).catch(function() { /* si falla, se reintenta en el siguiente ciclo */ })
-          .finally(programarConsultaMensajes);
-    }
-    function enviarMensajeChat() { var mensaje = document.getElementById('chatMensajeInput').value.trim(); if (!mensaje) return; fetch('/api/chat/enviar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({codigo:chatCodigo, telefono:'', mensaje:mensaje}) }).then(function() { document.getElementById('chatMensajeInput').value = ''; cargarMensajesChat(); }); }
-</script>
 
 </body>
 </html>

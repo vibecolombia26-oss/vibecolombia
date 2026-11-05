@@ -55,6 +55,13 @@ public class AsistenteController {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("respuesta", respuesta.respuesta());
             body.put("productos", respuesta.productos());
+
+            // Acción de interfaz (ej. "ir_a_seguimiento"): el frontend la usa
+            // para pintar el botón que lleva a Flow Track.
+            if (respuesta.accion() != null && !respuesta.accion().isBlank()) {
+                body.put("accion", respuesta.accion());
+            }
+
             return ResponseEntity.ok(body);
         } catch (Exception e) {
             return ResponseEntity.status(500)
