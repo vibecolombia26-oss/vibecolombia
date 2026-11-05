@@ -99,7 +99,7 @@
                     <p>Dinero real (entregado) vs. dinero en la calle (en curso)</p>
                 </div>
 
-                <div class="kpi-grid">
+                <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));">
                     <article class="kpi-card">
                         <span class="kpi-card__label">Pedidos recibidos</span>
                         <span class="kpi-card__value" th:text="${totalPedidos}">0</span>
@@ -127,12 +127,47 @@
                             <a th:href="@{/admin/pedidos(estado='Entregado')}">Ver detalle →</a>
                         </span>
                     </article>
+
+                    <!-- ============================================================
+                         RENTABILIDAD: dinero real menos costo del proveedor
+                         ============================================================ -->
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Margen ganado (entregado)</span>
+                        <span class="kpi-card__value" style="color: var(--ad-ok);"
+                              th:text="'$' + ${#numbers.formatDecimal(gananciaEntregada.ganancia(), 0, 'COMMA', 0, 'POINT')}">$0</span>
+                        <span class="kpi-card__foot">
+                            <span th:text="${gananciaEntregada.pedidos()} + ' entregados · ' + ${gananciaEntregada.porcentaje()} + '% sobre ventas'">0 entregados</span>
+                            <a th:href="@{/admin/pedidos(estado='Entregado')}">Ver entregados →</a>
+                        </span>
+                    </article>
+
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Margen promedio del catálogo</span>
+                        <span class="kpi-card__value" style="color: var(--ad-accent-light);"
+                              th:if="${margenCatalogo.hayDatos()}"
+                              th:text="'$' + ${#numbers.formatDecimal(margenCatalogo.margen(), 0, 'COMMA', 0, 'POINT')}">$0</span>
+                        <span class="kpi-card__value is-muted" th:unless="${margenCatalogo.hayDatos()}">—</span>
+                        <span class="kpi-card__foot">
+                            <span th:if="${margenCatalogo.hayDatos()}"
+                                  th:text="'Venta $' + ${#numbers.formatDecimal(margenCatalogo.precioPromedio(), 0, 'COMMA', 0, 'POINT')} + ' − costo $' + ${#numbers.formatDecimal(margenCatalogo.costoPromedio(), 0, 'COMMA', 0, 'POINT')} + ' · ' + ${margenCatalogo.porcentaje()} + '%'">—</span>
+                            <span th:unless="${margenCatalogo.hayDatos()}">Registra el costo del proveedor en cada variante</span>
+                        </span>
+                    </article>
                 </div>
 
+                <!-- Aviso de cobertura: si falta el costo de algunos productos,
+                     la ganancia se muestra sobreestimada y hay que decirlo. -->
+                <p class="admin-muted" style="margin-top:10px;" th:if="${gananciaEntregada.pedidos() > 0 and gananciaEntregada.cobertura() < 0.999}">
+                    ⚠ Solo el
+                    <strong th:text="${#numbers.formatDecimal(gananciaEntregada.cobertura() * 100, 0, 'COMMA', 0, 'POINT')} + '%'">0%</strong>
+                    del dinero entregado corresponde a productos con costo de proveedor registrado.
+                    El resto se suma sin descontar costo, así que la ganancia real es algo menor.
+                </p>
+
                 <p class="admin-muted" style="margin-top:10px;">
-                    Los contadores se calculan con consultas agregadas en la base de datos y se actualizan
-                    al cargar o con “Refrescar”. El margen queda pendiente porque requiere datos de costo
-                    que hoy no están en el modelo.
+                    Los contadores y los márgenes se calculan con consultas agregadas en la base de datos y se
+                    actualizan al cargar o con “Refrescar”. El margen descuenta el <strong>costo del proveedor</strong>
+                    registrado en cada variante del producto.
                 </p>
             </section>
 
@@ -208,6 +243,7 @@
                                 <th>Producto</th>
                                 <th>Categoría</th>
                                 <th>Precio</th>
+                                <th>Margen</th>
                                 <th>SKU</th>
                                 <th style="text-align:right;">Acciones</th>
                             </tr>
@@ -227,6 +263,15 @@
                                 </td>
                                 <td th:text="${p.categoria != null ? p.categoria : '—'}">Categoría</td>
                                 <td th:text="'$' + ${#numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
+                                <td th:with="m=${margenesPorProducto[p.id]}">
+                                    <div th:if="${m != null}" style="display:flex; flex-direction:column; gap:1px;">
+                                        <span style="font-weight:600; color: var(--ad-ok);"
+                                              th:text="'$' + ${#numbers.formatDecimal(m.margen(), 0, 'COMMA', 0, 'POINT')}">$0</span>
+                                        <span class="admin-muted" th:text="${m.porcentaje()} + '%'">0%</span>
+                                    </div>
+                                    <span class="admin-muted" th:if="${m == null}"
+                                          title="Sin costo de proveedor registrado en sus variantes">—</span>
+                                </td>
                                 <td class="admin-muted" th:text="${p.sku != null ? p.sku : '—'}">SKU</td>
                                 <td>
                                     <div style="display:flex; gap:6px; justify-content:flex-end;">

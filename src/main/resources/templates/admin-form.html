@@ -115,7 +115,8 @@
                                 <th>Color</th>
                                 <th>Talla</th>
                                 <th>Precio</th>
-                                <th>Costo</th>
+                                <th>Costo proveedor ($)</th>
+                                <th>Margen</th>
                                 <th>Stock</th>
                                 <th>Peso (g)</th>
                                 <th>Activo</th>
@@ -130,8 +131,9 @@
                                 </td>
                                 <td><input type="text" name="varianteColor" th:value="${v.color}" class="color-input"></td>
                                 <td><input type="text" name="varianteTalla" th:value="${v.talla}" class="talla-input"></td>
-                                <td><input type="number" step="0.01" name="variantePrecio" th:value="${v.precio}" class="precio-input" required></td>
-                                <td><input type="number" step="0.01" name="varianteCosto" th:value="${v.costo}" class="costo-input"></td>
+                                <td><input type="number" step="0.01" name="variantePrecio" th:value="${v.precio}" class="precio-input" min="0" required></td>
+                                <td><input type="number" step="0.01" name="varianteCosto" th:value="${v.costo}" class="costo-input" min="0" required></td>
+                                <td class="margen-celda" data-margen-variante>—</td>
                                 <td><input type="number" name="varianteStock" th:value="${v.stock}" class="stock-input" required></td>
                                 <td><input type="number" step="0.1" name="variantePeso" th:value="${v.peso}" class="peso-input"></td>
                                 <td>
@@ -147,8 +149,9 @@
                                 <td><input type="text" id="nuevoSku" placeholder="SKU" class="sku-input"></td>
                                 <td><input type="text" id="nuevoColor" placeholder="Color" class="color-input"></td>
                                 <td><input type="text" id="nuevaTalla" placeholder="Talla" class="talla-input"></td>
-                                <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input"></td>
-                                <td><input type="number" step="0.01" id="nuevoCosto" placeholder="Costo" class="costo-input"></td>
+                                <td><input type="number" step="0.01" id="nuevoPrecio" placeholder="Precio" class="precio-input" min="0"></td>
+                                <td><input type="number" step="0.01" id="nuevoCosto" placeholder="Costo proveedor" class="costo-input" min="0"></td>
+                                <td class="margen-celda" data-margen-variante>—</td>
                                 <td><input type="number" id="nuevoStock" placeholder="Stock" class="stock-input"></td>
                                 <td><input type="number" step="0.1" id="nuevoPeso" placeholder="Peso" class="peso-input"></td>
                                 <td>
@@ -163,6 +166,15 @@
                         </table>
                     </div>
                     <small class="form-hint">Cada fila es una variante real (color + talla). Los SKU deben ser únicos.</small>
+
+                    <!-- Margen en vivo: se recalcula al escribir precio o costo -->
+                    <p id="margenResumen" aria-live="polite"
+                       style="margin-top:10px; font-size:0.84rem; font-weight:600; color:#60a5fa;">
+                        Margen estimado por unidad: completa el precio y el costo del proveedor.
+                    </p>
+                    <small class="form-hint">
+                        El costo del proveedor es obligatorio: sin él no se puede calcular la ganancia real del pedido.
+                    </small>
                 </section>
 
                 <!-- ============ ACCIONES ============ -->
@@ -621,8 +633,8 @@
         const peso = document.getElementById('nuevoPeso').value.trim();
         const activo = document.getElementById('nuevoActivo').value === 'true';
 
-        if (!sku || !precio || !stock) {
-            mostrarToast('SKU, precio y stock son obligatorios.', 'error');
+        if (!sku || !precio || !costo || !stock) {
+            mostrarToast('SKU, precio, costo del proveedor y stock son obligatorios.', 'error');
             return;
         }
 
@@ -663,8 +675,9 @@
             </td>
             <td><input type="text" name="varianteColor" value="${colorEscaped}" class="color-input"></td>
             <td><input type="text" name="varianteTalla" value="${tallaEscaped}" class="talla-input"></td>
-            <td><input type="number" step="0.01" name="variantePrecio" value="${precioEscaped}" class="precio-input" required></td>
-            <td><input type="number" step="0.01" name="varianteCosto" value="${costoEscaped}" class="costo-input"></td>
+            <td><input type="number" step="0.01" name="variantePrecio" value="${precioEscaped}" class="precio-input" min="0" required></td>
+            <td><input type="number" step="0.01" name="varianteCosto" value="${costoEscaped}" class="costo-input" min="0" required></td>
+            <td class="margen-celda" data-margen-variante>—</td>
             <td><input type="number" name="varianteStock" value="${stockEscaped}" class="stock-input" required></td>
             <td><input type="number" step="0.1" name="variantePeso" value="${pesoEscaped}" class="peso-input"></td>
             <td>
@@ -686,6 +699,8 @@
         document.getElementById('nuevoStock').value = '';
         document.getElementById('nuevoPeso').value = '';
         document.getElementById('nuevoActivo').value = 'true';
+
+        if (window.recalcularMargen) window.recalcularMargen();
     }
 
     function eliminarVariante(btn) {
@@ -768,8 +783,9 @@
 
         const nuevoSku = document.getElementById('nuevoSku').value.trim();
         const nuevoPrecio = document.getElementById('nuevoPrecio').value.trim();
+        const nuevoCosto = document.getElementById('nuevoCosto').value.trim();
         const nuevoStock = document.getElementById('nuevoStock').value.trim();
-        if (nuevoSku || nuevoPrecio || nuevoStock) {
+        if (nuevoSku || nuevoPrecio || nuevoCosto || nuevoStock) {
             mostrarToast('Tienes una variante pendiente de agregar. Usa el botón + para agregarla.', 'error');
             btn.disabled = false;
             btn.textContent = 'Guardar producto';
@@ -813,6 +829,19 @@
             if (val) skus.push(val);
         }
 
+        // El costo del proveedor es obligatorio: sin él no hay margen real.
+        const costoInputs = document.querySelectorAll('.costo-input');
+        for (let input of costoInputs) {
+            if (input.id === 'nuevoCosto') continue;
+            if (!input.value.trim() || parseFloat(input.value) <= 0) {
+                mostrarToast('Registra el costo del proveedor en todas las variantes (es obligatorio).', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Guardar producto';
+                e.preventDefault();
+                return;
+            }
+        }
+
         formDirty = false;
     });
 
@@ -820,6 +849,90 @@
         const mensaje = /*[[${mensaje}]]*/ null;
         if (mensaje) mostrarToast(mensaje, mensaje.includes('✅') ? 'success' : 'error');
     });
+
+    // ============================================================
+    // MARGEN EN VIVO: precio de venta − costo del proveedor
+    // Se recalcula al escribir en cualquier fila (también en las que se
+    // agregan con el botón +) y resume el margen promedio por unidad.
+    // ============================================================
+    (function () {
+        'use strict';
+
+        const tbody = document.getElementById('variantesBody');
+        const resumen = document.getElementById('margenResumen');
+        if (!tbody || !resumen) return;
+
+        const VERDE = '#34d399';
+        const ROJO = '#f87171';
+        const AMBAR = '#fbbf24';
+        const MUTED = '#9aa4bf';
+        const AZUL = '#60a5fa';
+
+        function numero(valor) {
+            const n = parseFloat(String(valor == null ? '' : valor).replace(',', '.'));
+            return isFinite(n) ? n : 0;
+        }
+
+        function pesos(valor) {
+            return '$' + Math.round(valor).toLocaleString('es-CO');
+        }
+
+        function recalcular() {
+            let sumaMargen = 0;
+            let sumaPrecio = 0;
+            let unidadesValidas = 0;
+
+            tbody.querySelectorAll('tr').forEach(function (fila) {
+                if (fila.id === 'filaNuevaVariante') return;
+
+                const precioInput = fila.querySelector('.precio-input');
+                const costoInput = fila.querySelector('.costo-input');
+                const celda = fila.querySelector('[data-margen-variante]');
+
+                const precio = numero(precioInput && precioInput.value);
+                const costo = numero(costoInput && costoInput.value);
+                const valido = precio > 0 && costo > 0;
+
+                if (celda) {
+                    if (!valido) {
+                        celda.textContent = '—';
+                        celda.style.color = '';
+                        celda.title = 'Completa precio y costo del proveedor';
+                    } else {
+                        const margen = precio - costo;
+                        celda.textContent = pesos(margen) + ' · ' + Math.round((margen / precio) * 100) + '%';
+                        celda.style.color = margen > 0 ? VERDE : (margen < 0 ? ROJO : AMBAR);
+                        celda.title = 'Precio ' + pesos(precio) + ' − costo ' + pesos(costo);
+                    }
+                }
+
+                if (valido) {
+                    sumaMargen += (precio - costo);
+                    sumaPrecio += precio;
+                    unidadesValidas++;
+                }
+            });
+
+            if (!unidadesValidas) {
+                resumen.textContent = 'Margen estimado por unidad: completa el precio y el costo del proveedor.';
+                resumen.style.color = MUTED;
+                return;
+            }
+
+            const margenPromedio = sumaMargen / unidadesValidas;
+            const porcentaje = sumaPrecio > 0 ? Math.round((sumaMargen / sumaPrecio) * 100) : 0;
+
+            resumen.textContent = 'Margen estimado por unidad: ' + pesos(margenPromedio) + ' (' + porcentaje + '%)';
+            resumen.style.color = margenPromedio > 0 ? VERDE : (margenPromedio < 0 ? ROJO : AZUL);
+        }
+
+        // Delegación: cubre las filas existentes y las que se agregan después.
+        tbody.addEventListener('input', recalcular);
+        tbody.addEventListener('change', recalcular);
+
+        window.recalcularMargen = recalcular;
+        recalcular();
+    })();
 </script>
 </body>
 </html>

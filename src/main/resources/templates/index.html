@@ -6,7 +6,7 @@
     <meta name="description" content="FLOW COLOMBIA — Productos que le ponen flow a tu día. Envío gratis y pago contra entrega en toda Colombia.">
     <meta name="theme-color" content="#050914">
     <title>FLOW COLOMBIA</title>
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=2)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=3)}" href="/css/flow-ui.css">
     <style>
         /* ============================================================
            TOKENS DE DISEÑO
@@ -797,75 +797,6 @@
         .trust-item a:hover { text-decoration: underline; }
 
         /* ============================================================
-           FOOTER
-           ============================================================ */
-        .site-footer { border-top: 1px solid var(--border); }
-
-        .footer-inner {
-            max-width: var(--max);
-            margin: 0 auto;
-            padding: 44px 20px 26px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-        }
-
-        .footer-brand p {
-            margin-top: 12px;
-            color: var(--muted);
-            font-size: 0.84rem;
-            max-width: 300px;
-        }
-
-        .footer-col h4 {
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--muted-2);
-            margin-bottom: 12px;
-        }
-
-        .footer-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
-        .footer-links a { color: var(--muted); font-size: 0.86rem; transition: color 0.2s ease; }
-        .footer-links a:hover { color: var(--text); }
-
-        .footer-social { display: flex; gap: 10px; }
-
-        .footer-social a {
-            width: 38px;
-            height: 38px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            display: grid;
-            place-items: center;
-            color: var(--muted);
-            transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .footer-social a:hover {
-            color: #fff;
-            border-color: rgba(37, 99, 235, 0.6);
-            background: var(--accent-soft);
-        }
-
-        .footer-social svg { width: 18px; height: 18px; }
-
-        .footer-bottom {
-            max-width: var(--max);
-            margin: 0 auto;
-            padding: 18px 20px 26px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            color: var(--muted-2);
-            font-size: 0.78rem;
-        }
-
-        /* ============================================================
            FLOTANTES: CARRITO, WHATSAPP, ASISTENTE (F), VOLVER ARRIBA
            El botón del asistente vive en flow-ui.css (.flow-ai-fab).
            ============================================================ */
@@ -1023,7 +954,6 @@
         }
 
         @media (min-width: 820px) {
-            .footer-inner { grid-template-columns: 1.4fr 1fr 1fr; }
             .trust-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .hero { padding: 80px 20px 88px; }
             .section { padding: 72px 20px; }
@@ -1381,65 +1311,9 @@
 </main>
 
 <!-- ============================================================
-     FOOTER
+     FOOTER PÚBLICO COMPARTIDO (fragments/public-footer.html)
      ============================================================ -->
-<footer class="site-footer">
-    <div class="footer-inner">
-        <div class="footer-brand">
-            <a class="brand" href="/" aria-label="FLOW COLOMBIA, inicio">
-                <span class="brand-mark" aria-hidden="true">F</span>
-                <span class="brand-name">FLOW <strong>COLOMBIA</strong></span>
-            </a>
-            <p>Productos que le ponen flow a tu día. Envíos y pago contra entrega en todo el país.</p>
-        </div>
-
-        <div class="footer-col">
-            <h4>Tienda</h4>
-            <ul class="footer-links">
-                <li><a href="/">Inicio</a></li>
-                <li><a href="/carrito">Carrito</a></li>
-                <li><a href="/seguimiento">Seguimiento</a></li>
-                <li><a href="/envios">Envíos</a></li>
-            </ul>
-        </div>
-
-        <div class="footer-col">
-            <h4>Ayuda y legal</h4>
-            <ul class="footer-links">
-                <li><a href="/contacto">Contacto</a></li>
-                <li><a href="/terminos">Términos y condiciones</a></li>
-                <li><a href="/privacidad">Política de privacidad</a></li>
-                <li><a href="mailto:contacto@flowcolombia.com">contacto@flowcolombia.com</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="footer-bottom">
-        <span>&copy; 2026 FLOW COLOMBIA. Todos los derechos reservados.</span>
-        <div class="footer-social">
-            <a href="https://wa.me/573150152056" target="_blank" rel="noopener" aria-label="WhatsApp">
-                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"></path>
-                </svg>
-            </a>
-            <a href="https://www.instagram.com/flowcolombia" target="_blank" rel="noopener" aria-label="Instagram">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="5"></rect>
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none"></circle>
-                </svg>
-            </a>
-            <a href="https://www.tiktok.com/@flowcolombia" target="_blank" rel="noopener" aria-label="TikTok">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M15 4v9.5a3.5 3.5 0 1 1-3.5-3.5"></path>
-                    <path d="M15 4c.4 2.4 2 4 4.5 4.3"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
-</footer>
+<div th:replace="~{fragments/public-footer :: publicFooter}"></div>
 
 <!-- ============================================================
      BARRA FLOTANTE DEL CARRITO

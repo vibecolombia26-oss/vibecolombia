@@ -43,4 +43,14 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      * de pedidos ni se compara en memoria, así que no despierta Neon de más.</p>
      */
     Optional<Pedido> findFirstByCodigoIgnoreCaseAndTelefono(String codigo, String telefono);
+
+    /**
+     * Pedidos entregados, solo con lo necesario para calcular la ganancia:
+     * el detalle en texto y el total. Sin cargar entidades completas ni
+     * colecciones, para que el cálculo no genere N+1.
+     *
+     * @return filas {@code [productos, total]}
+     */
+    @Query("SELECT p.productos, p.total FROM Pedido p WHERE p.estado = 'Entregado'")
+    List<Object[]> findEntregadosParaMargen();
 }

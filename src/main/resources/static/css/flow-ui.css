@@ -1037,3 +1037,250 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     .flow-ai-fab { animation: none; }
     .flow-ai-panel { animation-duration: 0.001ms !important; }
 }
+
+/* ============================================================
+   FOOTER PÚBLICO
+   Compartido por index, producto-detalle, carrito y seguimiento
+   (fragmento: fragments/public-footer.html).
+   Usa tokens --flow-* para verse idéntico en todas las vistas.
+   ============================================================ */
+.site-footer {
+    margin-top: 44px;
+    background: var(--flow-bg, #050914);
+    border-top: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+    color: var(--flow-text, #fff);
+}
+
+/* ---------------- Identidad + columnas ---------------- */
+.footer-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 26px;
+    width: 100%;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 34px 18px 26px;
+}
+
+@media (min-width: 720px) {
+    .footer-inner {
+        grid-template-columns: 1.5fr 1fr 1fr;
+        gap: 32px;
+        padding: 46px 24px 30px;
+    }
+}
+
+.footer-brand__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.footer-brand__mark {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: linear-gradient(140deg, #2563eb 0%, #3b82f6 55%, #60a5fa 100%);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    box-shadow: 0 10px 24px -14px rgba(37, 99, 235, 0.95);
+}
+
+.footer-brand__name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #fff;
+}
+
+.footer-brand p {
+    margin-top: 12px;
+    max-width: 34ch;
+    color: var(--flow-muted, #9aa4bf);
+    font-size: 0.84rem;
+    line-height: 1.6;
+}
+
+.footer-col h4 {
+    margin-bottom: 12px;
+    color: var(--flow-muted-2, #6b7794);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.footer-links {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.footer-links a {
+    color: var(--flow-muted, #9aa4bf);
+    font-size: 0.86rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover { color: #fff; }
+
+/* ---------------- Redes sociales ---------------- */
+.footer-social-section {
+    width: 100%;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 26px 18px 30px;
+    /* Línea fina de azul eléctrico que separa del contenido superior */
+    border-top: 1px solid #2563eb;
+}
+
+@media (min-width: 720px) {
+    .footer-social-section { padding: 30px 24px 34px; }
+}
+
+.footer-social-title {
+    font-size: clamp(1.35rem, 4.4vw, 1.85rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #fff;
+}
+
+.footer-social-sub {
+    margin-top: 8px;
+    color: var(--flow-muted, #9aa4bf);
+    font-size: 0.88rem;
+}
+
+.footer-social-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.social-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.45);
+    background: transparent;
+    color: #dbe4ff;
+    font: 600 0.82rem/1.2 var(--flow-font, system-ui, sans-serif);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease,
+                background 0.22s ease, transform 0.12s ease;
+}
+
+.social-pill svg { width: 17px; height: 17px; flex: none; }
+
+/* Brillo solo donde hay puntero real (escritorio) */
+@media (hover: hover) and (pointer: fine) {
+    .social-pill:hover {
+        color: #fff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4), 0 12px 28px -16px rgba(37, 99, 235, 0.95);
+        transform: translateY(-1px);
+    }
+}
+
+/* Respuesta inmediata al toque (móvil) */
+.social-pill:active {
+    transform: scale(0.97);
+    background: rgba(37, 99, 235, 0.16);
+    border-color: rgba(37, 99, 235, 0.85);
+}
+
+.social-pill:focus-visible {
+    outline: 2px solid var(--flow-accent-light, #60a5fa);
+    outline-offset: 2px;
+}
+
+.footer-social-invite {
+    margin-top: 16px;
+    color: var(--flow-muted-2, #6b7794);
+    font-size: 0.76rem;
+}
+
+/* Móvil: las tres píldoras en una fila que no se desborda */
+@media (max-width: 560px) {
+    .footer-social-pills {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .social-pill {
+        justify-content: center;
+        gap: 6px;
+        padding: 11px 6px;
+        font-size: 0.74rem;
+    }
+
+    .social-pill svg { width: 15px; height: 15px; }
+}
+
+/* Pantallas muy estrechas: apiladas a lo ancho */
+@media (max-width: 352px) {
+    .footer-social-pills { grid-template-columns: 1fr; }
+
+    .social-pill {
+        gap: 8px;
+        padding: 12px 14px;
+        font-size: 0.82rem;
+    }
+}
+
+/* ---------------- Barra inferior ---------------- */
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 16px 18px 24px;
+    border-top: 1px solid var(--flow-border, rgba(255, 255, 255, 0.08));
+    color: var(--flow-muted-2, #6b7794);
+    font-size: 0.76rem;
+}
+
+@media (min-width: 720px) {
+    .footer-bottom { padding: 18px 24px 26px; }
+}
+
+.footer-legal { line-height: 1.5; }
+
+.footer-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--flow-border-strong, rgba(255, 255, 255, 0.14));
+    color: var(--flow-muted, #9aa4bf);
+    font: 600 0.76rem/1.2 var(--flow-font, system-ui, sans-serif);
+    text-decoration: none;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.footer-wa svg { width: 15px; height: 15px; flex: none; }
+
+.footer-wa:hover {
+    color: #fff;
+    border-color: rgba(37, 99, 235, 0.6);
+    background: rgba(37, 99, 235, 0.12);
+}

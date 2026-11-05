@@ -1,5 +1,6 @@
 package com.flowcolombia.flowcolombia;
 
+import com.flowcolombia.flowcolombia.service.AnalyticsService;
 import com.flowcolombia.flowcolombia.service.MensajeService;
 import com.flowcolombia.flowcolombia.service.PedidoService;
 import com.flowcolombia.flowcolombia.service.ProductoService;
@@ -24,15 +25,18 @@ public class ProductoController {
     private final ResenaService resenaService;
     private final PedidoService pedidoService;
     private final MensajeService mensajeService;
+    private final AnalyticsService analyticsService;
 
     public ProductoController(ProductoService productoService,
                               ResenaService resenaService,
                               PedidoService pedidoService,
-                              MensajeService mensajeService) {
+                              MensajeService mensajeService,
+                              AnalyticsService analyticsService) {
         this.productoService = productoService;
         this.resenaService = resenaService;
         this.pedidoService = pedidoService;
         this.mensajeService = mensajeService;
+        this.analyticsService = analyticsService;
     }
 
     // ============================================================
@@ -53,6 +57,16 @@ public class ProductoController {
         model.addAttribute("pedidosEntregados", pedidoService.contarPorEstado("Entregado"));
         model.addAttribute("ingresosEntregados", pedidoService.sumarIngresosEntregados());
         model.addAttribute("mensajesSinResponder", mensajeService.contarSinResponder());
+
+        // ============================================================
+        // RENTABILIDAD (3 consultas agregadas, sin N+1)
+        // - gananciaEntregada: dinero real ya entregado menos costo de proveedor
+        // - margenCatalogo: promedio de venta menos promedio de costo
+        // - margenesPorProducto: margen de cada producto para la tabla
+        // ============================================================
+        model.addAttribute("gananciaEntregada", analyticsService.gananciaEntregada());
+        model.addAttribute("margenCatalogo", analyticsService.margenCatalogo());
+        model.addAttribute("margenesPorProducto", analyticsService.margenPorProducto());
 
         return "admin-panel";
     }

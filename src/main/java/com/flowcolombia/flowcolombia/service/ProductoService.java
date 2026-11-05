@@ -342,9 +342,12 @@ public class ProductoService {
                     ? variantePrecio.get(i)
                     : productoGuardado.getPrecio();
 
+            // Costo del proveedor obligatorio (módulo de rentabilidad):
+            // si el formulario no lo envía queda null y la validación lo
+            // rechaza con un mensaje explícito.
             Double costo = (varianteCosto != null && i < varianteCosto.size() && varianteCosto.get(i) != null)
                     ? varianteCosto.get(i)
-                    : 0.0;
+                    : null;
 
             Integer stock = (varianteStock != null && i < varianteStock.size() && varianteStock.get(i) != null)
                     ? varianteStock.get(i)
@@ -513,8 +516,13 @@ public class ProductoService {
             errores.add("El stock de la variante no puede ser negativo.");
         }
 
-        if (variante.getCosto() != null && variante.getCosto() < 0) {
-            errores.add("El costo de la variante no puede ser negativo.");
+        // Sin costo de proveedor no hay margen ni ganancia real: es obligatorio.
+        if (variante.getCosto() == null || variante.getCosto() <= 0) {
+            errores.add("El costo del proveedor es obligatorio y debe ser mayor a 0.");
+        } else if (variante.getPrecio() != null && variante.getCosto() >= variante.getPrecio()) {
+            errores.add("El costo del proveedor (" + Math.round(variante.getCosto())
+                    + ") no puede ser igual o mayor al precio de venta ("
+                    + Math.round(variante.getPrecio()) + "): el margen sería nulo o negativo.");
         }
 
         if (variante.getPeso() != null && variante.getPeso() < 0) {
