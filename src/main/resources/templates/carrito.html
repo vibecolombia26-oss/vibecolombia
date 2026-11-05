@@ -58,6 +58,25 @@
 
         .error-msg { color:#ff4444; font-size:0.85rem; margin-top:5px; display:none; }
 
+        /* ===== PROMESA DE VALOR + CONDICIONES ===== */
+        .resumen-promesa { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:16px 0 8px; }
+        .resumen-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(37,99,235,0.35); background:rgba(37,99,235,0.10); color:#dbeafe; font-size:0.74rem; font-weight:600; }
+        .resumen-chip svg { width:14px; height:14px; color:#60a5fa; flex:none; }
+        .resumen-nota { color:#9aa4bf; font-size:0.78rem; margin:0; }
+        .resumen-condiciones { max-width:520px; margin:12px auto 0; text-align:left; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; }
+        .resumen-condiciones summary { cursor:pointer; color:#93c5fd; font-size:0.76rem; font-weight:600; text-align:center; list-style:none; }
+        .resumen-condiciones summary::-webkit-details-marker { display:none; }
+        .resumen-condiciones summary::before { content:'＋ '; color:#60a5fa; }
+        .resumen-condiciones[open] summary::before { content:'− '; }
+        .resumen-condiciones ul { margin:10px 0 0; padding:0; list-style:none; display:grid; gap:6px; }
+        .resumen-condiciones li { position:relative; padding-left:14px; color:#c7d2fe; font-size:0.76rem; line-height:1.5; }
+        .resumen-condiciones li::before { content:'•'; position:absolute; left:2px; color:#60a5fa; }
+        .resumen-condiciones li strong { color:#fff; }
+
+        .checkout-condiciones { margin:14px 0 0; padding:10px 12px; border:1px solid rgba(37,99,235,0.3); background:rgba(37,99,235,0.08); border-radius:10px; color:#c7d2fe; font-size:0.76rem; line-height:1.5; }
+        .checkout-condiciones strong { color:#fff; }
+        .checkout-condiciones a { color:#93c5fd; text-decoration:underline; }
+
         @media (max-width:768px) {
             .form-row { grid-template-columns:1fr; }
             .carrito-item { flex-direction:column; text-align:center; }
@@ -102,6 +121,10 @@
             <div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" required></div>
             <div class="form-group full"><label>Notas adicionales</label><textarea id="notas" placeholder="Ej: Piso, código de acceso, referencias..."></textarea></div>
             <div class="error-msg" id="formError">⚠️ Por favor completa todos los campos obligatorios.</div>
+            <div class="checkout-condiciones">
+                <strong>Envío gratis</strong> a todo Colombia · Pagas <strong>en efectivo</strong> al recibir tu pedido.
+                Al confirmar aceptas nuestros <a href="/terminos" target="_blank" rel="noopener">términos y condiciones</a>.
+            </div>
             <button type="submit" class="btn-enviar" id="btnEnviarPedido">💵 Confirmar pedido</button>
         </form>
     </div>
@@ -233,8 +256,30 @@
             <div class="resumen">
                 <p class="total-label">Total</p>
                 <div class="total">$${formatearPrecio(total)}</div>
+
+                <div class="resumen-promesa">
+                    <span class="resumen-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3z"></path><path d="M14 10h4l3 3v2h-7z"></path><circle cx="7" cy="17" r="1.6"></circle><circle cx="17" cy="17" r="1.6"></circle></svg>
+                        Envío gratis a todo Colombia
+                    </span>
+                    <span class="resumen-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.4"></circle></svg>
+                        Pago contra entrega en efectivo
+                    </span>
+                </div>
+                <p class="resumen-nota">Recibes, revisas y pagas al recibir · Entrega de 2 a 7 días hábiles</p>
+
                 <button class="btn-pagar" onclick="mostrarFormulario()">💵 Pagar contra entrega</button>
-                <p style="color:#666; font-size:0.8rem; margin-top:8px;">Recibes, revisas y pagas al recibir</p>
+
+                <details class="resumen-condiciones">
+                    <summary>Ver condiciones de envío y pago</summary>
+                    <ul>
+                        <li><strong>Envío gratis</strong> a todo Colombia, sin monto mínimo.</li>
+                        <li><strong>Entrega:</strong> 2 a 4 días hábiles en ciudades principales, 4 a 7 en el resto del país y hasta 10 en zonas rurales.</li>
+                        <li><strong>Pago contra entrega en efectivo:</strong> pagas el total al momento de recibir; ten el dinero listo para la transportadora.</li>
+                        <li><strong>Garantía:</strong> 10 días por defectos de fábrica. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso; el envío de devolución corre por tu cuenta.</li>
+                    </ul>
+                </details>
             </div>
         `;
 

@@ -127,12 +127,31 @@
         .btn-carrito:hover { box-shadow: 0 0 30px rgba(255,0,255,0.6); transform: scale(1.02); }
         .btn-carrito:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-contraentrega { width: 100%; padding: 14px; background: transparent; color: #00ffff; border: 2px solid #00ffff; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; transition: all 0.3s; }
-        .banner-pago { background: rgba(255,0,255,0.05); border: 1px solid rgba(255,0,255,0.2); border-radius: 12px; padding: 12px; text-align: center; margin-top: 12px; }
+
+        /* ===== PROMESA DE VALOR + CONDICIONES (junto al CTA) ===== */
+        .promesa-compra { margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px solid rgba(37, 99, 235, 0.35); background: linear-gradient(180deg, rgba(37, 99, 235, 0.12) 0%, rgba(13, 20, 46, 0.6) 100%); }
+        .promesa-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .promesa-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(37, 99, 235, 0.35); background: rgba(5, 9, 20, 0.45); color: #dbeafe; font-size: 0.72rem; font-weight: 600; }
+        .promesa-chip svg { width: 14px; height: 14px; color: #60a5fa; flex: none; }
+        .promesa-nota { margin: 10px 0 0; color: #9aa4bf; font-size: 0.76rem; line-height: 1.5; }
+        .promesa-nota strong { color: #e2e8f0; }
+        .promesa-detalle { margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; }
+        .promesa-detalle summary { cursor: pointer; color: #93c5fd; font-size: 0.76rem; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px; }
+        .promesa-detalle summary::-webkit-details-marker { display: none; }
+        .promesa-detalle summary::before { content: '＋'; font-size: 0.8rem; color: #60a5fa; }
+        .promesa-detalle[open] summary::before { content: '−'; }
+        .promesa-detalle ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+        .promesa-detalle li { position: relative; padding-left: 14px; color: #c7d2fe; font-size: 0.74rem; line-height: 1.5; }
+        .promesa-detalle li::before { content: '•'; position: absolute; left: 2px; color: #60a5fa; }
+        .promesa-detalle li strong { color: #fff; }
         .footer-mini { text-align: center; padding: 15px; margin-top: 15px; color: #ffd700; font-size: 0.7rem; letter-spacing: 2px; }
-        .whatsapp-float { position: fixed; bottom: 90px; left: 20px; z-index: 999; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); animation: pulseColombia 2s infinite; transition: transform 0.3s; }
-        .whatsapp-float:hover { transform: scale(1.1); }
-        .whatsapp-float svg { width: 30px; height: 30px; fill: white; }
-        @keyframes pulseColombia { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 40px rgba(0,0,255,0.2); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.7), 0 0 60px rgba(255,0,0,0.3); } }
+        .whatsapp-float { position: fixed; bottom: 20px; left: 20px; z-index: 900; background: #25D366; color: #fff; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 14px 28px -12px rgba(37,211,102,0.75); transition: transform 0.2s ease, bottom 0.25s ease; }
+        .whatsapp-float:hover { transform: translateY(-2px); }
+        .whatsapp-float svg { width: 26px; height: 26px; fill: #fff; }
+        @media (max-width: 559px) {
+            .whatsapp-float { width: 46px; height: 46px; left: 14px; }
+            .whatsapp-float svg { width: 23px; height: 23px; }
+        }
 
         /* ===== MODAL DE IMÁGENES (mejorado) ===== */
         .image-modal {
@@ -186,8 +205,6 @@
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
-            .whatsapp-float { bottom: 160px !important; z-index: 9999 !important; width: 48px; height: 48px; }
-            #cartFloat { z-index: 9998 !important; }
             .opcion-color { width: 32px; height: 32px; }
             .opcion-color-nombre { font-size: 0.65rem; max-width: 62px; }
             .image-modal { padding: 15px; }
@@ -293,10 +310,10 @@
                 </div>
                 <div class="dropdown-content">
                     <ul>
-                        <li><strong>📦 Envío gratis</strong> a todo Colombia</li>
-                        <li><strong>⏰ Tiempo de entrega:</strong> 3-5 días hábiles</li>
-                        <li><strong>💵 Pago contra entrega:</strong> Pagas al recibir tu producto</li>
-                        <li><strong>🛡️ Garantía:</strong> Productos 100% originales</li>
+                        <li><strong>📦 Envío gratis</strong> a todo Colombia, sin monto mínimo</li>
+                        <li><strong>⏰ Entrega:</strong> 2-4 días hábiles en ciudades principales, 4-7 en el resto del país y hasta 10 en zonas rurales</li>
+                        <li><strong>💵 Pago contra entrega en efectivo:</strong> pagas el total al recibir tu pedido</li>
+                        <li><strong>🛡️ Garantía:</strong> 10 días por defectos de fábrica</li>
                         <li><strong>📱 Seguimiento:</strong> Recibirás un código para rastrear tu pedido</li>
                     </ul>
                 </div>
@@ -372,10 +389,40 @@
                 <button class="btn-carrito" id="btnAgregarCarrito" onclick="agregarAlCarrito()" disabled>🛒 Selecciona talla y color</button>
                 <button class="btn-contraentrega" onclick="comprarContraEntrega()">💵 Pagar contra entrega</button>
             </div>
-            <div class="banner-pago">
-                <div class="icono">🇨🇴</div>
-                <h3>Pago contra entrega</h3>
-                <p>Recibe tu producto y <strong>pagas al recibirlo</strong>. Envío <strong>GRATIS</strong></p>
+            <!-- ======== PROMESA DE VALOR + CONDICIONES ======== -->
+            <div class="promesa-compra">
+                <div class="promesa-chips">
+                    <span class="promesa-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 7h11v8H3z"></path>
+                            <path d="M14 10h4l3 3v2h-7z"></path>
+                            <circle cx="7" cy="17" r="1.6"></circle>
+                            <circle cx="17" cy="17" r="1.6"></circle>
+                        </svg>
+                        Envío gratis a todo Colombia
+                    </span>
+                    <span class="promesa-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                            <circle cx="12" cy="12" r="2.4"></circle>
+                        </svg>
+                        Pago contra entrega en efectivo
+                    </span>
+                </div>
+                <p class="promesa-nota">Recibes, revisas y <strong>pagas al recibir</strong> tu pedido. Sin costos ocultos.</p>
+
+                <details class="promesa-detalle">
+                    <summary>Condiciones de envío y pago</summary>
+                    <ul>
+                        <li><strong>Envío gratis</strong> a todo Colombia, sin monto mínimo de compra.</li>
+                        <li><strong>Entrega:</strong> 2 a 4 días hábiles en ciudades principales, 4 a 7 en el resto del país y hasta 10 en zonas rurales.</li>
+                        <li><strong>Pago contra entrega en efectivo:</strong> pagas el total al momento de recibir; ten el dinero listo para la transportadora.</li>
+                        <li><strong>Garantía:</strong> 10 días por defectos de fábrica. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso; el envío de devolución corre por tu cuenta.</li>
+                        <li><strong>Seguimiento:</strong> recibirás un código para rastrear tu pedido en la página de seguimiento.</li>
+                    </ul>
+                </details>
             </div>
         </div>
     </div>
@@ -1137,9 +1184,22 @@
     // ============================================================
     // BARRA FLOTANTE DE CARRITO
     // ============================================================
+    /**
+     * Reserva en el body la altura real de la barra (--cart-bar-h) para que
+     * nunca tape el botón de compra ni el final del contenido.
+     */
+    function sincronizarAlturaBarra() {
+        const floatDiv = document.getElementById('cartFloat');
+        const visible = !!floatDiv && floatDiv.classList.contains('show');
+        const alto = visible ? Math.ceil(floatDiv.getBoundingClientRect().height) : 0;
+        document.documentElement.style.setProperty('--cart-bar-h', alto + 'px');
+        document.body.classList.toggle('has-cart-bar', visible && alto > 0);
+    }
+
     function actualizarBarraCarrito() {
         const floatDiv = document.getElementById('cartFloat');
         const countSpan = document.getElementById('cartFloatCount');
+        const countLabel = document.getElementById('cartFloatCountLabel');
         const totalSpan = document.getElementById('cartFloatTotal');
         if (!floatDiv || !countSpan || !totalSpan) return;
 
@@ -1152,6 +1212,7 @@
 
         if (carrito.length === 0) {
             floatDiv.classList.remove('show');
+            sincronizarAlturaBarra();
             return;
         }
         let total = 0;
@@ -1160,10 +1221,18 @@
             const cantidad = Number(item && item.cantidad) || 1;
             total += precio * cantidad;
         });
+
+        // Concordancia: "1 producto" / "N productos"
         countSpan.textContent = carrito.length;
+        if (countLabel) {
+            countLabel.textContent = carrito.length === 1 ? 'producto' : 'productos';
+        }
         totalSpan.textContent = total.toLocaleString('es-CO');
         floatDiv.classList.add('show');
+        sincronizarAlturaBarra();
     }
+
+    window.addEventListener('resize', sincronizarAlturaBarra);
 
     window.addEventListener('storage', function (e) {
         if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
@@ -1171,70 +1240,97 @@
 </script>
 
 <!-- ============================================================ -->
-<!-- BARRA FLOTANTE DE CARRITO (existente) -->
+<!-- BARRA FLOTANTE DE CARRITO (compacta, con concordancia) -->
 <!-- ============================================================ -->
-<div id="cartFloat" style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 9998;
-    background: rgba(10,10,10,0.95);
-    backdrop-filter: blur(20px);
-    border-top: 2px solid rgba(255,0,255,0.3);
-    padding: 12px 20px;
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-    transition: transform 0.3s ease;
-">
-    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <span style="color: #fff; font-weight: 600; font-size: 0.9rem;">
-            🛒 <span id="cartFloatCount">0</span> productos
-        </span>
-        <span style="color: #00ffff; font-weight: 900; font-size: 1.2rem;">
-            Total: $<span id="cartFloatTotal">0</span>
-        </span>
-    </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <a href="/carrito" style="padding: 10px 25px; background: linear-gradient(45deg, #00ffff, #0088cc); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 0.85rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 20px rgba(0,255,255,0.2);">
-            Ver carrito
-        </a>
-        <a href="/carrito?contraentrega=true" style="padding: 10px 25px; background: linear-gradient(45deg, #ffd700, #f0a500); color: #000; border: none; border-radius: 30px; font-weight: 700; font-size: 0.85rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; animation: pulseContraentrega 1.5s infinite; box-shadow: 0 0 30px rgba(255,215,0,0.2); position: relative; overflow: hidden;">
-            💵 Pagar contra entrega
-            <span style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%); animation: shineContraentrega 3s infinite; pointer-events: none;"></span>
-        </a>
+<div id="cartFloat" class="cart-float">
+    <div class="cart-float-inner">
+        <div class="cart-float-info">
+            <span class="cart-float-count"><strong id="cartFloatCount">0</strong> <span id="cartFloatCountLabel">productos</span></span>
+            <span class="cart-float-total">$<span id="cartFloatTotal">0</span></span>
+        </div>
+        <div class="cart-float-actions">
+            <a href="/carrito" class="cart-float-btn">Ver carrito</a>
+            <a href="/carrito?contraentrega=true" class="cart-float-btn cart-float-btn--primary">Pagar contra entrega</a>
+        </div>
     </div>
 </div>
 
 <style>
-    @keyframes pulseContraentrega {
-        0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,215,0,0.3); }
-        50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.2); }
+    :root { --cart-bar-h: 0px; }
+
+    body { padding-bottom: var(--cart-bar-h); transition: padding-bottom 0.2s ease; }
+
+    .cart-float {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9998;
+        display: none;
+        background: rgba(6, 10, 24, 0.96);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 -18px 40px -24px rgba(0, 0, 0, 0.9);
     }
-    @keyframes shineContraentrega {
-        0% { transform: rotate(0deg) translateX(-100%); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: rotate(360deg) translateX(100%); opacity: 0; }
+
+    #cartFloat.show { display: block; animation: slideUpCart 0.25s ease; }
+
+    .cart-float-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
+
+    .cart-float-info { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+
+    .cart-float-count { color: #9aa4bf; font-size: 0.76rem; white-space: nowrap; }
+    .cart-float-count strong { color: #fff; font-weight: 700; }
+
+    .cart-float-total { color: #60a5fa; font-size: 0.98rem; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+
+    .cart-float-actions { display: flex; gap: 6px; }
+
+    .cart-float-btn {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.03);
+        color: #fff;
+        font-size: 0.74rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .cart-float-btn:hover { border-color: rgba(37, 99, 235, 0.6); background: rgba(37, 99, 235, 0.14); }
+
+    .cart-float-btn--primary { background: #2563eb; border-color: #2563eb; }
+    .cart-float-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
+    /* Los flotantes suben por encima de la barra cuando está visible */
+    body.has-cart-bar .whatsapp-float { bottom: calc(var(--cart-bar-h) + 14px); }
+
+    @media (min-width: 560px) {
+        .cart-float-inner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px));
+        }
+        .cart-float-actions { flex: 0 0 auto; }
+        .cart-float-btn { flex: 0 0 auto; padding: 10px 16px; font-size: 0.82rem; }
+    }
+
     @keyframes slideUpCart {
         0% { transform: translateY(100%); }
         100% { transform: translateY(0); }
-    }
-    #cartFloat.show { display: flex !important; animation: slideUpCart 0.4s ease; }
-    body.light-mode #cartFloat {
-        background: rgba(255,255,255,0.95);
-        border-top: 2px solid rgba(255,0,255,0.2);
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-    }
-    body.light-mode #cartFloat span[style*="color: #fff"] { color: #222 !important; }
-    @media (max-width: 600px) {
-        #cartFloat { padding: 8px 12px; flex-direction: column; align-items: stretch; gap: 6px; }
-        #cartFloat div:first-child { justify-content: center; }
-        #cartFloat a { width: 100%; text-align: center; padding: 10px; font-size: 0.75rem !important; }
     }
 </style>
 
