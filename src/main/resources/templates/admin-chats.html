@@ -48,10 +48,20 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function sesionExpirada() {
+            contenedor.innerHTML = '<div class="admin-card admin-empty">Tu sesión expiró. <a href="/admin-login" style="color:#60a5fa;">Vuelve a entrar</a> para seguir viendo las consultas.</div>';
+            resumen.textContent = 'Sesión expirada';
+        }
+
         function cargarChats() {
-            fetch('/api/chat/todos', { headers: { 'Accept': 'application/json' } })
-                .then(function (r) { return r.ok ? r.json() : []; })
+            window.adminFetch('/api/chat/todos', { headers: { 'Accept': 'application/json' } })
+                .then(function (r) {
+                    // 401 JSON del SecurityConfig cuando la sesión ya no vale
+                    if (r.status === 401 || r.redirected) { sesionExpirada(); return null; }
+                    return r.ok ? r.json() : [];
+                })
                 .then(function (mensajes) {
+                    if (mensajes === null) return;
                     mensajes = Array.isArray(mensajes) ? mensajes : [];
 
                     var agrupados = {};
@@ -128,7 +138,7 @@
             var formData = new FormData();
             formData.append('respuesta', respuesta);
 
-            fetch('/admin/responder/' + id, { method: 'POST', body: formData })
+            window.adminFetch('/admin/responder/' + id, { method: 'POST', body: formData })
                 .then(function () { cargarChats(); })
                 .catch(function (error) {
                     console.error('No se pudo enviar la respuesta:', error);

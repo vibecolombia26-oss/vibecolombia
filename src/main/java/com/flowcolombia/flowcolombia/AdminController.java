@@ -85,7 +85,9 @@ public class AdminController {
     // ============================================================
     // ELIMINAR PEDIDO
     // ============================================================
-    @GetMapping("/eliminar-pedido/{id}")
+    // POST (no GET): con GET, un enlace o una imagen en un correo podía
+    // borrar pedidos aprovechando la sesión abierta del administrador.
+    @PostMapping("/eliminar-pedido/{id}")
     public String eliminarPedido(@PathVariable Long id, RedirectAttributes redirect) {
         pedidoService.eliminar(id);
         redirect.addFlashAttribute("mensaje", "Pedido eliminado!");
@@ -96,8 +98,10 @@ public class AdminController {
     // CHATS
     // ============================================================
     @GetMapping("/chats")
-    public String chats(Model model) {
-        model.addAttribute("mensajes", mensajeService.listarTodos());
+    public String chats() {
+        // La vista carga las conversaciones con una llamada bajo demanda
+        // (sin polling). Antes se enviaba aquí la tabla completa de mensajes
+        // y además se volvía a pedir por AJAX: dos consultas para lo mismo.
         return "admin-chats";
     }
 

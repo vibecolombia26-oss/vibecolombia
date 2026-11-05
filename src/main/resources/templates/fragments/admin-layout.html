@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title} + ' · FLOW COLOMBIA Admin'">Admin · FLOW COLOMBIA</title>
     <meta name="theme-color" content="#050914">
+
+    <!-- ============================================================
+         CSRF: token expuesto al JS del panel.
+         Todas las llamadas fetch del admin pasan por window.adminFetch,
+         que añade la cabecera automáticamente. Sin esto, los POST del
+         panel (responder chat, borrados) serían rechazados por CSRF.
+         ============================================================ -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <script>
+        window.adminFetch = function (url, opciones) {
+            var token = document.querySelector('meta[name="_csrf"]');
+            var cabecera = document.querySelector('meta[name="_csrf_header"]');
+            var opcionesFinales = Object.assign({ credentials: 'same-origin' }, opciones || {});
+            var cabeceras = new Headers(opcionesFinales.headers || {});
+            if (token && cabecera) {
+                cabeceras.set(cabecera.getAttribute('content'), token.getAttribute('content'));
+            }
+            opcionesFinales.headers = cabeceras;
+            return fetch(url, opcionesFinales);
+        };
+    </script>
     <style>
         /* ============================================================
            ADMIN — sistema visual compartido
@@ -896,8 +918,18 @@
                     return;
                 }
 
-                var form = trigger.closest('form');
+                // Los botones de borrado del formulario de producto viven
+                // DENTRO del formulario de edición (no se pueden anidar
+                // formularios), así que apuntan a su propio formulario por id.
+                var formId = trigger.getAttribute('data-confirm-form');
+                var form = formId ? document.getElementById(formId) : trigger.closest('form');
                 if (!form) { pendingTrigger = null; return; }
+
+                if (formId) {
+                    pendingTrigger = null;
+                    form.submit();
+                    return;
+                }
 
                 if (form.reportValidity && !form.reportValidity()) {
                     pendingTrigger = null;
@@ -911,7 +943,6 @@
                     form.submit();
                 }
             }
-
             document.addEventListener('click', function (event) {
                 var target = event.target;
 
@@ -1040,6 +1071,18 @@
             </svg>
             Refrescar
         </button>
+        <form th:action="@{/logout}" method="post" style="margin:0;">
+            <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm"
+                    data-confirm="¿Cerrar la sesión del panel?"
+                    data-confirm-title="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 17l5-5-5-5"></path>
+                    <path d="M20 12H9"></path>
+                    <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"></path>
+                </svg>
+                Salir
+            </button>
+        </form>
     </div>
 </header>
 

@@ -207,7 +207,9 @@ public class ProductoController {
         return "redirect:/admin/panel";
     }
 
-    @GetMapping("/eliminar/{id}")
+    // POST (no GET): un borrado por enlace es vulnerable a CSRF y a que el
+    // navegador lo dispare al precargar.
+    @PostMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id, RedirectAttributes redirect) {
         productoService.eliminar(id);
         redirect.addFlashAttribute("mensaje", "✅ Producto eliminado correctamente!");
@@ -246,7 +248,7 @@ public class ProductoController {
         return "redirect:/admin/editar/" + productoId;
     }
 
-    @GetMapping("/eliminar-resena/{id}")
+    @PostMapping("/eliminar-resena/{id}")
     public String eliminarResena(@PathVariable Long id, RedirectAttributes redirect) {
         Resena resena = resenaService.obtenerPorId(id);
         if (resena != null) {

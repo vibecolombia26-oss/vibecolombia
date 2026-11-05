@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito y checkout · FLOW COLOMBIA</title>
     <meta name="theme-color" content="#050914">
+
+    <!-- Token CSRF para el POST del pedido (ver leerTokenCsrf más abajo) -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
     <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=1)}" href="/css/flow-ui.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -635,7 +640,7 @@
     </section>
 </main>
 
-<script th:src="@{/js/flow-cart.js(v=1)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
 <script>
     // ============================================================
     // DEPARTAMENTOS Y CIUDADES DE COLOMBIA
@@ -969,6 +974,7 @@
 
     function mostrarPaso(paso) {
         checkoutState.step = paso;
+        guardarEstadoCheckout();
 
         form.querySelectorAll('[data-step-panel]').forEach(function (panel) {
             panel.hidden = parseInt(panel.getAttribute('data-step-panel'), 10) !== paso;
@@ -1009,7 +1015,6 @@
         const d = checkoutState.data;
         const items = itemsCarrito();
         const subtotal = FlowCart.subtotal(items);
-
         const direccion = [d.direccion, d.ciudad, d.departamento].filter(Boolean).join(', ');
         const indicaciones = d.indicaciones ? '<p class="muted">Indicaciones: ' + esc(d.indicaciones) + '</p>' : '';
 
@@ -1039,13 +1044,18 @@
                     cantidad: Math.max(1, parseInt(rawItem.cantidad, 10) || 1),
                     precio: Number(rawItem.precio) || 0,
                     color: String(rawItem.color || ''),
-                    talla: String(rawItem.talla || '')
+                    talla: String(rawItem.talla || ''),
+                    url: String(rawItem.url || (rawItem.productoId != null ? '/producto/' + rawItem.productoId : ''))
                 };
                 const variante = [item.color, item.talla ? 'Talla ' + item.talla : ''].filter(Boolean).join(' · ');
                 return '<div class="review-item">' +
                     '<img src="' + esc(item.imagen) + '" alt="">' +
                     '<div><div class="review-item__name">' + esc(item.nombre) + ' × ' + item.cantidad + '</div>' +
-                    (variante ? '<div class="review-item__variant">' + esc(variante) + '</div>' : '') + '</div>' +
+                    (variante ? '<div class="review-item__variant">' + esc(variante) + '</div>' : '') +
+                    (item.url
+                        ? '<a class="review-item__edit" style="font-size:0.75rem;color:var(--flow-accent-light,#60a5fa);text-decoration:underline;" href="' + esc(item.url) + '">Editar talla o cantidad</a>'
+                        : '') +
+                    '</div>' +
                     '<div class="review-item__price">' + formatearPrecio(item.precio * item.cantidad) + '</div>' +
                     '</div>';
             }).join('') +
@@ -1062,8 +1072,12 @@
         const editarCarrito = revisionPedido.querySelector('[data-edit-cart]');
         if (editarCarrito) {
             editarCarrito.addEventListener('click', function () {
-                vistaCheckout.hidden = true;
-                renderizarCarrito();
+                // BUG corregido: antes solo se ocultaba el checkout y NO se
+                // volvía a mostrar la vista del carrito, así que el usuario
+                // aterrizaba en una pantalla vacía y creía que se había
+                // borrado todo. volverAlCarrito() restaura la vista, repinta
+                // los productos y NO toca el localStorage.
+                volverAlCarrito();
             });
         }
     }
@@ -1106,6 +1120,9 @@
         vistaCheckout.hidden = true;
         vistaConfirmacion.hidden = false;
         document.getElementById('codigoPedido').textContent = codigo || '---';
+        // El pedido ya está en el backend: aquí (y solo aquí) se descarta el
+        // borrador del checkout.
+        limpiarEstadoCheckout();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1119,6 +1136,7 @@
             } else {
                 checkoutState.data[nombre] = input.value;
             }
+            guardarEstadoCheckout();
             if (nombre === 'departamento') cargarCiudades(input.value);
             if (input.hasAttribute('aria-invalid')) validarCampo(nombre);
         }
@@ -1160,12 +1178,29 @@
         btnConfirmar.textContent = 'Enviando pedido…';
         checkoutError.classList.remove('is-visible');
 
+        // Cabeceras del pedido. El endpoint /api/pedido está exento de CSRF
+        // por ser una API pública sin sesión, pero se envía el token cuando
+        // la página lo ha renderizado: así el checkout sigue funcionando si
+        // esa exención se endurece en el futuro.
+        const cabecerasPedido = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+        const tokenCsrf = leerTokenCsrf();
+        if (tokenCsrf) {
+            cabecerasPedido[nombreCabeceraCsrf()] = tokenCsrf;
+        }
+
         fetch('/api/pedido', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            headers: cabecerasPedido,
             body: JSON.stringify(pedido)
         })
             .then(function (res) {
+                // Errores con mensaje propio para el cliente.
+                if (res.status === 403) throw new Error('CSRF');
+                if (res.status === 429) throw new Error('RATE_LIMIT');
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
             })
@@ -1179,7 +1214,13 @@
             })
             .catch(function (error) {
                 console.error('Error al enviar el pedido:', error);
-                checkoutError.textContent = 'No pudimos enviar tu pedido. Revisa tu conexión e inténtalo de nuevo.';
+                if (error.message === 'CSRF') {
+                    checkoutError.textContent = 'Tu sesión caducó por seguridad. Recarga la página y confirma otra vez: no se perdió nada de lo que escribiste.';
+                } else if (error.message === 'RATE_LIMIT') {
+                    checkoutError.textContent = 'Hiciste varios intentos seguidos. Espera un minuto y vuelve a confirmar.';
+                } else {
+                    checkoutError.textContent = 'No pudimos enviar tu pedido. Revisa tu conexión e inténtalo de nuevo.';
+                }
                 checkoutError.classList.add('is-visible');
             })
             .finally(function () {
@@ -1198,10 +1239,102 @@
     });
 
     // ============================================================
+    // PERSISTENCIA DEL CHECKOUT (sessionStorage)
+    // ------------------------------------------------------------
+    // Bug corregido: al recargar o al salir y volver, se perdía todo lo
+    // escrito en Contacto y Entrega. Ahora cada pulsación se guarda en
+    // sessionStorage (vive solo en esta pestaña) y se restaura al cargar.
+    // Se borra ÚNICAMENTE al llegar a "¡Pedido recibido!".
+    // ============================================================
+    const CHECKOUT_STORAGE_KEY = 'flowCheckoutState';
+
+    function guardarEstadoCheckout() {
+        try {
+            sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify({
+                data: checkoutState.data,
+                step: checkoutState.step
+            }));
+        } catch (e) {
+            // Modo privado o cuota llena: el checkout sigue funcionando,
+            // solo no sobrevive a una recarga.
+        }
+    }
+
+    function leerEstadoCheckout() {
+        try {
+            const guardado = sessionStorage.getItem(CHECKOUT_STORAGE_KEY);
+            return guardado ? JSON.parse(guardado) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function limpiarEstadoCheckout() {
+        try {
+            sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+        } catch (e) {
+            // Nada que hacer.
+        }
+    }
+
+    function restaurarEstadoCheckout() {
+        const guardado = leerEstadoCheckout();
+        if (!guardado || typeof guardado !== 'object') return;
+
+        const datos = guardado.data || {};
+
+        Object.keys(checkoutState.data).forEach(function (clave) {
+            if (typeof datos[clave] === 'string' && datos[clave] !== '') {
+                checkoutState.data[clave] = datos[clave];
+            }
+        });
+
+        // Repinta los campos visuales con lo recuperado.
+        form.querySelectorAll('[data-checkout-field]').forEach(function (input) {
+            const nombre = input.getAttribute('data-checkout-field');
+            const valor = checkoutState.data[nombre];
+            if (!valor) return;
+
+            if (input.type === 'radio') {
+                input.checked = (input.value === valor);
+            } else {
+                input.value = valor;
+            }
+        });
+
+        // El <select> de departamento ya tiene opciones (cargarDepartamentos
+        // se ejecuta antes) y de él dependen las ciudades sugeridas.
+        if (checkoutState.data.departamento) {
+            cargarCiudades(checkoutState.data.departamento);
+        }
+
+        const paso = parseInt(guardado.step, 10);
+        if (paso >= 1 && paso <= 4) {
+            checkoutState.step = paso;
+        }
+    }
+
+    // ------------------------------------------------------------
+    // CSRF del pedido
+    // ------------------------------------------------------------
+    function leerTokenCsrf() {
+        const meta = document.querySelector('meta[name="_csrf"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    function nombreCabeceraCsrf() {
+        const meta = document.querySelector('meta[name="_csrf_header"]');
+        return meta && meta.getAttribute('content') ? meta.getAttribute('content') : 'X-CSRF-TOKEN';
+    }
+
+    // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     document.addEventListener('DOMContentLoaded', function () {
         cargarDepartamentos();
+        // Primero el estado guardado (necesita las opciones del <select> ya
+        // cargadas), después el carrito.
+        restaurarEstadoCheckout();
         renderizarCarrito();
 
         const params = new URLSearchParams(window.location.search);

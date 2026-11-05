@@ -1,11 +1,21 @@
 package com.flowcolombia.flowcolombia;
 
 import org.springframework.web.bind.annotation.*;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
 public class PedidoController {
+
+    /**
+     * Alfabeto del código de pedido: sin 0/O/1/I para que nadie se confunda
+     * al dictarlo por teléfono. 32 símbolos elevados a 10 posiciones dan más
+     * de un billón de combinaciones.
+     */
+    private static final char[] ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
+
+    private static final SecureRandom AZAR = new SecureRandom();
 
     private final PedidoRepository pedidoRepository;
     private final MensajeRepository mensajeRepository;
@@ -15,6 +25,22 @@ public class PedidoController {
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
         this.emailService = emailService;
+    }
+
+    /**
+     * Código de seguimiento impredecible.
+     *
+     * <p>Antes era {@code "FLOW-" + System.currentTimeMillis()}: cualquiera
+     * podía restar milisegundos y consultar pedidos ajenos (nombre, dirección
+     * y teléfono) desde {@code /api/pedido/{codigo}}. Los pedidos antiguos
+     * siguen funcionando porque la búsqueda sigue siendo por código exacto.</p>
+     */
+    private static String generarCodigo() {
+        StringBuilder codigo = new StringBuilder("FLOW-");
+        for (int i = 0; i < 10; i++) {
+            codigo.append(ALFABETO_CODIGO[AZAR.nextInt(ALFABETO_CODIGO.length)]);
+        }
+        return codigo.toString();
     }
 
     @PostMapping("/api/pedido")
@@ -29,7 +55,7 @@ public class PedidoController {
         System.out.println("=========================================");
 
         pedido.setEstado("Pendiente");
-        pedido.setCodigo("FLOW-" + System.currentTimeMillis());
+        pedido.setCodigo(generarCodigo());
         pedido.setFecha(LocalDateTime.now());
 
         if (pedido.getTotal() == null) {

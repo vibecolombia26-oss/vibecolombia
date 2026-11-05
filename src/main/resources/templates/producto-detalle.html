@@ -944,7 +944,7 @@
     <button type="button" class="flow-lightbox__nav flow-lightbox__nav--next" id="lightboxNext" aria-label="Imagen siguiente">›</button>
 </div>
 
-<script th:src="@{/js/flow-cart.js(v=1)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
 <script th:src="@{/js/flow-assistant.js(v=1)}" src="/js/flow-assistant.js"></script>
 <script th:inline="javascript">
     // ============================================================
@@ -1343,7 +1343,14 @@
         };
     }
 
+    /* Guarda de reentrada: si el navegador dispara el clic dos veces
+       (doble clic, o `click` después de `touchend`), la segunda llamada
+       no encadena otra alta. */
+    let agregandoAlCarrito = false;
+
     function agregarAlCarrito() {
+        if (agregandoAlCarrito) return false;
+
         if (!varianteSeleccionada) {
             FlowCart.toast({
                 title: 'Elige una talla y un color',
@@ -1356,12 +1363,31 @@
 
         const item = construirItem();
         if (!item) return false;
+
+        agregandoAlCarrito = true;
         FlowCart.add(item, { title: 'Añadido al carrito' });
+        setTimeout(function () { agregandoAlCarrito = false; }, 350);
         return true;
     }
 
     function comprarAhora() {
-        if (!agregarAlCarrito()) return;
+        if (!varianteSeleccionada) {
+            // Reutiliza el aviso de "elige talla y color".
+            agregarAlCarrito();
+            return;
+        }
+
+        const item = construirItem();
+        if (!item) return;
+
+        // "Comprar ahora" significa pagar lo que ya tengo: si esta variante
+        // ya está en el carrito NO se añade otra unidad. Este era el segundo
+        // camino por el que 1 unidad acababa siendo 2 en el paso Revisión
+        // (pulsar "Agregar al carrito" y después "Comprar ahora").
+        if (!FlowCart.has(item)) {
+            FlowCart.add(item, { title: 'Añadido al carrito' });
+        }
+
         window.location.href = '/carrito?checkout=1';
     }
 

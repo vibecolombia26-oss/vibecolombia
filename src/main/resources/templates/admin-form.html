@@ -171,15 +171,24 @@
                         <button type="submit" class="admin-btn admin-btn--primary" id="btnGuardar">Guardar producto</button>
                     </div>
                     <div>
-                        <a th:if="${producto.id != null}"
-                           th:href="@{/admin/eliminar/{id}(id=${producto.id})}"
-                           class="admin-btn admin-btn--danger"
-                           data-confirm="¿Eliminar este producto definitivamente? Esta acción no se puede deshacer."
-                           data-confirm-title="Eliminar producto">
+                        <button th:if="${producto.id != null}" type="submit"
+                                form="formEliminarProducto"
+                                data-confirm-form="formEliminarProducto"
+                                class="admin-btn admin-btn--danger"
+                                data-confirm="¿Eliminar este producto definitivamente? Esta acción no se puede deshacer."
+                                data-confirm-title="Eliminar producto">
                             Eliminar producto
-                        </a>
+                        </button>
                     </div>
                 </div>
+            </form>
+
+            <!-- Formulario de borrado independiente: el botón vive dentro del
+                 formulario de edición, y anidar formularios no es HTML válido.
+                 El botón lo activa con el atributo form="formEliminarProducto". -->
+            <form th:if="${producto.id != null}" id="formEliminarProducto"
+                  th:action="@{/admin/eliminar/{id}(id=${producto.id})}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             </form>
 
             <!-- ============================================================ -->
@@ -214,10 +223,12 @@
                         <img class="imagen-resena"
                              th:if="${resena.imagenUrl != null && !#strings.isEmpty(resena.imagenUrl)}"
                              th:src="${resena.imagenUrl}" alt="Foto de la reseña" onclick="abrirImagenModal(this.src)">
-                        <a class="btn-eliminar-resena"
-                           th:href="@{/admin/eliminar-resena/{id}(id=${resena.id})}"
-                           data-confirm="¿Eliminar esta reseña?"
-                           data-confirm-title="Eliminar reseña">Eliminar</a>
+                        <form th:action="@{/admin/eliminar-resena/{id}(id=${resena.id})}" method="post" style="margin:0;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn-eliminar-resena"
+                                    data-confirm="¿Eliminar esta reseña?"
+                                    data-confirm-title="Eliminar reseña">Eliminar</button>
+                        </form>
                     </div>
                 </div>
                 <p class="no-resenas" th:if="${resenas == null || resenas.isEmpty()}">No hay reseñas para este producto.</p>

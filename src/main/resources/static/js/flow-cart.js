@@ -52,8 +52,34 @@
         };
     }
 
+    /**
+     * Identidad de la línea del carrito.
+     *
+     * Antes era `sku || nombre|color|talla`, y eso generaba líneas duplicadas
+     * del mismo producto: la portada añade sin SKU (el dato no está en la
+     * tarjeta) y la ficha añade con SKU, así que el mismo artículo entraba dos
+     * veces y el resumen se leía como "2 unidades".
+     *
+     * Ahora manda el productoId (que ambas rutas sí conocen) junto con la
+     * variante elegida. El SKU queda como respaldo para carritos antiguos.
+     */
     function keyOf(item) {
-        return item.sku || (item.nombre + '|' + item.color + '|' + item.talla);
+        var productoId = item.productoId;
+        if (productoId !== null && productoId !== undefined && productoId !== '') {
+            return 'p:' + productoId + '|' + (item.color || '') + '|' + (item.talla || '');
+        }
+        if (item.sku) {
+            return 'sku:' + item.sku;
+        }
+        return 'n:' + item.nombre + '|' + (item.color || '') + '|' + (item.talla || '');
+    }
+
+    /** ¿Ese artículo (misma variante) ya está en el carrito? */
+    function has(item) {
+        var clave = keyOf(normalize(item));
+        return read().some(function (linea) {
+            return keyOf(normalize(linea)) === clave;
+        });
     }
 
     function count(items) {
@@ -90,14 +116,34 @@
     /* ------------------------------------------------------------
        Operaciones
        ------------------------------------------------------------ */
+    /* Ventana anti-doble-disparo. El mismo artículo dos veces en menos de
+       600 ms es un doble clic (o un handler duplicado, o `touchend` + `click`),
+       no la intención real de comprar 2 unidades. Aquí es donde se cortaba el
+       bug "1 se convierte en 2". */
+    var DOBLE_DISPARO_MS = 600;
+    var ultimoAgregado = { clave: null, cuando: 0 };
+
     function add(item, options) {
         options = options || {};
         var nuevo = normalize(item);
+        var clave = keyOf(nuevo);
+
+        var ahora = Date.now();
+        var esDobleDisparo = options.force !== true
+            && clave === ultimoAgregado.clave
+            && (ahora - ultimoAgregado.cuando) < DOBLE_DISPARO_MS;
+
+        if (esDobleDisparo) {
+            return nuevo;
+        }
+        ultimoAgregado.clave = clave;
+        ultimoAgregado.cuando = ahora;
+
         var items = read();
         var index = -1;
 
         for (var i = 0; i < items.length; i++) {
-            if (keyOf(normalize(items[i])) === keyOf(nuevo)) { index = i; break; }
+            if (keyOf(normalize(items[i])) === clave) { index = i; break; }
         }
 
         if (index >= 0) {
@@ -566,6 +612,7 @@
     window.FlowCart = {
         read: read,
         add: add,
+        has: has,
         removeAt: removeAt,
         setQty: setQty,
         clear: clear,

@@ -191,12 +191,15 @@
                                 </button>
                             </form>
 
-                            <a class="admin-btn admin-btn--danger admin-btn--sm"
-                               th:href="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id})}"
-                               data-confirm="¿Eliminar este pedido definitivamente? Esta acción no se puede deshacer."
-                               data-confirm-title="Eliminar pedido">
-                                Eliminar
-                            </a>
+                            <form th:action="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id})}"
+                                  method="post" style="margin:0;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="admin-btn admin-btn--danger admin-btn--sm"
+                                        data-confirm="¿Eliminar este pedido definitivamente? Esta acción no se puede deshacer."
+                                        data-confirm-title="Eliminar pedido">
+                                    Eliminar
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </section>
