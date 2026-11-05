@@ -2,187 +2,209 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Admin Login - FLOW COLOMBIA</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#050914">
+    <title>Acceso admin · FLOW COLOMBIA</title>
     <style>
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #050914;
+            --surface: #0d142e;
+            --surface-2: #121b3a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.14);
+            --text: #ffffff;
+            --muted: #9aa4bf;
+            --muted-2: #6b7794;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #60a5fa;
+            --accent-soft: rgba(37, 99, 235, 0.14);
+            --danger: #f87171;
+            --ok: #34d399;
+            --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0;
             min-height: 100vh;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(90% 70% at 50% 0%, rgba(37, 99, 235, 0.2) 0%, rgba(5, 9, 20, 0) 62%),
+                var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .login-box {
-            background: rgba(20, 20, 20, 0.9);
-            border: 2px solid #ff00ff;
-            border-radius: 20px;
-            padding: 40px;
+        .login-card {
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 0 40px rgba(255, 0, 255, 0.2);
+            padding: 32px 28px;
+            border: 1px solid var(--border-strong);
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(13, 20, 46, 0.85) 100%);
+            box-shadow: 0 34px 70px -34px rgba(0, 0, 0, 0.95);
         }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .brand__mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(140deg, #2563eb 0%, #3b82f6 55%, #60a5fa 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 24px -12px rgba(37, 99, 235, 0.9);
+            flex: none;
+        }
+
+        .brand__text { display: flex; flex-direction: column; line-height: 1.2; }
+        .brand__text strong { font-size: 0.82rem; letter-spacing: 0.12em; }
+        .brand__text span { font-size: 0.68rem; color: var(--muted-2); letter-spacing: 0.12em; text-transform: uppercase; }
+
         h1 {
-            color: #ff00ff;
-            text-align: center;
-            margin-bottom: 10px;
+            margin: 0 0 4px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            color: #888;
-            text-align: center;
-            margin-bottom: 30px;
+            margin: 0 0 24px;
+            color: var(--muted);
+            font-size: 0.84rem;
         }
+
+        .field { margin-bottom: 16px; }
 
         label {
             display: block;
-            color: #ccc;
-            margin-bottom: 7px;
-            font-size: 0.9rem;
+            margin-bottom: 6px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #c7d2fe;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            background: #111;
-            border: 2px solid #333;
+            padding: 12px 13px;
             border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
-            margin-bottom: 18px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            font: 400 0.9rem/1.4 var(--font);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
+        input::placeholder { color: var(--muted-2); }
+
         input:focus {
-            outline: none;
-            border-color: #ff00ff;
+            border-color: rgba(37, 99, 235, 0.7);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         button {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(45deg, #ff00ff, #cc00cc);
+            margin-top: 6px;
+            padding: 12px 16px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            background: var(--accent);
             color: #fff;
-            border: none;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 1rem;
+            font: 600 0.92rem/1.2 var(--font);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.2s ease, transform 0.15s ease;
+            box-shadow: 0 14px 28px -18px rgba(37, 99, 235, 0.95);
         }
 
-        button:hover {
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
-            transform: scale(1.02);
-        }
+        button:hover { background: var(--accent-hover); border-color: var(--accent-hover); transform: translateY(-1px); }
 
-        .error {
-            color: #ff4444;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-
-        .success {
-            color: #00ff88;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-
-        .flag {
-            text-align: center;
-            margin-top: 20px;
-            color: #ffd700;
+        .error, .success {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 9px;
             font-size: 0.8rem;
+            text-align: center;
         }
 
+        .error { color: #fecaca; border: 1px solid rgba(248, 113, 113, 0.45); background: rgba(248, 113, 113, 0.1); }
+        .success { color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.1); }
+
+        .foot {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--muted-2);
+            font-size: 0.72rem;
+        }
     </style>
 </head>
 
 <body>
 
-<div class="login-box">
-
-    <h1>🔒 Admin</h1>
-
-    <p class="subtitle">
-        FLOW COLOMBIA
-    </p>
-
-    <!--
-        IMPORTANTE:
-        Spring Security procesa este formulario en /admin/login.
-    -->
-    <form action="/admin/login" method="post">
-
-        <label for="username">
-            Usuario
-        </label>
-
-        <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Usuario"
-                autocomplete="username"
-                required
-        >
-
-        <label for="password">
-            Contraseña
-        </label>
-
-        <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Contraseña"
-                autocomplete="current-password"
-                required
-        >
-
-        <button type="submit">
-            Ingresar
-        </button>
-
-        <!-- Error de autenticación -->
-        <p
-                class="error"
-                id="login-error"
-                style="display: none;"
-        >
-            Usuario o contraseña incorrectos.
-        </p>
-
-    </form>
-
-    <div class="flag">
-        🇨🇴 Hecho en Colombia con orgullo
+<div class="login-card">
+    <div class="brand">
+        <span class="brand__mark" aria-hidden="true">F</span>
+        <span class="brand__text">
+            <strong>FLOW COLOMBIA</strong>
+            <span>Administración</span>
+        </span>
     </div>
 
+    <h1>Inicia sesión</h1>
+    <p class="subtitle">Acceso exclusivo para el equipo de FLOW COLOMBIA.</p>
+
+    <!-- Spring Security procesa este formulario en /admin/login -->
+    <form action="/admin/login" method="post">
+        <div class="field">
+            <label for="username">Usuario</label>
+            <input type="text" id="username" name="username" placeholder="admin"
+                   autocomplete="username" required autofocus>
+        </div>
+
+        <div class="field">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="••••••••"
+                   autocomplete="current-password" required>
+        </div>
+
+        <button type="submit">Entrar al panel</button>
+
+        <p class="error" id="login-error" role="alert">Usuario o contraseña incorrectos.</p>
+        <p class="success" id="login-success" role="status">Sesión cerrada correctamente.</p>
+    </form>
+
+    <p class="foot">FLOW COLOMBIA · Hecho en Colombia</p>
 </div>
 
 <script>
-
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.has("error")) {
-        document.getElementById("login-error").style.display = "block";
-    }
-
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.has('error')) {
+            document.getElementById('login-error').style.display = 'block';
+        }
+        if (params.has('logout')) {
+            document.getElementById('login-success').style.display = 'block';
+        }
+    })();
 </script>
 
 </body>

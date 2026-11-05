@@ -1,103 +1,292 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - FLOW COLOMBIA</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #0a0a0a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; padding: 20px; background: rgba(20,20,20,0.8); border: 2px solid #ff00ff; border-radius: 16px; }
-        .header h1 { font-size: 1.8rem; background: linear-gradient(45deg, #ff00ff, #00ffff, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .header .total { color: #888; font-size: 0.9rem; margin-left: 10px; }
-        .btn { padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: 500; transition: all 0.3s; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-left: 8px; }
-        .btn-pedidos { background: #ff00ff; color: #fff; }
-        .btn-chats { background: #00ffff; color: #000; }
-        .btn-agregar { background: linear-gradient(45deg, #ff00ff, #cc00cc); color: #fff; }
-        .btn-ver { background: #111; color: #ffd700; border: 1px solid #ffd700; }
-        .btn:hover { box-shadow: 0 0 20px rgba(255,0,255,0.4); transform: scale(1.02); }
-        .mensaje { background: rgba(0,255,0,0.1); border: 1px solid #0f0; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: #0f0; }
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; background: rgba(20,20,20,0.8); border-radius: 16px; overflow: hidden; border: 2px solid #333; }
-        th { background: rgba(255,0,255,0.1); padding: 15px; color: #ff00ff; text-align: left; }
-        td { padding: 12px 15px; border-bottom: 1px solid #222; }
-        tr:hover { background: rgba(255,0,255,0.05); }
-        .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-editar { background: #00ffff; color: #000; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.3s; }
-        .btn-editar:hover { box-shadow: 0 0 15px rgba(0,255,255,0.4); }
-        .btn-eliminar { background: #ff0044; color: #fff; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.3s; }
-        .btn-eliminar:hover { box-shadow: 0 0 15px rgba(255,0,68,0.4); }
-        .producto-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #ff00ff; }
-        .flag-badge { text-align: center; padding: 20px; color: #ffd700; font-size: 0.8rem; margin-top: 20px; border-top: 1px solid rgba(255,215,0,0.1); }
-        .sin-productos { text-align: center; padding: 40px; color: #666; }
-        .sin-productos .icono { font-size: 3rem; display: block; margin-bottom: 10px; }
+<head th:replace="~{fragments/admin-layout :: head('Panel')}"></head>
+<body class="admin-body">
 
-        @media (max-width: 768px) {
-            .header { flex-direction: column; align-items: stretch; }
-            .header div { display: flex; flex-wrap: wrap; gap: 8px; }
-            .btn { margin-left: 0; flex: 1; text-align: center; }
-            table { font-size: 0.8rem; }
-            td { padding: 8px; }
-            .producto-img { width: 35px; height: 35px; }
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="header">
-        <div>
-            <h1>🔒 Panel Admin <span class="total" th:text="'(' + ${#lists.size(productos)} + ' productos)'">(0 productos)</span></h1>
-        </div>
-        <div>
-            <a th:href="@{/admin/pedidos}" class="btn btn-pedidos">📋 Pedidos</a>
-            <a th:href="@{/admin/chats}" class="btn btn-chats">💬 Chats</a>
-            <a th:href="@{/admin/nuevo}" class="btn btn-agregar">+ Agregar</a>
-            <a href="/" class="btn btn-ver">🌐 Ver Tienda</a>
-        </div>
-    </div>
+<div class="admin-shell">
+    <div th:replace="~{fragments/admin-layout :: sidebar('dashboard')}"></div>
 
-    <div class="mensaje" th:if="${mensaje}" th:text="${mensaje}"></div>
+    <div class="admin-main">
+        <header th:replace="~{fragments/admin-layout :: topbar('Centro de comando','Panel')}"></header>
 
-    <div class="table-responsive">
-        <table>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Imagen</th>
-                <th>Nombre</th>
-                <th>Precio</th>
-                <th>Categoría</th>
-                <th>SKU</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:if="${productos.isEmpty()}">
-                <td colspan="7" class="sin-productos">
-                    <span class="icono">📦</span>
-                    No hay productos aún. <a th:href="@{/admin/nuevo}" style="color:#ff00ff;">Agrega el primero</a>
-                </td>
-            </tr>
-            <tr th:each="p : ${productos}">
-                <td th:text="${p.id}">1</td>
-                <td><img class="producto-img" th:src="${p.imagen1}" th:alt="${p.nombre}" th:if="${p.imagen1 != null}"><span th:if="${p.imagen1 == null}">-</span></td>
-                <td th:text="${p.nombre}">Nombre</td>
-                <td th:text="'$' + ${#numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
-                <td th:text="${p.categoria}">Cat</td>
-                <td th:text="${p.sku}">SKU</td>
-                <td>
-                    <div class="acciones">
-                        <a th:href="@{/admin/editar/{id}(id=${p.id})}" class="btn-editar">✏️</a>
-                        <a th:href="@{/admin/eliminar/{id}(id=${p.id})}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto definitivamente?')">🗑️</a>
+        <main class="admin-content"
+              th:with="totalProductos=${#lists.size(productos)},
+                       sinImagen=${#lists.size(productos.?[imagen1 == null])},
+                       sinDescripcion=${#lists.size(productos.?[descripcion == null or descripcion == ''])},
+                       totalPedidos=${pedidosPendientes + pedidosProcesando + pedidosEnviados + pedidosEntregados}">
+
+            <div class="admin-alert" th:if="${mensaje}" th:text="${mensaje}"></div>
+
+            <!-- ==================== ALERTAS ==================== -->
+            <section class="admin-section" aria-labelledby="alertasTitulo">
+                <div class="admin-section__head">
+                    <h2 id="alertasTitulo">Qué necesita atención ahora</h2>
+                    <p>Se actualiza al cargar · usa “Refrescar” para volver a consultar</p>
+                </div>
+
+                <div class="alert-grid">
+                    <a class="alert-card alert-card--warn"
+                       th:href="@{/admin/pedidos(estado='Pendiente')}">
+                        <div class="alert-card__top">
+                            <span class="alert-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="8.5"></circle>
+                                    <path d="M12 7.5V12l3 2"></path>
+                                </svg>
+                            </span>
+                            <span class="ad-badge ad-badge--pendiente">Pendiente</span>
+                        </div>
+                        <span class="alert-card__label">Pedidos por confirmar</span>
+                        <span class="alert-card__value" th:text="${pedidosPendientes}">0</span>
+                        <span class="alert-card__meta">Abrir pedidos pendientes <strong>→</strong></span>
+                    </a>
+
+                    <a class="alert-card alert-card--info"
+                       th:href="@{/admin/pedidos(estado='Procesando')}">
+                        <div class="alert-card__top">
+                            <span class="alert-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 7h11v8H3z"></path>
+                                    <path d="M14 10h4l3 3v2h-7z"></path>
+                                    <circle cx="7" cy="17" r="1.6"></circle>
+                                    <circle cx="17" cy="17" r="1.6"></circle>
+                                </svg>
+                            </span>
+                            <span class="ad-badge ad-badge--neutral">Sin guía</span>
+                        </div>
+                        <span class="alert-card__label">Pendientes de guía</span>
+                        <span class="alert-card__value" th:text="${pedidosProcesando}">0</span>
+                        <span class="alert-card__meta">Pedidos en proceso <strong>→</strong></span>
+                    </a>
+
+                    <a class="alert-card alert-card--ok"
+                       th:href="@{/admin/chats}">
+                        <div class="alert-card__top">
+                            <span class="alert-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12a8.5 8.5 0 0 1-8.5 8.5H7L3 23v-6.2A8.5 8.5 0 1 1 21 12z"></path>
+                                </svg>
+                            </span>
+                            <span class="ad-badge ad-badge--neutral">Soporte</span>
+                        </div>
+                        <span class="alert-card__label">Consultas sin responder</span>
+                        <span class="alert-card__value" th:text="${mensajesSinResponder}">0</span>
+                        <span class="alert-card__meta">Abrir consultas <strong>→</strong></span>
+                    </a>
+
+                    <a class="alert-card alert-card--danger" href="#catalogo">
+                        <div class="alert-card__top">
+                            <span class="alert-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 7h16l-1.5 13h-13z"></path>
+                                    <path d="M8 7V5a4 4 0 0 1 8 0v2"></path>
+                                    <path d="M10 12v4M14 12v4"></path>
+                                </svg>
+                            </span>
+                            <span class="ad-badge ad-badge--neutral">Catálogo</span>
+                        </div>
+                        <span class="alert-card__label">Productos por verificar</span>
+                        <span class="alert-card__value" th:text="${#lists.size(productos.?[imagen1 == null or descripcion == null or descripcion == ''])}">0</span>
+                        <span class="alert-card__meta">Sin imagen o sin descripción · <strong>Revisar</strong></span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ==================== KPIs ==================== -->
+            <section class="admin-section" aria-labelledby="kpisTitulo">
+                <div class="admin-section__head">
+                    <h2 id="kpisTitulo">KPIs del negocio</h2>
+                    <p>Dinero real (entregado) vs. dinero en la calle (en curso)</p>
+                </div>
+
+                <div class="kpi-grid">
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Pedidos recibidos</span>
+                        <span class="kpi-card__value" th:text="${totalPedidos}">0</span>
+                        <span class="kpi-card__foot">
+                            <span>Total histórico · dinero en la calle</span>
+                            <a th:href="@{/admin/pedidos}">Ver pedidos →</a>
+                        </span>
+                    </article>
+
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Pedidos entregados</span>
+                        <span class="kpi-card__value" th:text="${pedidosEntregados}">0</span>
+                        <span class="kpi-card__foot">
+                            <span>Éxito de la operación</span>
+                            <a th:href="@{/admin/pedidos(estado='Entregado')}">Ver entregados →</a>
+                        </span>
+                    </article>
+
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Ingresos por entregados</span>
+                        <span class="kpi-card__value" style="color: var(--ad-accent-light);"
+                              th:text="'$' + ${#numbers.formatDecimal(ingresosEntregados, 0, 'COMMA', 0, 'POINT')}">$0</span>
+                        <span class="kpi-card__foot">
+                            <span>Dinero real · solo entregados</span>
+                            <a th:href="@{/admin/pedidos(estado='Entregado')}">Ver detalle →</a>
+                        </span>
+                    </article>
+                </div>
+
+                <p class="admin-muted" style="margin-top:10px;">
+                    Los contadores se calculan con consultas agregadas en la base de datos y se actualizan
+                    al cargar o con “Refrescar”. El margen queda pendiente porque requiere datos de costo
+                    que hoy no están en el modelo.
+                </p>
+            </section>
+
+            <!-- ==================== CATÁLOGO: SALUD ==================== -->
+            <section class="admin-section" id="catalogo" aria-labelledby="catalogoTitulo">
+                <div class="admin-section__head">
+                    <div>
+                        <h2 id="catalogoTitulo">Catálogo</h2>
+                        <p th:text="${totalProductos} + ' productos · ' + ${sinImagen} + ' sin imagen · ' + ${sinDescripcion} + ' sin descripción'">
+                            0 productos
+                        </p>
                     </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <a class="admin-btn admin-btn--ghost admin-btn--sm" th:href="@{/admin/chats}">Consultas</a>
+                        <a class="admin-btn admin-btn--primary admin-btn--sm" th:href="@{/admin/nuevo}">+ Nuevo producto</a>
+                    </div>
+                </div>
 
-    <div class="flag-badge">🇨🇴 FLOW COLOMBIA - Hecho en Colombia con orgullo 🇨🇴</div>
+                <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 12px;">
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Productos</span>
+                        <span class="kpi-card__value" th:text="${totalProductos}">0</span>
+                        <span class="kpi-card__foot"><span>En catálogo</span></span>
+                    </article>
+
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Sin imagen</span>
+                        <span class="kpi-card__value" th:text="${sinImagen}">0</span>
+                        <span class="kpi-card__foot"><span>Requieren foto</span></span>
+                    </article>
+
+                    <article class="kpi-card">
+                        <span class="kpi-card__label">Sin descripción</span>
+                        <span class="kpi-card__value" th:text="${sinDescripcion}">0</span>
+                        <span class="kpi-card__foot"><span>Falta texto comercial</span></span>
+                    </article>
+
+                    <article class="kpi-card"
+                             th:with="precioPromedio=${#lists.isEmpty(productos) ? 0 : #aggregates.avg(productos.![precio])}">
+                        <span class="kpi-card__label">Precio promedio</span>
+                        <span class="kpi-card__value"
+                              th:text="'$' + ${#numbers.formatDecimal(precioPromedio, 0, 'COMMA', 0, 'POINT')}">$0</span>
+                        <span class="kpi-card__foot"><span th:text="${totalProductos} + ' productos'">0 productos</span></span>
+                    </article>
+                </div>
+
+                <div class="admin-card" style="padding:16px 18px;"
+                     th:with="conImagenPct=${totalProductos > 0 ? ((totalProductos - sinImagen) * 100) / totalProductos : 0}">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:8px;">
+                        <span class="admin-muted">Productos con imagen</span>
+                        <strong style="font-size:0.86rem;" th:text="${conImagenPct} + '%'">0%</strong>
+                    </div>
+                    <div style="height:8px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden;">
+                        <div th:style="'width:' + ${conImagenPct} + '%; height:100%; border-radius:999px; background:linear-gradient(90deg,#2563eb,#60a5fa);'"></div>
+                    </div>
+                </div>
+
+                <!-- Tabla de productos -->
+                <div class="admin-card" style="margin-top:12px; padding:6px 0 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 14px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:8px; min-width:220px; flex:1;">
+                            <label class="ad-sr" for="buscarProducto">Buscar producto</label>
+                            <input class="admin-input" id="buscarProducto" type="search" placeholder="Buscar por nombre, SKU o categoría…"
+                                   autocomplete="off" style="max-width:340px;">
+                        </div>
+                        <span class="admin-muted" id="conteoProductos" th:text="${totalProductos} + ' en total'">0 en total</span>
+                    </div>
+
+                    <div class="admin-table-wrap">
+                        <table class="admin-table" id="tablaProductos">
+                            <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>SKU</th>
+                                <th style="text-align:right;">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${productos}" th:attr="data-busqueda=${p.nombre + ' ' + (p.sku != null ? p.sku : '') + ' ' + (p.categoria != null ? p.categoria : '')}">
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                                        <img class="admin-thumb" th:if="${p.imagen1 != null}" th:src="${p.imagen1}" th:alt="${p.nombre}" loading="lazy">
+                                        <span class="admin-thumb admin-thumb--empty" th:if="${p.imagen1 == null}" aria-hidden="true">—</span>
+                                        <div style="min-width:0;">
+                                            <div style="font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;"
+                                                 th:text="${p.nombre}">Nombre</div>
+                                            <div class="admin-muted" th:text="${p.descripcion != null ? #strings.abbreviate(p.descripcion, 48) : 'Sin descripción'}">Descripción</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${p.categoria != null ? p.categoria : '—'}">Categoría</td>
+                                <td th:text="'$' + ${#numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
+                                <td class="admin-muted" th:text="${p.sku != null ? p.sku : '—'}">SKU</td>
+                                <td>
+                                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                                        <a class="admin-btn admin-btn--ghost admin-btn--sm"
+                                           th:href="@{/admin/editar/{id}(id=${p.id})}">Editar</a>
+                                        <a class="admin-btn admin-btn--danger admin-btn--sm"
+                                           th:href="@{/admin/eliminar/{id}(id=${p.id})}"
+                                           th:attr="data-confirm='¿Eliminar «' + ${p.nombre} + '» definitivamente? Esta acción no se puede deshacer.',
+                                                    data-confirm-title='Eliminar producto'">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-empty" th:if="${#lists.isEmpty(productos)}">
+                        Todavía no hay productos. Crea el primero para empezar a vender.
+                    </div>
+                    <div class="admin-empty" id="sinResultadosProductos" hidden>
+                        No encontramos productos con esa búsqueda.
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 </div>
+
+<div th:replace="~{fragments/admin-layout :: confirmModal}"></div>
+
+<script>
+    // Búsqueda local en el catálogo (sin consultas ni polling).
+    (function () {
+        'use strict';
+        var input = document.getElementById('buscarProducto');
+        var tabla = document.getElementById('tablaProductos');
+        var vacio = document.getElementById('sinResultadosProductos');
+        if (!input || !tabla) return;
+
+        var filas = Array.prototype.slice.call(tabla.querySelectorAll('tbody tr'));
+
+        function normalizar(texto) {
+            return (texto || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        input.addEventListener('input', function () {
+            var q = normalizar(input.value.trim());
+            var visibles = 0;
+
+            filas.forEach(function (fila) {
+                var texto = normalizar(fila.getAttribute('data-busqueda') || fila.textContent);
+                var coincide = !q || texto.indexOf(q) !== -1;
+                fila.style.display = coincide ? '' : 'none';
+                if (coincide) visibles++;
+            });
+
+            if (vacio) vacio.hidden = !(q && visibles === 0);
+        });
+    })();
+</script>
+
 </body>
 </html>

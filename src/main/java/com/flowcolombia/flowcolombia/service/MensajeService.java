@@ -26,4 +26,11 @@ public class MensajeService {
     public Mensaje guardar(Mensaje mensaje) {
         return mensajeRepository.save(mensaje);
     }
+
+    /**
+     * Mensajes de clientes que aún no tienen respuesta (respuesta nula o vacía).
+     */
+    public long contarSinResponder() {
+        return mensajeRepository.contarSinResponder();
+    }
 }

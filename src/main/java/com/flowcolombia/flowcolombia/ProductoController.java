@@ -1,5 +1,7 @@
 package com.flowcolombia.flowcolombia;
 
+import com.flowcolombia.flowcolombia.service.MensajeService;
+import com.flowcolombia.flowcolombia.service.PedidoService;
 import com.flowcolombia.flowcolombia.service.ProductoService;
 import com.flowcolombia.flowcolombia.service.ResenaService;
 import org.springframework.stereotype.Controller;
@@ -20,10 +22,17 @@ public class ProductoController {
 
     private final ProductoService productoService;
     private final ResenaService resenaService;
+    private final PedidoService pedidoService;
+    private final MensajeService mensajeService;
 
-    public ProductoController(ProductoService productoService, ResenaService resenaService) {
+    public ProductoController(ProductoService productoService,
+                              ResenaService resenaService,
+                              PedidoService pedidoService,
+                              MensajeService mensajeService) {
         this.productoService = productoService;
         this.resenaService = resenaService;
+        this.pedidoService = pedidoService;
+        this.mensajeService = mensajeService;
     }
 
     // ============================================================
@@ -33,6 +42,18 @@ public class ProductoController {
     @GetMapping("/panel")
     public String panel(Model model) {
         model.addAttribute("productos", productoService.listarTodos());
+
+        // ============================================================
+        // Contadores reales para el dashboard (una consulta por tarjeta).
+        // No cambian la lógica de negocio: solo agregan los totales.
+        // ============================================================
+        model.addAttribute("pedidosPendientes", pedidoService.contarPorEstado("Pendiente"));
+        model.addAttribute("pedidosProcesando", pedidoService.contarPorEstado("Procesando"));
+        model.addAttribute("pedidosEnviados", pedidoService.contarPorEstado("Enviado"));
+        model.addAttribute("pedidosEntregados", pedidoService.contarPorEstado("Entregado"));
+        model.addAttribute("ingresosEntregados", pedidoService.sumarIngresosEntregados());
+        model.addAttribute("mensajesSinResponder", mensajeService.contarSinResponder());
+
         return "admin-panel";
     }
 

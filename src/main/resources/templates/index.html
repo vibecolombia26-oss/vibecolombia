@@ -6,6 +6,7 @@
     <meta name="description" content="FLOW COLOMBIA — Productos que le ponen flow a tu día. Envío gratis y pago contra entrega en toda Colombia.">
     <meta name="theme-color" content="#050914">
     <title>FLOW COLOMBIA</title>
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=1)}" href="/css/flow-ui.css">
     <style>
         /* ============================================================
            TOKENS DE DISEÑO
@@ -960,7 +961,7 @@
         .back-to-top {
             position: fixed;
             right: 24px;
-            bottom: 92px;
+            bottom: 146px;
             z-index: 900;
             width: 42px;
             height: 42px;
@@ -986,56 +987,13 @@
         /* Jerarquía: con la barra del carrito visible, los flotantes suben
            por encima de ella (la altura real la inyecta el JS en --cart-bar-h). */
         body.has-cart-bar .whatsapp-float { bottom: calc(var(--cart-bar-h) + 14px); }
-        body.has-cart-bar #chatFloating { bottom: calc(var(--cart-bar-h) + 14px); }
-        body.has-cart-bar .back-to-top { bottom: calc(var(--cart-bar-h) + 82px); }
-
-        /* ============================================================
-           TOAST
-           ============================================================ */
-        .toast-container {
-            position: fixed;
-            top: 84px;
-            right: 16px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: min(340px, calc(100vw - 32px));
-        }
-
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
-            border: 1px solid rgba(37, 99, 235, 0.35);
-            border-radius: 12px;
-            background: rgba(13, 20, 46, 0.96);
-            -webkit-backdrop-filter: blur(14px);
-            backdrop-filter: blur(14px);
-            box-shadow: 0 22px 44px -24px rgba(0, 0, 0, 0.95);
-            animation: toastIn 0.25s ease;
-        }
-
-        .toast.hide { animation: toastOut 0.25s ease forwards; }
-        .toast-icon { font-size: 1.15rem; flex-shrink: 0; }
-        .toast-message { flex: 1; color: var(--text); font-size: 0.86rem; }
-
-        .toast-close {
-            border: 0;
-            background: transparent;
-            color: var(--muted-2);
-            font-size: 1rem;
-            cursor: pointer;
-            padding: 0 2px;
-        }
-
-        .toast-close:hover { color: var(--text); }
+        body.has-cart-bar #chatFloating { bottom: calc(var(--cart-bar-h) + 82px); }
+        body.has-cart-bar .back-to-top { bottom: calc(var(--cart-bar-h) + 146px); }
 
         /* ============================================================
            CHAT DE SOPORTE
            ============================================================ */
-        #chatFloating { position: fixed; right: 20px; bottom: 20px; z-index: 950; }
+        #chatFloating { position: fixed; right: 20px; bottom: 88px; z-index: 950; }
 
         .chat-fab {
             width: 56px;
@@ -1146,10 +1104,6 @@
         /* ============================================================
            RESPONSIVE (MOBILE-FIRST)
            ============================================================ */
-        @media (max-width: 959px) {
-            .toast-container { top: 148px; }
-        }
-
         @media (min-width: 560px) {
             .product-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
             .product-bottom { flex-direction: row; align-items: center; justify-content: space-between; }
@@ -1212,7 +1166,7 @@
             /* Flotantes más compactos para no competir con la barra */
             .whatsapp-float { width: 48px; height: 48px; left: 14px; }
             .whatsapp-float svg { width: 23px; height: 23px; }
-            #chatFloating { right: 14px; }
+            #chatFloating { right: 14px; bottom: 76px; }
             .chat-fab { width: 50px; height: 50px; }
             .chat-fab svg { width: 23px; height: 23px; }
             .back-to-top { width: 38px; height: 38px; right: 16px; }
@@ -1228,16 +1182,6 @@
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(16px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(16px); }
         }
 
         @keyframes slideUp {
@@ -1287,14 +1231,14 @@
                th:text="${cat}">Categoría</a>
         </nav>
 
-        <a class="cart-link" href="/carrito" aria-label="Ver carrito">
+        <a class="cart-link" href="/carrito" data-flow-cart-open aria-label="Ver carrito">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"></path>
                 <circle cx="10" cy="20" r="1.4"></circle>
                 <circle cx="18" cy="20" r="1.4"></circle>
             </svg>
-            <span id="cartCount">0</span>
+            <span id="cartCount" data-flow-cart-count>0</span>
             <span class="sr-only">productos en el carrito</span>
         </a>
     </div>
@@ -1458,7 +1402,7 @@
                         <span class="product-price"
                               th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</span>
                         <button type="button" class="btn-add"
-                                th:attr="onclick='agregarAlCarrito(\'' + ${producto.nombre} + '\', ' + ${producto.precio} + ', \'' + ${producto.imagen1 != null ? producto.imagen1 : ''} + '\')'">
+                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"></path>
@@ -1621,16 +1565,11 @@
             <span class="cart-float-total">$<span id="cartFloatTotal">0</span></span>
         </div>
         <div class="cart-float-actions">
-            <a href="/carrito" class="btn-ghost btn-sm">Ver carrito</a>
-            <a href="/carrito?contraentrega=true" class="btn-primary btn-sm">Pagar contra entrega</a>
+            <button type="button" class="btn-ghost btn-sm" data-flow-cart-open>Ver carrito</button>
+            <a href="/carrito?checkout=1" class="btn-primary btn-sm">Continuar con la compra</a>
         </div>
     </div>
 </div>
-
-<!-- ============================================================
-     TOASTS
-     ============================================================ -->
-<div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
 <!-- ============================================================
      VOLVER ARRIBA
@@ -1695,47 +1634,37 @@
 <!-- ============================================================
      SCRIPTS DE LA TIENDA
      ============================================================ -->
+<script th:src="@{/js/flow-cart.js(v=1)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=1)}" src="/js/flow-assistant.js"></script>
 <script>
     // ============================================================
-    // TOAST
+    // AGREGAR AL CARRITO (misma firma y mismo localStorage)
     // ============================================================
-    function mostrarToast(mensaje, icono = '✅') {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `
-            <span class="toast-icon">${icono}</span>
-            <span class="toast-message">${mensaje}</span>
-            <button class="toast-close" type="button" aria-label="Cerrar aviso">✕</button>
-        `;
-        toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('hide');
-            setTimeout(() => toast.remove(), 250);
-        }, 4000);
+    function agregarAlCarrito(nombre, precio, imagen, productoId) {
+        const id = (productoId != null && productoId !== '') ? Number(productoId) : null;
+        FlowCart.add({
+            sku: '',
+            nombre: nombre,
+            precio: Number(precio) || 0,
+            imagen: imagen || '',
+            cantidad: 1,
+            color: '',
+            talla: '',
+            productoId: id,
+            url: id ? ('/producto/' + id) : ''
+        }, { title: 'Añadido al carrito' });
     }
 
-    // ============================================================
-    // AGREGAR AL CARRITO (lógica intacta: localStorage)
-    // ============================================================
-    const originalAgregar = window.agregarAlCarrito;
-    window.agregarAlCarrito = function(nombre, precio, imagen) {
-        let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
-        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-        actualizarContador();
-        mostrarToast(`${nombre} agregado al carrito`, '🛒');
-    };
-
-    function actualizarContador(){
-        const carrito=JSON.parse(localStorage.getItem('carritoFlowColombia'))||[];
-        const el=document.getElementById('cartCount');
-        if(el) el.textContent=carrito.length;
-    }
-    actualizarContador();
-    setInterval(actualizarContador,10000);
+    document.addEventListener('click', function (event) {
+        const btn = event.target.closest ? event.target.closest('.btn-add') : null;
+        if (!btn) return;
+        agregarAlCarrito(
+            btn.dataset.nombre || '',
+            Number(btn.dataset.precio) || 0,
+            btn.dataset.imagen || '',
+            btn.dataset.productoId
+        );
+    });
 
     // ============================================================
     // BUSCADOR (filtra la grilla ya renderizada por Thymeleaf)
@@ -1834,81 +1763,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
-</script>
-
-<!-- ============================================================
-     BARRA FLOTANTE DEL CARRITO (lógica intacta)
-     ============================================================ -->
-<script>
-    /**
-     * Muestra/oculta la barra flotante y reserva su altura exacta en el
-     * body (--cart-bar-h) para que nunca tape el final del contenido.
-     */
-    function sincronizarAlturaBarra() {
-        const floatDiv = document.getElementById('cartFloat');
-        const visible = !!floatDiv && floatDiv.classList.contains('show');
-        const alto = visible ? Math.ceil(floatDiv.getBoundingClientRect().height) : 0;
-        document.documentElement.style.setProperty('--cart-bar-h', alto + 'px');
-        document.body.classList.toggle('has-cart-bar', visible && alto > 0);
-    }
-
-    function actualizarBarraCarrito() {
-        const floatDiv = document.getElementById('cartFloat');
-        const countSpan = document.getElementById('cartFloatCount');
-        const countLabel = document.getElementById('cartFloatCountLabel');
-        const totalSpan = document.getElementById('cartFloatTotal');
-        if (!floatDiv || !countSpan || !totalSpan) return;
-
-        let carrito = [];
-        try {
-            carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        } catch (e) {
-            carrito = [];
-        }
-
-        if (carrito.length === 0) {
-            floatDiv.classList.remove('show');
-            sincronizarAlturaBarra();
-            return;
-        }
-        let total = 0;
-        carrito.forEach(item => {
-            const precio = Number(item && item.precio) || 0;
-            const cantidad = Number(item && item.cantidad) || 1;
-            total += precio * cantidad;
-        });
-
-        // Concordancia: "1 producto" / "N productos"
-        countSpan.textContent = carrito.length;
-        if (countLabel) {
-            countLabel.textContent = carrito.length === 1 ? 'producto' : 'productos';
-        }
-        totalSpan.textContent = total.toLocaleString('es-CO');
-
-        floatDiv.classList.add('show');
-        sincronizarAlturaBarra();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        actualizarBarraCarrito();
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'carritoFlowColombia') actualizarBarraCarrito();
-        });
-        // La barra cambia de alto entre móvil y escritorio
-        window.addEventListener('resize', sincronizarAlturaBarra);
-        window.addEventListener('orientationchange', sincronizarAlturaBarra);
-    });
-    const originalAgregar2 = window.agregarAlCarrito;
-    if (originalAgregar2) {
-        window.agregarAlCarrito = function(nombre, precio, imagen) {
-            let carrito = JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-            carrito.push({nombre, precio, imagen, cantidad: 1, color: '', talla: ''});
-            localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
-            actualizarBarraCarrito();
-            mostrarToast(`${nombre} agregado al carrito`, '🛒');
-            actualizarContador();
-        };
-    }
 </script>
 
 <!-- ============================================================

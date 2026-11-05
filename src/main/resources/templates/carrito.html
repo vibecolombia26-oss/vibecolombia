@@ -3,445 +3,1211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - FLOW COLOMBIA</title>
+    <title>Carrito y checkout · FLOW COLOMBIA</title>
+    <meta name="theme-color" content="#050914">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=1)}" href="/css/flow-ui.css">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
-        .container { max-width:1000px; margin:0 auto; padding:20px; }
-        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; }
-        .header h1 { color:#ff00ff; font-size:2rem; }
-        .btn-back { padding:8px 20px; border:1px solid #00ffff; border-radius:25px; color:#00ffff; text-decoration:none; transition:0.3s; }
-        .btn-back:hover { background:rgba(0,255,255,0.1); }
+        *, *::before, *::after { box-sizing: border-box; }
 
-        .carrito-vacio { text-align:center; padding:60px 20px; color:#666; }
-        .carrito-vacio .icono { font-size:4rem; display:block; margin-bottom:15px; }
+        html { scroll-behavior: smooth; }
 
-        .carrito-item { background:rgba(20,20,20,0.8); border:1px solid rgba(255,0,255,0.2); border-radius:16px; padding:15px; margin-bottom:15px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; transition:0.3s; }
-        .carrito-item:hover { border-color:#ff00ff; box-shadow:0 0 20px rgba(255,0,255,0.1); }
-        .carrito-item img { width:80px; height:80px; border-radius:10px; object-fit:cover; border:2px solid rgba(255,0,255,0.3); }
-        .carrito-item .info { flex:1; min-width:150px; }
-        .carrito-item .info .nombre { color:#fff; font-weight:700; font-size:1.1rem; }
-        .carrito-item .info .detalle { color:#888; font-size:0.85rem; margin:4px 0; }
-        .carrito-item .info .precio { color:#00ffff; font-weight:700; font-size:1.2rem; }
-        .carrito-item .cantidad { display:flex; align-items:center; gap:10px; }
-        .carrito-item .cantidad button { background:transparent; color:#ff00ff; border:1px solid #ff00ff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.1rem; transition:0.3s; }
-        .carrito-item .cantidad button:hover { background:rgba(255,0,255,0.15); box-shadow:0 0 15px rgba(255,0,255,0.3); }
-        .carrito-item .cantidad span { color:#fff; font-weight:600; min-width:30px; text-align:center; font-size:1.1rem; }
-        .carrito-item .eliminar { background:#ff0044; color:#fff; border:none; padding:6px 16px; border-radius:20px; cursor:pointer; transition:0.3s; font-weight:600; }
-        .carrito-item .eliminar:hover { box-shadow:0 0 25px rgba(255,0,68,0.5); transform:scale(1.05); }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--flow-bg);
+            color: var(--flow-text);
+            font-family: var(--flow-font);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        .resumen { background:rgba(20,20,20,0.95); border:2px solid #ffd700; border-radius:16px; padding:25px; margin-top:25px; text-align:center; }
-        .resumen .total-label { color:#aaa; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; }
-        .resumen .total { font-size:2.5rem; color:#00ffff; font-weight:900; text-shadow:0 0 30px rgba(0,255,255,0.3); }
-        .btn-pagar { display:inline-block; padding:14px 50px; background:linear-gradient(45deg,#ffd700,#f0a500); color:#000; border:none; border-radius:30px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:0.3s; margin-top:15px; }
-        .btn-pagar:hover { transform:scale(1.05); box-shadow:0 0 40px rgba(255,215,0,0.5); }
+        img { display: block; max-width: 100%; }
+        a { color: inherit; text-decoration: none; }
+        h1, h2, h3, p, ul, li { margin: 0; padding: 0; }
+        ul { list-style: none; }
 
-        .form-pago { display:none; background:rgba(20,20,20,0.95); border:2px solid #ff00ff; border-radius:16px; padding:30px; margin-top:20px; text-align:left; }
-        .form-pago.active { display:block; animation:slideDown 0.4s ease; }
-        @keyframes slideDown { 0% { opacity:0; transform:translateY(-20px); } 100% { opacity:1; transform:translateY(0); } }
-        .form-pago h2 { color:#ff00ff; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px; }
-        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
-        .form-group { margin-bottom:15px; }
-        .form-group.full { grid-column:1/-1; }
-        .form-group label { display:block; margin-bottom:5px; color:#00ffff; font-weight:600; font-size:0.85rem; }
-        .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px; background:#111; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; transition:0.3s; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#ff00ff; box-shadow:0 0 15px rgba(255,0,255,0.2); }
-        .form-group textarea { resize:vertical; min-height:80px; }
-        .btn-enviar { width:100%; padding:14px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border:none; border-radius:30px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:0.3s; margin-top:10px; }
-        .btn-enviar:hover { box-shadow:0 0 30px rgba(255,0,255,0.5); transform:scale(1.02); }
-        .btn-enviar:disabled { opacity:0.6; cursor:not-allowed; }
+        /* ============ HEADER ============ */
+        .cart-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            background: rgba(5, 9, 20, 0.86);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--flow-border);
+        }
 
-        #confirmacionPedido { display:none; background:rgba(0,255,0,0.08); border:2px solid #00ff00; border-radius:16px; padding:30px; margin-top:25px; text-align:center; }
-        #confirmacionPedido h2 { color:#00ff00; font-size:1.8rem; }
-        #confirmacionPedido .codigo { color:#ffd700; font-size:1.8rem; font-weight:900; display:block; margin:10px 0; letter-spacing:2px; }
-        #confirmacionPedido .btn { display:inline-block; margin-top:15px; padding:10px 30px; background:linear-gradient(45deg,#ff00ff,#cc00cc); color:#fff; border-radius:25px; text-decoration:none; font-weight:700; }
+        .cart-header__back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--flow-muted);
+            padding: 8px 10px;
+            border-radius: 999px;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
 
-        .error-msg { color:#ff4444; font-size:0.85rem; margin-top:5px; display:none; }
+        .cart-header__back:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
 
-        /* ===== PROMESA DE VALOR + CONDICIONES ===== */
-        .resumen-promesa { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:16px 0 8px; }
-        .resumen-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(37,99,235,0.35); background:rgba(37,99,235,0.10); color:#dbeafe; font-size:0.74rem; font-weight:600; }
-        .resumen-chip svg { width:14px; height:14px; color:#60a5fa; flex:none; }
-        .resumen-nota { color:#9aa4bf; font-size:0.78rem; margin:0; }
-        .resumen-condiciones { max-width:520px; margin:12px auto 0; text-align:left; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; }
-        .resumen-condiciones summary { cursor:pointer; color:#93c5fd; font-size:0.76rem; font-weight:600; text-align:center; list-style:none; }
-        .resumen-condiciones summary::-webkit-details-marker { display:none; }
-        .resumen-condiciones summary::before { content:'＋ '; color:#60a5fa; }
-        .resumen-condiciones[open] summary::before { content:'− '; }
-        .resumen-condiciones ul { margin:10px 0 0; padding:0; list-style:none; display:grid; gap:6px; }
-        .resumen-condiciones li { position:relative; padding-left:14px; color:#c7d2fe; font-size:0.76rem; line-height:1.5; }
-        .resumen-condiciones li::before { content:'•'; position:absolute; left:2px; color:#60a5fa; }
-        .resumen-condiciones li strong { color:#fff; }
+        .cart-header__brand {
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #dfe7ff;
+        }
 
-        .checkout-condiciones { margin:14px 0 0; padding:10px 12px; border:1px solid rgba(37,99,235,0.3); background:rgba(37,99,235,0.08); border-radius:10px; color:#c7d2fe; font-size:0.76rem; line-height:1.5; }
-        .checkout-condiciones strong { color:#fff; }
-        .checkout-condiciones a { color:#93c5fd; text-decoration:underline; }
+        /* ============ PÁGINA ============ */
+        .cart-page {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 26px 16px 64px;
+        }
 
-        @media (max-width:768px) {
-            .form-row { grid-template-columns:1fr; }
-            .carrito-item { flex-direction:column; text-align:center; }
-            .carrito-item .cantidad { justify-content:center; }
-            .header h1 { font-size:1.5rem; }
+        .cart-page__title {
+            font-size: clamp(1.5rem, 4.6vw, 2rem);
+            letter-spacing: -0.03em;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .cart-page__title span { color: var(--flow-muted); font-weight: 500; }
+
+        [hidden] { display: none !important; }
+
+        .cart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        @media (min-width: 900px) {
+            .cart-page { padding: 36px 24px 80px; }
+            .cart-grid { grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr); gap: 32px; }
+            .cart-summary { position: sticky; top: 84px; }
+        }
+
+        .cart-items {
+            border: 1px solid var(--flow-border);
+            border-radius: var(--flow-radius);
+            background: var(--flow-surface);
+            padding: 4px 16px;
+        }
+
+        .cart-items--empty { border: 0; background: transparent; padding: 0; }
+        .cart-grid--empty { grid-template-columns: 1fr; }
+
+        .cart-summary {
+            border: 1px solid var(--flow-border);
+            border-radius: var(--flow-radius);
+            background: var(--flow-surface);
+            padding: 20px;
+        }
+
+        .cart-summary h2 {
+            font-size: 0.94rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .cart-summary__row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 0;
+            font-size: 0.86rem;
+            color: var(--flow-muted);
+        }
+
+        .cart-summary__row strong { color: var(--flow-text); font-weight: 600; }
+
+        .cart-summary__row--total {
+            margin-top: 6px;
+            padding-top: 12px;
+            border-top: 1px solid var(--flow-border);
+            font-size: 1rem;
+            color: var(--flow-text);
+        }
+
+        .cart-summary__row--total strong {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--flow-accent-light);
+        }
+
+        .cart-summary__note {
+            margin: 12px 0 14px;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: var(--flow-muted-2);
+        }
+
+        .cart-summary__benefits {
+            display: grid;
+            gap: 7px;
+            margin: 14px 0 16px;
+            padding: 12px;
+            border: 1px solid rgba(37, 99, 235, 0.28);
+            border-radius: 10px;
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .cart-summary__benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: #c7d2fe;
+            line-height: 1.45;
+        }
+
+        .cart-summary__benefit svg { width: 15px; height: 15px; color: var(--flow-accent-light); flex: none; margin-top: 1px; }
+
+        .cart-empty {
+            border: 1px dashed var(--flow-border-strong);
+            border-radius: var(--flow-radius);
+            padding: 54px 20px;
+            text-align: center;
+        }
+
+        .cart-empty h2 { font-size: 1.05rem; margin-bottom: 8px; }
+        .cart-empty p { color: var(--flow-muted); font-size: 0.86rem; margin-bottom: 18px; }
+
+        /* ============ CONDICIONES ============ */
+        .cart-conditions {
+            margin-top: 16px;
+            border-top: 1px solid var(--flow-border);
+            padding-top: 12px;
+        }
+
+        .cart-conditions summary {
+            cursor: pointer;
+            list-style: none;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--flow-accent-light);
+        }
+
+        .cart-conditions summary::-webkit-details-marker { display: none; }
+        .cart-conditions summary::before { content: '＋ '; }
+        .cart-conditions[open] summary::before { content: '− '; }
+
+        .cart-conditions ul {
+            display: grid;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .cart-conditions li {
+            position: relative;
+            padding-left: 13px;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: var(--flow-muted);
+        }
+
+        .cart-conditions li::before {
+            content: '•';
+            position: absolute;
+            left: 1px;
+            color: var(--flow-accent-light);
+        }
+
+        .cart-conditions li strong { color: #e2e8f0; }
+
+        /* ============ CHECKOUT ============ */
+        .checkout {
+            max-width: 720px;
+            margin: 0 auto;
+            border: 1px solid var(--flow-border);
+            border-radius: var(--flow-radius);
+            background: var(--flow-surface);
+            padding: 20px;
+            scroll-margin-top: 92px;
+        }
+
+        @media (min-width: 640px) {
+            .checkout { padding: 28px; }
+        }
+
+        .checkout__top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .checkout__top h2 { font-size: 1.05rem; font-weight: 700; }
+
+        .checkout__back {
+            border: 0;
+            background: none;
+            color: var(--flow-muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            padding: 0;
+        }
+
+        .checkout__back:hover { color: #fff; }
+
+        .flow-panel { padding: 18px 0 4px; }
+
+        .flow-panel h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .flow-panel .flow-hint { margin-bottom: 16px; display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        @media (min-width: 560px) {
+            .form-grid--2 { grid-template-columns: 1fr 1fr; }
+            .form-grid--full { grid-column: 1 / -1; }
+        }
+
+        .pay-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid rgba(37, 99, 235, 0.45);
+            border-radius: 12px;
+            background: rgba(37, 99, 235, 0.1);
+            cursor: pointer;
+        }
+
+        .pay-option input { margin-top: 3px; accent-color: var(--flow-accent); }
+
+        .pay-option strong { display: block; font-size: 0.88rem; }
+        .pay-option span { display: block; font-size: 0.76rem; color: var(--flow-muted); line-height: 1.45; margin-top: 2px; }
+
+        .review-block {
+            border: 1px solid var(--flow-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .review-block__head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .review-block__head h4 {
+            margin: 0;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--flow-muted-2);
+        }
+
+        .review-block__edit {
+            border: 0;
+            background: none;
+            color: var(--flow-accent-light);
+            font-size: 0.74rem;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            padding: 0;
+        }
+
+        .review-block p { font-size: 0.85rem; color: #e2e8f0; line-height: 1.5; }
+        .review-block p + p { margin-top: 2px; }
+        .review-block .muted { color: var(--flow-muted); }
+
+        .review-items { display: grid; gap: 10px; }
+
+        .review-item {
+            display: grid;
+            grid-template-columns: 46px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+
+        .review-item img {
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #0b1226;
+        }
+
+        .review-item__name { font-weight: 600; color: #fff; line-height: 1.3; }
+        .review-item__variant { color: var(--flow-muted); font-size: 0.74rem; }
+        .review-item__price { font-weight: 700; white-space: nowrap; }
+
+        .review-total {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--flow-border);
+            font-size: 0.92rem;
+        }
+
+        .review-total strong {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--flow-accent-light);
+        }
+
+        .checkout__actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--flow-border);
+        }
+
+        .checkout__actions .flow-btn { flex: 1; }
+
+        .checkout__error {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border: 1px solid rgba(248, 113, 113, 0.45);
+            border-radius: 10px;
+            background: rgba(248, 113, 113, 0.08);
+            color: #fecaca;
+            font-size: 0.8rem;
+        }
+
+        .checkout__error.is-visible { display: block; }
+
+        /* ============ CONFIRMACIÓN ============ */
+        .confirm {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 34px 22px;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            border-radius: var(--flow-radius);
+            background: linear-gradient(180deg, rgba(52, 211, 153, 0.08) 0%, rgba(13, 20, 46, 0.6) 100%);
+            text-align: center;
+        }
+
+        .confirm__icon {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(52, 211, 153, 0.16);
+            border: 1px solid rgba(52, 211, 153, 0.45);
+            color: #6ee7b7;
+            font-size: 1.4rem;
+        }
+
+        .confirm h2 { font-size: clamp(1.4rem, 4.4vw, 1.9rem); letter-spacing: -0.02em; }
+
+        .confirm__lead { margin: 10px 0 18px; color: var(--flow-muted); font-size: 0.9rem; line-height: 1.6; }
+
+        .confirm__code {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 1px dashed rgba(37, 99, 235, 0.5);
+            background: rgba(37, 99, 235, 0.12);
+            color: #dbeafe;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .confirm__label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--flow-muted-2); margin-bottom: 6px; }
+
+        .confirm__steps {
+            margin: 24px auto 0;
+            max-width: 420px;
+            text-align: left;
+            display: grid;
+            gap: 10px;
+        }
+
+        .confirm__step {
+            display: flex;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: var(--flow-muted);
+            line-height: 1.45;
+        }
+
+        .confirm__step span:first-child {
+            flex: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--flow-accent-soft);
+            border: 1px solid rgba(37, 99, 235, 0.45);
+            color: var(--flow-accent-light);
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+
+        .confirm__actions { margin-top: 26px; display: flex; flex-direction: column; gap: 8px; }
+
+        @media (min-width: 520px) {
+            .confirm__actions { flex-direction: row; justify-content: center; }
+            .confirm__actions .flow-btn { flex: 0 1 auto; }
         }
     </style>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <h1>🛒 Carrito de compras</h1>
-        <a href="/" class="btn-back">← Seguir comprando</a>
+<body data-no-exit-intent>
+
+<header class="cart-header">
+    <a class="cart-header__back" href="/"><span aria-hidden="true">←</span> Seguir comprando</a>
+    <span class="cart-header__brand">FLOW COLOMBIA</span>
+</header>
+
+<main class="cart-page">
+    <h1 class="cart-page__title">Tu carrito <span id="tituloCarrito"></span></h1>
+
+    <!-- ==================== VISTA CARRITO ==================== -->
+    <div id="vistaCarrito" class="cart-grid">
+        <section class="cart-items" id="listaCarrito" aria-label="Productos en el carrito"></section>
+
+        <aside class="cart-summary" id="resumenCarrito" aria-label="Resumen del pedido"></aside>
     </div>
 
-    <div id="carritoContenido"></div>
+    <!-- ==================== WIZARD DE CHECKOUT ==================== -->
+    <section id="vistaCheckout" class="checkout" hidden aria-label="Finalizar compra">
+        <div class="checkout__top">
+            <h2>Finalizar compra</h2>
+            <button type="button" class="checkout__back" id="btnVolverCarrito">← Volver al carrito</button>
+        </div>
 
-    <!-- Formulario de pago -->
-    <div class="form-pago" id="formPago">
-        <h2>📦 Datos de envío</h2>
-        <form id="checkoutForm">
-            <div class="form-row">
-                <div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required></div>
-                <div class="form-group"><label>Apellido *</label><input type="text" id="apellido" required></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Celular *</label><input type="tel" id="celular" required></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Departamento *</label>
-                    <select id="departamento" required>
-                        <option value="">Selecciona...</option>
-                        <!-- Los departamentos se cargan con JavaScript -->
-                    </select>
+        <ol class="flow-steps" id="progreso">
+            <li class="flow-step is-active" data-step-indicator="1"><span class="flow-step__num">1</span>Contacto</li>
+            <li class="flow-step" data-step-indicator="2"><span class="flow-step__num">2</span>Entrega</li>
+            <li class="flow-step" data-step-indicator="3"><span class="flow-step__num">3</span>Pago</li>
+            <li class="flow-step" data-step-indicator="4"><span class="flow-step__num">4</span>Revisión</li>
+        </ol>
+
+        <form id="checkoutForm" novalidate>
+            <!-- PASO 1 -->
+            <div class="flow-panel" data-step-panel="1">
+                <h3>¿A nombre de quién va el pedido?</h3>
+                <span class="flow-hint">Usaremos estos datos para contactarte y confirmar la entrega.</span>
+                <div class="form-grid form-grid--2">
+                    <div class="flow-field">
+                        <label class="flow-label" for="nombre">Nombre</label>
+                        <input class="flow-input" id="nombre" data-checkout-field="nombre" type="text"
+                               autocomplete="given-name" placeholder="Ej: María" aria-describedby="error-nombre">
+                        <span class="flow-error" id="error-nombre"></span>
+                    </div>
+                    <div class="flow-field">
+                        <label class="flow-label" for="apellido">Apellido</label>
+                        <input class="flow-input" id="apellido" data-checkout-field="apellido" type="text"
+                               autocomplete="family-name" placeholder="Ej: Rodríguez" aria-describedby="error-apellido">
+                        <span class="flow-error" id="error-apellido"></span>
+                    </div>
+                    <div class="flow-field form-grid--full">
+                        <label class="flow-label" for="telefono">Celular</label>
+                        <input class="flow-input" id="telefono" data-checkout-field="telefono" type="tel"
+                               inputmode="tel" autocomplete="tel" placeholder="Ej: 300 123 4567"
+                               aria-describedby="error-telefono">
+                        <span class="flow-error" id="error-telefono"></span>
+                        <span class="flow-hint">Te escribiremos por WhatsApp a este número.</span>
+                    </div>
                 </div>
-                <div class="form-group"><label>Municipio *</label>
-                    <select id="municipio" required>
-                        <option value="">Primero selecciona un departamento</option>
-                    </select>
+            </div>
+
+            <!-- PASO 2 -->
+            <div class="flow-panel" data-step-panel="2" hidden>
+                <h3>¿Dónde te lo llevamos?</h3>
+                <span class="flow-hint">Enviamos gratis a todo Colombia.</span>
+                <div class="form-grid form-grid--2">
+                    <div class="flow-field">
+                        <label class="flow-label" for="departamento">Departamento</label>
+                        <select class="flow-select" id="departamento" data-checkout-field="departamento"
+                                autocomplete="address-level1" aria-describedby="error-departamento">
+                            <option value="">Selecciona tu departamento</option>
+                        </select>
+                        <span class="flow-error" id="error-departamento"></span>
+                    </div>
+                    <div class="flow-field">
+                        <label class="flow-label" for="ciudad">Ciudad o municipio</label>
+                        <input class="flow-input" id="ciudad" data-checkout-field="ciudad" type="text"
+                               list="ciudadesSugeridas" autocomplete="address-level2" placeholder="Ej: Medellín"
+                               aria-describedby="error-ciudad">
+                        <datalist id="ciudadesSugeridas"></datalist>
+                        <span class="flow-error" id="error-ciudad"></span>
+                    </div>
+                    <div class="flow-field form-grid--full">
+                        <label class="flow-label" for="direccion">Dirección</label>
+                        <input class="flow-input" id="direccion" data-checkout-field="direccion" type="text"
+                               autocomplete="street-address" placeholder="Ej: Calle 10 # 5-20"
+                               aria-describedby="error-direccion">
+                        <span class="flow-error" id="error-direccion"></span>
+                    </div>
+                    <div class="flow-field form-grid--full">
+                        <label class="flow-label" for="indicaciones">Indicaciones <span>(opcional)</span></label>
+                        <textarea class="flow-textarea" id="indicaciones" data-checkout-field="indicaciones" rows="3"
+                                  placeholder="Ej: Apto 301, torre B. Dejar en portería." maxlength="200"></textarea>
+                        <span class="flow-hint">Ayúdanos a ubicarte más rápido.</span>
+                    </div>
                 </div>
             </div>
-            <div class="form-group full"><label>Dirección *</label><input type="text" id="direccion" required></div>
-            <div class="form-group full"><label>Notas adicionales</label><textarea id="notas" placeholder="Ej: Piso, código de acceso, referencias..."></textarea></div>
-            <div class="error-msg" id="formError">⚠️ Por favor completa todos los campos obligatorios.</div>
-            <div class="checkout-condiciones">
-                <strong>Envío gratis</strong> a todo Colombia · Pagas <strong>en efectivo</strong> al recibir tu pedido.
-                Al confirmar aceptas nuestros <a href="/terminos" target="_blank" rel="noopener">términos y condiciones</a>.
+
+            <!-- PASO 3 -->
+            <div class="flow-panel" data-step-panel="3" hidden>
+                <h3>¿Cómo quieres pagar?</h3>
+                <span class="flow-hint">Por ahora manejamos un único método de pago.</span>
+                <label class="pay-option">
+                    <input type="radio" name="pago" value="contraentrega" checked data-checkout-field="pago">
+                    <span>
+                        <strong>Pago contra entrega</strong>
+                        <span>Pagas en efectivo cuando recibes tu pedido. Sin costos adicionales.</span>
+                    </span>
+                </label>
             </div>
-            <button type="submit" class="btn-enviar" id="btnEnviarPedido">💵 Confirmar pedido</button>
+
+            <!-- PASO 4 -->
+            <div class="flow-panel" data-step-panel="4" hidden>
+                <h3>Revisa tu pedido</h3>
+                <span class="flow-hint">Verifica los datos antes de confirmar.</span>
+                <div id="revisionPedido"></div>
+            </div>
+
+            <div class="checkout__error" id="checkoutError" role="alert"></div>
+
+            <div class="checkout__actions">
+                <button type="button" class="flow-btn flow-btn--ghost" id="btnAtras">Atrás</button>
+                <button type="button" class="flow-btn flow-btn--primary" id="btnSiguiente">Continuar</button>
+                <button type="submit" class="flow-btn flow-btn--primary" id="btnConfirmar" hidden>Confirmar pedido</button>
+            </div>
         </form>
-    </div>
+    </section>
 
-    <!-- Confirmación de pedido -->
-    <div id="confirmacionPedido">
-        <h2>✅ ¡Pedido realizado con éxito!</h2>
-        <p>Tu código de seguimiento es:</p>
-        <span class="codigo" id="codigoSeguimiento">---</span>
-        <p>Te llegará un correo con los detalles.</p>
-        <a href="/" class="btn">Seguir comprando</a>
-    </div>
-</div>
+    <!-- ==================== CONFIRMACIÓN ==================== -->
+    <section id="vistaConfirmacion" class="confirm" hidden aria-label="Pedido confirmado">
+        <div class="confirm__icon" aria-hidden="true">✓</div>
+        <h2>¡Pedido recibido!</h2>
+        <p class="confirm__lead">
+            Gracias por comprar en FLOW COLOMBIA. Guardamos tu pedido y te contactaremos
+            para confirmar los datos de entrega.
+        </p>
 
+        <p class="confirm__label">Número de pedido</p>
+        <span class="confirm__code" id="codigoPedido">---</span>
+
+        <div class="confirm__steps">
+            <div class="confirm__step"><span>1</span><span>Revisamos tu pedido y confirmamos disponibilidad.</span></div>
+            <div class="confirm__step"><span>2</span><span>Te contactamos al celular para confirmar la entrega.</span></div>
+            <div class="confirm__step"><span>3</span><span>Alistamos y despachamos tu pedido con nuestra transportadora aliada.</span></div>
+            <div class="confirm__step"><span>4</span><span>Recibes y pagas en efectivo. Envío gratis a todo Colombia.</span></div>
+        </div>
+
+        <div class="confirm__actions">
+            <a class="flow-btn flow-btn--primary" href="/seguimiento">Rastrear mi pedido</a>
+            <a class="flow-btn flow-btn--ghost" href="/">Seguir comprando</a>
+        </div>
+    </section>
+</main>
+
+<script th:src="@{/js/flow-cart.js(v=1)}" src="/js/flow-cart.js"></script>
 <script>
     // ============================================================
-    // DEPARTAMENTOS Y MUNICIPIOS DE COLOMBIA (resumido para este ejemplo)
+    // DEPARTAMENTOS Y CIUDADES DE COLOMBIA
     // ============================================================
-    const colombia = {
+    const COLOMBIA = {
         "Amazonas": ["Leticia", "Puerto Nariño"],
-        "Antioquia": ["Medellín", "Bello", "Envigado", "Itagüí", "Rionegro"],
-        "Arauca": ["Arauca", "Arauquita"],
-        "Atlántico": ["Barranquilla", "Soledad", "Malambo"],
-        // ... (puedes agregar todos los departamentos y municipios aquí)
-        "Cundinamarca": ["Bogotá", "Soacha", "Zipaquirá", "Facatativá"],
-        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá"],
-        "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta"],
-        "Bolívar": ["Cartagena", "Magangué", "Arjona"],
-        "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona"],
-        "Cauca": ["Popayán", "Santander de Quilichao"],
-        "Nariño": ["Pasto", "Ipiales", "Tumaco"],
-        "Chocó": ["Quibdó"],
-        "Córdoba": ["Montería", "Cereté", "Lorica"],
-        "La Guajira": ["Riohacha", "Maicao"],
-        "Magdalena": ["Santa Marta", "Ciénaga", "Fundación"],
-        "Meta": ["Villavicencio", "Acacías"],
-        "Risaralda": ["Pereira", "Dosquebradas"],
-        "Quindío": ["Armenia", "Calarcá"],
-        "Caldas": ["Manizales", "Chinchiná"],
-        "Huila": ["Neiva", "Pitalito"],
-        "Tolima": ["Ibagué", "Espinal", "Melgar"],
-        "Sucre": ["Sincelejo"],
-        "Cesar": ["Valledupar", "Agustín Codazzi"],
-        "Boyacá": ["Tunja", "Duitama", "Sogamoso"],
-        "Casanare": ["Yopal", "Aguazul"],
-        "Putumayo": ["Mocoa"],
-        "San Andrés y Providencia": ["San Andrés"],
+        "Antioquia": ["Medellín", "Bello", "Envigado", "Itagüí", "Rionegro", "Sabaneta", "Apartadó"],
+        "Arauca": ["Arauca", "Arauquita", "Tame"],
+        "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Sabanalarga"],
+        "Bogotá D.C.": ["Bogotá"],
+        "Bolívar": ["Cartagena", "Magangué", "Arjona", "Turbaco"],
+        "Boyacá": ["Tunja", "Duitama", "Sogamoso", "Chiquinquirá"],
+        "Caldas": ["Manizales", "Chinchiná", "Villamaría"],
+        "Caquetá": ["Florencia", "San Vicente del Caguán"],
+        "Casanare": ["Yopal", "Aguazul", "Villanueva"],
+        "Cauca": ["Popayán", "Santander de Quilichao", "Puerto Tejada"],
+        "Cesar": ["Valledupar", "Agustín Codazzi", "Aguachica"],
+        "Chocó": ["Quibdó", "Istmina"],
+        "Córdoba": ["Montería", "Cereté", "Lorica", "Sahagún"],
+        "Cundinamarca": ["Soacha", "Zipaquirá", "Facatativá", "Chía", "Fusagasugá", "Girardot"],
         "Guainía": ["Inírida"],
         "Guaviare": ["San José del Guaviare"],
+        "Huila": ["Neiva", "Pitalito", "Garzón"],
+        "La Guajira": ["Riohacha", "Maicao", "San Juan del Cesar"],
+        "Magdalena": ["Santa Marta", "Ciénaga", "Fundación", "Zona Bananera"],
+        "Meta": ["Villavicencio", "Acacías", "Granada"],
+        "Nariño": ["Pasto", "Ipiales", "Tumaco", "Túquerres"],
+        "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona", "Villa del Rosario"],
+        "Putumayo": ["Mocoa", "Puerto Asís"],
+        "Quindío": ["Armenia", "Calarcá", "Circasia"],
+        "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal"],
+        "San Andrés y Providencia": ["San Andrés", "Providencia"],
+        "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Barrancabermeja"],
+        "Sucre": ["Sincelejo", "Corozal", "Sampués"],
+        "Tolima": ["Ibagué", "Espinal", "Melgar", "Honda"],
+        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Jamundí"],
         "Vaupés": ["Mitú"],
         "Vichada": ["Puerto Carreño"]
     };
 
     // ============================================================
-    // FUNCIONES DEL CARRITO
+    // UTILIDADES
     // ============================================================
-
-    function obtenerCarrito() {
-        try {
-            return JSON.parse(localStorage.getItem('carritoFlowColombia')) || [];
-        } catch {
-            return [];
-        }
-    }
-
-    function guardarCarrito(carrito) {
-        localStorage.setItem('carritoFlowColombia', JSON.stringify(carrito));
+    function esc(texto) {
+        return String(texto == null ? '' : texto)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function formatearPrecio(valor) {
-        let num = Number(valor);
-        if (isNaN(num)) return '0';
-        return num.toLocaleString('es-CO');
+        return '$' + (Number(valor) || 0).toLocaleString('es-CO');
     }
 
-    function obtenerPrecioReal(valor) {
-        return Number(valor) || 0;
+    function soloDigitos(valor) {
+        return String(valor || '').replace(/\D/g, '');
     }
+
+    function itemsCarrito() {
+        return FlowCart.read();
+    }
+
+    // ============================================================
+    // VISTA DEL CARRITO
+    // ============================================================
+    const listaCarrito = document.getElementById('listaCarrito');
+    const resumenCarrito = document.getElementById('resumenCarrito');
+    const vistaCarrito = document.getElementById('vistaCarrito');
+    const vistaCheckout = document.getElementById('vistaCheckout');
+    const vistaConfirmacion = document.getElementById('vistaConfirmacion');
+    const tituloCarrito = document.getElementById('tituloCarrito');
 
     function renderizarCarrito() {
-        const contenedor = document.getElementById('carritoContenido');
-        const carrito = obtenerCarrito();
+        // Mientras se muestra la confirmación no se repinta el carrito.
+        if (!vistaConfirmacion.hidden) return;
 
-        if (carrito.length === 0) {
-            contenedor.innerHTML = `
-                <div class="carrito-vacio">
-                    <span class="icono">🛒</span>
-                    <p>Tu carrito está vacío</p>
-                    <a href="/" style="color:#ff00ff;">Explorar productos</a>
-                </div>
-            `;
-            document.getElementById('formPago').classList.remove('active');
+        const items = itemsCarrito();
+        listaCarrito.classList.remove('cart-items--empty');
+        vistaCarrito.classList.remove('cart-grid--empty');
+
+        if (!items.length) {
+            tituloCarrito.textContent = '';
+            resumenCarrito.hidden = true;
+            resumenCarrito.innerHTML = '';
+            listaCarrito.classList.add('cart-items--empty');
+            vistaCarrito.classList.add('cart-grid--empty');
+
+            listaCarrito.innerHTML =
+                '<div class="cart-empty">' +
+                '  <h2>Tu carrito está vacío</h2>' +
+                '  <p>Agrega tus productos favoritos para continuar con la compra.</p>' +
+                '  <a class="flow-btn flow-btn--primary" href="/">Explorar productos</a>' +
+                '</div>';
             return;
         }
 
-        let html = '';
-        let total = 0;
+        resumenCarrito.hidden = false;
+        tituloCarrito.textContent = '(' + items.length + ')';
 
-        carrito.forEach((item, index) => {
-            const precioReal = obtenerPrecioReal(item.precio);
-            const cantidad = Number(item.cantidad) || 1;
-            const subtotal = precioReal * cantidad;
-            total += subtotal;
+        listaCarrito.innerHTML = items.map(function (rawItem, index) {
+            const item = {
+                nombre: String(rawItem.nombre || 'Producto'),
+                precio: Number(rawItem.precio) || 0,
+                imagen: String(rawItem.imagen || ''),
+                cantidad: Math.max(1, parseInt(rawItem.cantidad, 10) || 1),
+                color: String(rawItem.color || ''),
+                talla: String(rawItem.talla || ''),
+                url: String(rawItem.url || (rawItem.productoId != null ? '/producto/' + rawItem.productoId : ''))
+            };
 
-            const detalle = [];
-            if (item.color) detalle.push('🎨 Color: ' + item.color);
-            if (item.talla) detalle.push('👟 Talla: ' + item.talla);
-            const detalleTexto = detalle.length ? '| ' + detalle.join(' ') : '';
+            const variante = [item.color, item.talla ? 'Talla ' + item.talla : ''].filter(Boolean).join(' · ');
+            const subtotal = item.precio * item.cantidad;
 
-            html += `
-                <div class="carrito-item">
-                    <img src="${item.imagen || ''}" alt="${item.nombre || 'Producto'}" onerror="this.src='https://via.placeholder.com/80?text=Producto'">
-                    <div class="info">
-                        <div class="nombre">${item.nombre || 'Producto'}</div>
-                        <div class="detalle">${detalleTexto}</div>
-                        <div class="precio">$${formatearPrecio(subtotal)}</div>
-                    </div>
-                    <div class="cantidad">
-                        <button onclick="cambiarCantidad(${index}, -1)">−</button>
-                        <span>${cantidad}</span>
-                        <button onclick="cambiarCantidad(${index}, 1)">+</button>
-                    </div>
-                    <button class="eliminar" onclick="eliminarProducto(${index})">🗑️</button>
-                </div>
-            `;
-        });
+            return '' +
+                '<article class="flow-line" data-cart-item="' + index + '">' +
+                '  <img class="flow-line__img" src="' + esc(item.imagen) + '" alt="' + esc(item.nombre) + '" loading="lazy">' +
+                '  <div>' +
+                (item.url
+                    ? '    <a class="flow-line__name" href="' + esc(item.url) + '">' + esc(item.nombre) + '</a>'
+                    : '    <span class="flow-line__name">' + esc(item.nombre) + '</span>') +
+                (variante ? '    <p class="flow-line__variant">' + esc(variante) + '</p>' : '') +
+                '    <div class="flow-line__meta">' +
+                '      <div class="flow-qty">' +
+                '        <button type="button" data-qty-minus aria-label="Quitar una unidad"' + (item.cantidad <= 1 ? ' disabled' : '') + '>−</button>' +
+                '        <span>' + item.cantidad + '</span>' +
+                '        <button type="button" data-qty-plus aria-label="Añadir una unidad">+</button>' +
+                '      </div>' +
+                '      <div class="flow-line__price">' + formatearPrecio(item.precio) + ' c/u · <strong>' + formatearPrecio(subtotal) + '</strong></div>' +
+                '    </div>' +
+                '    <div class="flow-line__actions">' +
+                (item.url
+                    ? '      <a class="flow-link" href="' + esc(item.url) + '">Editar</a>'
+                    : '      <span></span>') +
+                '      <button type="button" class="flow-link" data-remove>Eliminar</button>' +
+                '    </div>' +
+                '  </div>' +
+                '</article>';
+        }).join('');
 
-        html += `
-            <div class="resumen">
-                <p class="total-label">Total</p>
-                <div class="total">$${formatearPrecio(total)}</div>
+        const subtotal = FlowCart.subtotal(items);
 
-                <div class="resumen-promesa">
-                    <span class="resumen-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3z"></path><path d="M14 10h4l3 3v2h-7z"></path><circle cx="7" cy="17" r="1.6"></circle><circle cx="17" cy="17" r="1.6"></circle></svg>
-                        Envío gratis a todo Colombia
-                    </span>
-                    <span class="resumen-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.4"></circle></svg>
-                        Pago contra entrega en efectivo
-                    </span>
-                </div>
-                <p class="resumen-nota">Recibes, revisas y pagas al recibir · Entrega de 2 a 7 días hábiles</p>
+        resumenCarrito.innerHTML =
+            '<h2>Resumen del pedido</h2>' +
+            '<div class="cart-summary__row"><span>Subtotal</span><strong>' + formatearPrecio(subtotal) + '</strong></div>' +
+            '<div class="cart-summary__row"><span>Envío</span><strong>Gratis</strong></div>' +
+            '<div class="cart-summary__row cart-summary__row--total"><span>Total</span><strong>' + formatearPrecio(subtotal) + '</strong></div>' +
+            '<div class="cart-summary__benefits">' +
+            '  <div class="cart-summary__benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3z"></path><path d="M14 10h4l3 3v2h-7z"></path><circle cx="7" cy="17" r="1.6"></circle><circle cx="17" cy="17" r="1.6"></circle></svg><span>Envío gratis a todo Colombia.</span></div>' +
+            '  <div class="cart-summary__benefit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.4"></circle></svg><span>Pago contra entrega en efectivo.</span></div>' +
+            '</div>' +
+            '<p class="cart-summary__note">Sin costos adicionales. Pagas en efectivo al recibir tu pedido.</p>' +
+            '<button type="button" class="flow-btn flow-btn--primary flow-btn--block" id="btnContinuarCompra">Continuar con la compra</button>' +
 
-                <button class="btn-pagar" onclick="mostrarFormulario()">💵 Pagar contra entrega</button>
+            '<details class="cart-conditions">' +
+            '  <summary>Ver condiciones de envío y pago</summary>' +
+            '  <ul>' +
+            '    <li><strong>Envío gratis</strong> a todo Colombia, sin monto mínimo.</li>' +
+            '    <li><strong>Entrega:</strong> 2 a 4 días hábiles en ciudades principales, 4 a 7 en el resto del país y hasta 10 en zonas rurales.</li>' +
+            '    <li><strong>Pago contra entrega en efectivo:</strong> pagas el total al momento de recibir.</li>' +
+            '    <li><strong>Garantía:</strong> 10 días por defectos de fábrica. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso.</li>' +
+            '  </ul>' +
+            '</details>';
 
-                <details class="resumen-condiciones">
-                    <summary>Ver condiciones de envío y pago</summary>
-                    <ul>
-                        <li><strong>Envío gratis</strong> a todo Colombia, sin monto mínimo.</li>
-                        <li><strong>Entrega:</strong> 2 a 4 días hábiles en ciudades principales, 4 a 7 en el resto del país y hasta 10 en zonas rurales.</li>
-                        <li><strong>Pago contra entrega en efectivo:</strong> pagas el total al momento de recibir; ten el dinero listo para la transportadora.</li>
-                        <li><strong>Garantía:</strong> 10 días por defectos de fábrica. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso; el envío de devolución corre por tu cuenta.</li>
-                    </ul>
-                </details>
-            </div>
-        `;
-
-        contenedor.innerHTML = html;
-        document.getElementById('formPago').classList.remove('active');
-    }
-
-    function cambiarCantidad(index, delta) {
-        const carrito = obtenerCarrito();
-        if (index < 0 || index >= carrito.length) return;
-        const nuevaCantidad = (Number(carrito[index].cantidad) || 1) + delta;
-        if (nuevaCantidad < 1) return;
-        carrito[index].cantidad = nuevaCantidad;
-        guardarCarrito(carrito);
-        renderizarCarrito();
-    }
-
-    function eliminarProducto(index) {
-        const carrito = obtenerCarrito();
-        if (index < 0 || index >= carrito.length) return;
-        carrito.splice(index, 1);
-        guardarCarrito(carrito);
-        renderizarCarrito();
-    }
-
-    // ============================================================
-    // FORMULARIO DE PAGO
-    // ============================================================
-
-    function mostrarFormulario() {
-        const carrito = obtenerCarrito();
-        if (carrito.length === 0) {
-            alert('El carrito está vacío');
-            return;
+        const btnContinuar = document.getElementById('btnContinuarCompra');
+        if (btnContinuar) {
+            btnContinuar.addEventListener('click', function () { iniciarCheckout(); });
         }
-        document.getElementById('formPago').classList.add('active');
-        document.getElementById('formPago').scrollIntoView({ behavior: 'smooth' });
     }
+
+    // Delegación para cantidades y eliminación en la lista
+    listaCarrito.addEventListener('click', function (event) {
+        const row = event.target.closest('[data-cart-item]');
+        if (!row) return;
+        const index = parseInt(row.getAttribute('data-cart-item'), 10);
+        const item = itemsCarrito()[index];
+        if (!item) return;
+
+        if (event.target.closest('[data-qty-plus]')) {
+            FlowCart.setQty(index, (Number(item.cantidad) || 1) + 1);
+        } else if (event.target.closest('[data-qty-minus]')) {
+            const actual = Number(item.cantidad) || 1;
+            if (actual > 1) FlowCart.setQty(index, actual - 1);
+        } else if (event.target.closest('[data-remove]')) {
+            FlowCart.removeAt(index);
+        }
+    });
+
+    document.addEventListener('flowcart:change', renderizarCarrito);
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'carritoFlowColombia') renderizarCarrito();
+    });
+
+    // ============================================================
+    // WIZARD DE CHECKOUT
+    // ============================================================
+    const checkoutState = {
+        step: 1,
+        data: {
+            nombre: '',
+            apellido: '',
+            telefono: '',
+            departamento: '',
+            ciudad: '',
+            direccion: '',
+            indicaciones: '',
+            pago: 'contraentrega'
+        }
+    };
+
+    const PASO_CAMPOS = {
+        1: ['nombre', 'apellido', 'telefono'],
+        2: ['departamento', 'ciudad', 'direccion'],
+        3: ['pago'],
+        4: []
+    };
+
+    const REGLAS = {
+        nombre: {
+            test: function (v) { return v.trim().length >= 2; },
+            mensaje: 'Escribe tu nombre (mínimo 2 caracteres).'
+        },
+        apellido: {
+            test: function (v) { return v.trim().length >= 2; },
+            mensaje: 'Escribe tu apellido (mínimo 2 caracteres).'
+        },
+        telefono: {
+            test: function (v) { return /^3\d{9}$/.test(soloDigitos(v)); },
+            mensaje: 'Escribe un celular colombiano de 10 dígitos, ej. 300 123 4567.'
+        },
+        departamento: {
+            test: function (v) { return !!v; },
+            mensaje: 'Selecciona tu departamento.'
+        },
+        ciudad: {
+            test: function (v) { return v.trim().length >= 2; },
+            mensaje: 'Escribe tu ciudad o municipio.'
+        },
+        direccion: {
+            test: function (v) { return v.trim().length >= 6; },
+            mensaje: 'Escribe tu dirección completa, ej. Calle 10 # 5-20.'
+        }
+    };
+
+    const form = document.getElementById('checkoutForm');
+    const btnAtras = document.getElementById('btnAtras');
+    const btnSiguiente = document.getElementById('btnSiguiente');
+    const btnConfirmar = document.getElementById('btnConfirmar');
+    const checkoutError = document.getElementById('checkoutError');
+    const progreso = document.getElementById('progreso');
+    const revisionPedido = document.getElementById('revisionPedido');
+    const selectDepartamento = document.getElementById('departamento');
+    const datalistCiudades = document.getElementById('ciudadesSugeridas');
 
     function cargarDepartamentos() {
-        const select = document.getElementById('departamento');
-        select.innerHTML = '<option value="">Selecciona...</option>';
-        Object.keys(colombia).sort().forEach(depto => {
+        Object.keys(COLOMBIA).sort().forEach(function (depto) {
             const opt = document.createElement('option');
             opt.value = depto;
             opt.textContent = depto;
-            select.appendChild(opt);
+            selectDepartamento.appendChild(opt);
         });
     }
 
-    function cargarMunicipios(departamento) {
-        const select = document.getElementById('municipio');
-        select.innerHTML = '<option value="">Selecciona...</option>';
-        if (departamento && colombia[departamento]) {
-            colombia[departamento].sort().forEach(mun => {
-                const opt = document.createElement('option');
-                opt.value = mun;
-                opt.textContent = mun;
-                select.appendChild(opt);
+    function cargarCiudades(depto) {
+        datalistCiudades.innerHTML = '';
+        const ciudades = COLOMBIA[depto] || [];
+        ciudades.forEach(function (ciudad) {
+            const opt = document.createElement('option');
+            opt.value = ciudad;
+            datalistCiudades.appendChild(opt);
+        });
+    }
+
+    function campo(nombre) {
+        return form.querySelector('[data-checkout-field="' + nombre + '"]');
+    }
+
+    function mostrarErrorCampo(nombre, mensaje) {
+        const input = campo(nombre);
+        const error = document.getElementById('error-' + nombre);
+        if (!input || !error) return;
+        if (mensaje) {
+            input.setAttribute('aria-invalid', 'true');
+            error.textContent = mensaje;
+            error.classList.add('is-visible');
+        } else {
+            input.removeAttribute('aria-invalid');
+            error.textContent = '';
+            error.classList.remove('is-visible');
+        }
+    }
+
+    function validarCampo(nombre) {
+        const regla = REGLAS[nombre];
+        const input = campo(nombre);
+        if (!regla || !input) return true;
+
+        const valor = input.type === 'radio' ? (input.checked ? input.value : '') : input.value;
+        const ok = regla.test(valor);
+        mostrarErrorCampo(nombre, ok ? '' : regla.mensaje);
+        return ok;
+    }
+
+    function validarPaso(paso) {
+        const campos = PASO_CAMPOS[paso] || [];
+        let ok = true;
+        let primeroInvalido = null;
+
+        campos.forEach(function (nombre) {
+            if (!validarCampo(nombre)) {
+                ok = false;
+                if (!primeroInvalido) primeroInvalido = campo(nombre);
+            }
+        });
+
+        if (!ok && primeroInvalido) {
+            primeroInvalido.focus();
+            primeroInvalido.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return ok;
+    }
+
+    function actualizarProgreso(paso) {
+        progreso.querySelectorAll('[data-step-indicator]').forEach(function (li) {
+            const n = parseInt(li.getAttribute('data-step-indicator'), 10);
+            li.classList.toggle('is-active', n === paso);
+            li.classList.toggle('is-done', n < paso);
+        });
+    }
+
+    function mostrarPaso(paso) {
+        checkoutState.step = paso;
+
+        form.querySelectorAll('[data-step-panel]').forEach(function (panel) {
+            panel.hidden = parseInt(panel.getAttribute('data-step-panel'), 10) !== paso;
+        });
+
+        actualizarProgreso(paso);
+
+        btnAtras.style.visibility = paso === 1 ? 'hidden' : 'visible';
+        btnSiguiente.hidden = paso === 4;
+        btnConfirmar.hidden = paso !== 4;
+        btnConfirmar.disabled = false;
+        checkoutError.classList.remove('is-visible');
+        checkoutError.textContent = '';
+
+        if (paso === 4) renderizarRevision();
+    }
+
+    function iniciarCheckout() {
+        if (!itemsCarrito().length) {
+            FlowCart.toast({ title: 'Tu carrito está vacío', message: 'Agrega un producto para continuar.' });
+            return;
+        }
+        vistaCarrito.hidden = true;
+        vistaConfirmacion.hidden = true;
+        vistaCheckout.hidden = false;
+        mostrarPaso(checkoutState.step || 1);
+        vistaCheckout.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function volverAlCarrito() {
+        vistaCheckout.hidden = true;
+        vistaCarrito.hidden = false;
+        renderizarCarrito();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderizarRevision() {
+        const d = checkoutState.data;
+        const items = itemsCarrito();
+        const subtotal = FlowCart.subtotal(items);
+
+        const direccion = [d.direccion, d.ciudad, d.departamento].filter(Boolean).join(', ');
+        const indicaciones = d.indicaciones ? '<p class="muted">Indicaciones: ' + esc(d.indicaciones) + '</p>' : '';
+
+        revisionPedido.innerHTML =
+            '<div class="review-block">' +
+            '  <div class="review-block__head"><h4>Contacto</h4><button type="button" class="review-block__edit" data-edit-step="1">Editar</button></div>' +
+            '  <p>' + esc(d.nombre + ' ' + d.apellido) + '</p>' +
+            '  <p class="muted">' + esc(d.telefono) + '</p>' +
+            '</div>' +
+            '<div class="review-block">' +
+            '  <div class="review-block__head"><h4>Entrega</h4><button type="button" class="review-block__edit" data-edit-step="2">Editar</button></div>' +
+            '  <p>' + esc(direccion) + '</p>' +
+            indicaciones +
+            '</div>' +
+            '<div class="review-block">' +
+            '  <div class="review-block__head"><h4>Pago</h4><button type="button" class="review-block__edit" data-edit-step="3">Editar</button></div>' +
+            '  <p>Contra entrega (efectivo)</p>' +
+            '  <p class="muted">Pagas al recibir tu pedido. Envío gratis.</p>' +
+            '</div>' +
+            '<div class="review-block">' +
+            '  <div class="review-block__head"><h4>Productos</h4><button type="button" class="review-block__edit" data-edit-cart>Editar carrito</button></div>' +
+            '  <div class="review-items">' +
+            items.map(function (rawItem) {
+                const item = {
+                    nombre: String(rawItem.nombre || 'Producto'),
+                    imagen: String(rawItem.imagen || ''),
+                    cantidad: Math.max(1, parseInt(rawItem.cantidad, 10) || 1),
+                    precio: Number(rawItem.precio) || 0,
+                    color: String(rawItem.color || ''),
+                    talla: String(rawItem.talla || '')
+                };
+                const variante = [item.color, item.talla ? 'Talla ' + item.talla : ''].filter(Boolean).join(' · ');
+                return '<div class="review-item">' +
+                    '<img src="' + esc(item.imagen) + '" alt="">' +
+                    '<div><div class="review-item__name">' + esc(item.nombre) + ' × ' + item.cantidad + '</div>' +
+                    (variante ? '<div class="review-item__variant">' + esc(variante) + '</div>' : '') + '</div>' +
+                    '<div class="review-item__price">' + formatearPrecio(item.precio * item.cantidad) + '</div>' +
+                    '</div>';
+            }).join('') +
+            '  </div>' +
+            '  <div class="review-total"><span>Total</span><strong>' + formatearPrecio(subtotal) + '</strong></div>' +
+            '</div>';
+
+        revisionPedido.querySelectorAll('[data-edit-step]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                mostrarPaso(parseInt(btn.getAttribute('data-edit-step'), 10));
+            });
+        });
+
+        const editarCarrito = revisionPedido.querySelector('[data-edit-cart]');
+        if (editarCarrito) {
+            editarCarrito.addEventListener('click', function () {
+                vistaCheckout.hidden = true;
+                renderizarCarrito();
             });
         }
     }
 
-    document.getElementById('departamento').addEventListener('change', function() {
-        cargarMunicipios(this.value);
-    });
+    function construirPedido() {
+        const d = checkoutState.data;
+        const items = itemsCarrito();
 
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const errorEl = document.getElementById('formError');
-        errorEl.style.display = 'none';
-
-        const nombre = document.getElementById('nombre').value.trim();
-        const apellido = document.getElementById('apellido').value.trim();
-        const celular = document.getElementById('celular').value.trim();
-        const departamento = document.getElementById('departamento').value;
-        const municipio = document.getElementById('municipio').value;
-        const direccion = document.getElementById('direccion').value.trim();
-        const notas = document.getElementById('notas').value.trim();
-
-        if (!nombre || !apellido || !celular || !departamento || !municipio || !direccion) {
-            errorEl.style.display = 'block';
-            return;
-        }
-
-        const carrito = obtenerCarrito();
-        let total = 0;
-        carrito.forEach(item => {
-            total += obtenerPrecioReal(item.precio) * (Number(item.cantidad) || 1);
-        });
-
-        const productosTexto = carrito.map(item => {
-            const subtotal = obtenerPrecioReal(item.precio) * (Number(item.cantidad) || 1);
-            let detalle = `${item.nombre} x${item.cantidad}`;
-            if (item.color) detalle += ` (Color: ${item.color})`;
-            if (item.talla) detalle += ` (Talla: ${item.talla})`;
-            detalle += ` - $${formatearPrecio(subtotal)}`;
+        const productosTexto = items.map(function (rawItem) {
+            const item = {
+                nombre: String(rawItem.nombre || 'Producto'),
+                cantidad: Math.max(1, parseInt(rawItem.cantidad, 10) || 1),
+                precio: Number(rawItem.precio) || 0,
+                color: String(rawItem.color || ''),
+                talla: String(rawItem.talla || '')
+            };
+            let detalle = item.nombre + ' x' + item.cantidad;
+            if (item.color) detalle += ' (Color: ' + item.color + ')';
+            if (item.talla) detalle += ' (Talla: ' + item.talla + ')';
+            detalle += ' - ' + formatearPrecio(item.precio * item.cantidad);
             return detalle;
         }).join('\n');
 
-        const pedido = {
-            nombreCliente: nombre + ' ' + apellido,
-            telefono: celular,
-            departamento: departamento,
-            ciudad: municipio,
-            direccion: direccion,
-            notas: notas || '',
+        return {
+            nombreCliente: (d.nombre + ' ' + d.apellido).trim(),
+            telefono: soloDigitos(d.telefono),
+            departamento: d.departamento,
+            ciudad: d.ciudad.trim(),
+            direccion: d.direccion.trim(),
+            notas: d.indicaciones.trim(),
             tienda: 'FlowColombia',
             productos: productosTexto,
-            total: total,
+            total: FlowCart.subtotal(items),
             metodoPago: 'Contra entrega'
         };
+    }
 
-        const btn = document.getElementById('btnEnviarPedido');
-        btn.disabled = true;
-        btn.textContent = '⏳ Enviando...';
+    function mostrarConfirmacion(codigo) {
+        vistaCarrito.hidden = true;
+        vistaCheckout.hidden = true;
+        vistaConfirmacion.hidden = false;
+        document.getElementById('codigoPedido').textContent = codigo || '---';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Eventos de campos (estado + validación en vivo)
+    form.querySelectorAll('[data-checkout-field]').forEach(function (input) {
+        const nombre = input.getAttribute('data-checkout-field');
+
+        function sincronizar() {
+            if (input.type === 'radio') {
+                if (input.checked) checkoutState.data[nombre] = input.value;
+            } else {
+                checkoutState.data[nombre] = input.value;
+            }
+            if (nombre === 'departamento') cargarCiudades(input.value);
+            if (input.hasAttribute('aria-invalid')) validarCampo(nombre);
+        }
+
+        input.addEventListener('input', sincronizar);
+        input.addEventListener('change', sincronizar);
+        input.addEventListener('blur', function () { validarCampo(nombre); });
+    });
+
+    btnSiguiente.addEventListener('click', function () {
+        const paso = checkoutState.step;
+        if (!validarPaso(paso)) return;
+        mostrarPaso(Math.min(4, paso + 1));
+    });
+
+    btnAtras.addEventListener('click', function () {
+        mostrarPaso(Math.max(1, checkoutState.step - 1));
+    });
+
+    document.getElementById('btnVolverCarrito').addEventListener('click', volverAlCarrito);
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        for (let paso = 1; paso <= 3; paso++) {
+            if (!validarPaso(paso)) { mostrarPaso(paso); return; }
+        }
+
+        const items = itemsCarrito();
+        if (!items.length) {
+            checkoutError.textContent = 'Tu carrito está vacío. Vuelve al carrito para agregar productos.';
+            checkoutError.classList.add('is-visible');
+            return;
+        }
+
+        const pedido = construirPedido();
+
+        btnConfirmar.disabled = true;
+        btnConfirmar.textContent = 'Enviando pedido…';
+        checkoutError.classList.remove('is-visible');
 
         fetch('/api/pedido', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'OK') {
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (data) {
+                if (data && data.status === 'OK') {
+                    FlowCart.clear();
                     mostrarConfirmacion(data.codigo);
-                    localStorage.removeItem('carritoFlowColombia');
-                    renderizarCarrito();
-                    document.getElementById('formPago').classList.remove('active');
                 } else {
-                    alert('Error al procesar el pedido. Intenta de nuevo.');
+                    throw new Error('Respuesta inválida del servidor');
                 }
             })
-            .catch(err => {
-                alert('Error de conexión. Verifica tu internet.');
-                console.error(err);
+            .catch(function (error) {
+                console.error('Error al enviar el pedido:', error);
+                checkoutError.textContent = 'No pudimos enviar tu pedido. Revisa tu conexión e inténtalo de nuevo.';
+                checkoutError.classList.add('is-visible');
             })
-            .finally(() => {
-                btn.disabled = false;
-                btn.textContent = '💵 Confirmar pedido';
+            .finally(function () {
+                btnConfirmar.disabled = false;
+                btnConfirmar.textContent = 'Confirmar pedido';
             });
     });
 
-    function mostrarConfirmacion(codigo) {
-        document.getElementById('confirmacionPedido').style.display = 'block';
-        document.getElementById('codigoSeguimiento').textContent = codigo;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Enter avanza de paso en lugar de enviar el formulario antes de tiempo.
+    form.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter') return;
+        if (event.target.tagName === 'TEXTAREA') return;
+        if (checkoutState.step === 4) return;
+        event.preventDefault();
+        btnSiguiente.click();
+    });
 
     // ============================================================
     // INICIALIZACIÓN
     // ============================================================
-
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         cargarDepartamentos();
         renderizarCarrito();
-        const depto = document.getElementById('departamento').value;
-        if (depto) cargarMunicipios(depto);
-    });
 
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'carritoFlowColombia') renderizarCarrito();
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('checkout') === '1' && itemsCarrito().length) {
+            iniciarCheckout();
+        }
     });
 </script>
 </body>

@@ -38,4 +38,16 @@ public class PedidoService {
     public long contarPorEstado(String estado) {
         return pedidoRepository.countByEstado(estado);
     }
+
+    /**
+     * Dinero real: suma de los totales de los pedidos entregados.
+     * La suma se hace en la base de datos (consulta agregada) para no
+     * cargar la tabla de pedidos en memoria.
+     *
+     * @return total en pesos; 0.0 si aún no hay pedidos entregados
+     */
+    public double sumarIngresosEntregados() {
+        Double total = pedidoRepository.sumarTotalPorEstado("Entregado");
+        return total != null ? total : 0.0;
+    }
 }

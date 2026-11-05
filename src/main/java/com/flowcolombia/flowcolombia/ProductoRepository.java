@@ -55,6 +55,21 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     long countByCategoria(String categoria);
 
     // ============================================================
+    // CATÁLOGO PARA EL ASISTENTE DE IA
+    // ------------------------------------------------------------
+    // Se ejecutan UNA SOLA VEZ al arrancar la aplicación para llenar la
+    // copia en memoria del asistente. Nunca se llaman por mensaje.
+    // ============================================================
+
+    @EntityGraph(attributePaths = "variantes")
+    @Query("SELECT DISTINCT p FROM Producto p")
+    List<Producto> findAllCatalogoConVariantes();
+
+    @EntityGraph(attributePaths = "imagenes")
+    @Query("SELECT DISTINCT p FROM Producto p")
+    List<Producto> findAllCatalogoConImagenes();
+
+    // ============================================================
     // PRODUCTOS RELACIONADOS (EFICIENTE)
     // ============================================================
 

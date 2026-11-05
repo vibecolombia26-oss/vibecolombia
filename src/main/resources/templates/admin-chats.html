@@ -1,81 +1,157 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chats - FLOW COLOMBIA</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background-color:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
-        .container { max-width:900px; margin:0 auto; padding:20px; }
-        .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:30px; padding:20px; background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; }
-        .header h1 { color:#ff00ff; }
-        .btn { padding:10px 20px; border-radius:25px; text-decoration:none; font-weight:500; font-size:0.85rem; text-transform:uppercase; }
-        .btn-back { background:transparent; color:#00ffff; border:1px solid #00ffff; }
-        .chat-card { background:rgba(20,20,20,0.8); border:2px solid #ff00ff; border-radius:16px; padding:20px; margin-bottom:15px; }
-        .chat-header { color:#ff00ff; font-weight:600; margin-bottom:10px; }
-        .msg-cliente { text-align:right; margin:5px 0; }
-        .msg-cliente span { display:inline-block; background:#ff00ff; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; }
-        .msg-respuesta { text-align:left; margin:5px 0; }
-        .msg-respuesta span { display:inline-block; background:#333; color:#fff; padding:8px 12px; border-radius:12px; max-width:80%; font-size:0.85rem; }
-        .responder-form { display:flex; gap:10px; margin-top:10px; }
-        .responder-form input { flex:1; padding:10px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; }
-        .responder-form button { background:#ff00ff; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="header"><h1>💬 Chats VIBE</h1><a th:href="@{/admin/panel}" class="btn btn-back">← Panel</a></div>
-    <div id="chatsContainer"><p style="text-align:center;color:#666;">Cargando...</p></div>
+<head th:replace="~{fragments/admin-layout :: head('Consultas')}"></head>
+<body class="admin-body">
+
+<div class="admin-shell">
+    <div th:replace="~{fragments/admin-layout :: sidebar('chats')}"></div>
+
+    <div class="admin-main">
+        <header th:replace="~{fragments/admin-layout :: topbar('Consultas','Soporte')}"></header>
+
+        <main class="admin-content">
+            <div class="admin-section__head">
+                <div>
+                    <h2>Conversaciones de clientes</h2>
+                    <p id="chatsResumen">Cargando conversaciones…</p>
+                </div>
+                <button type="button" class="admin-btn admin-btn--ghost admin-btn--sm" id="btnRefrescarChats">
+                    Actualizar
+                </button>
+            </div>
+
+            <div id="chatsContainer">
+                <div class="admin-card admin-empty">Cargando conversaciones…</div>
+            </div>
+        </main>
+    </div>
 </div>
+
+<div th:replace="~{fragments/admin-layout :: confirmModal}"></div>
+
 <script>
-    function cargarChats() {
-        fetch('/api/chat/todos').then(r => r.json()).then(mensajes => {
-            var agrupados = {};
-            mensajes.forEach(function(m) { if (!agrupados[m.codigoPedido]) agrupados[m.codigoPedido] = []; agrupados[m.codigoPedido].push(m); });
-            var html = '';
-            for (var codigo in agrupados) {
-                var msgs = agrupados[codigo];
-                var sinResponder = msgs.filter(function(m) { return m.esCliente && !m.respuesta; }).length;
-                html += '<div class="chat-card"><div class="chat-header">📦 ' + codigo + (sinResponder > 0 ? ' <span style="color:#ffc107;">(' + sinResponder + ' pendientes)</span>' : '') + '</div>';
-                msgs.forEach(function(m) {
-                    if (m.esCliente) {
-                        html += '<div class="msg-cliente"><span>' + m.mensaje + '</span></div>';
-                    } else {
-                        html += '<div class="msg-respuesta"><span>' + m.mensaje + '</span></div>';
-                    }
+    // Sin polling: se carga al abrir, al responder y con el botón Actualizar
+    // (o el Refrescar del header). Así no se mantiene despierta la BD.
+    (function () {
+        'use strict';
+
+        var contenedor = document.getElementById('chatsContainer');
+        var resumen = document.getElementById('chatsResumen');
+        var btn = document.getElementById('btnRefrescarChats');
+
+        function esc(texto) {
+            return String(texto == null ? '' : texto)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function cargarChats() {
+            fetch('/api/chat/todos', { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(function (mensajes) {
+                    mensajes = Array.isArray(mensajes) ? mensajes : [];
+
+                    var agrupados = {};
+                    mensajes.forEach(function (m) {
+                        var clave = m.codigoPedido || 'Sin código';
+                        if (!agrupados[clave]) agrupados[clave] = [];
+                        agrupados[clave].push(m);
+                    });
+
+                    var totalConversaciones = 0;
+                    var totalPendientes = 0;
+                    var html = '';
+
+                    Object.keys(agrupados).sort().forEach(function (codigo) {
+                        var msgs = agrupados[codigo];
+                        var sinResponder = msgs.filter(function (m) { return m.esCliente && !m.respuesta; }).length;
+                        totalConversaciones++;
+                        totalPendientes += sinResponder;
+
+                        html += '<article class="admin-card chat-card" style="margin-bottom:12px;">';
+                        html += '  <div class="chat-card__head">';
+                        html += '    <div>';
+                        html += '      <div class="chat-card__code">' + esc(codigo) + '</div>';
+                        html += '      <div class="admin-muted">' + msgs.length + ' mensaje' + (msgs.length === 1 ? '' : 's') + '</div>';
+                        html += '    </div>';
+                        html += sinResponder > 0
+                            ? '    <span class="ad-badge ad-badge--pendiente">' + sinResponder + ' sin responder</span>'
+                            : '    <span class="ad-badge ad-badge--entregado">Al día</span>';
+                        html += '  </div>';
+                        html += '  <div class="chat-thread">';
+
+                        msgs.forEach(function (m) {
+                            var clase = m.esCliente ? 'chat-msg chat-msg--client' : 'chat-msg chat-msg--admin';
+                            html += '<div class="' + clase + '"><span class="chat-bubble">' + esc(m.mensaje) + '</span></div>';
+                        });
+
+                        html += '  </div>';
+
+                        if (sinResponder > 0) {
+                            var id = msgs[0].id;
+                            html += '  <div class="chat-reply">';
+                            html += '    <label class="ad-sr" for="resp_' + id + '">Respuesta</label>';
+                            html += '    <input class="admin-input" type="text" id="resp_' + id + '" placeholder="Escribe tu respuesta…" autocomplete="off">';
+                            html += '    <button type="button" class="admin-btn admin-btn--primary admin-btn--sm" data-responder="' + id + '">Enviar</button>';
+                            html += '  </div>';
+                        }
+
+                        html += '</article>';
+                    });
+
+                    contenedor.innerHTML = html || '<div class="admin-card admin-empty">No hay consultas por ahora.</div>';
+
+                    resumen.textContent = totalConversaciones + ' conversación' + (totalConversaciones === 1 ? '' : 'es')
+                        + (totalPendientes > 0
+                            ? ' · ' + totalPendientes + ' mensaje' + (totalPendientes === 1 ? '' : 's') + ' sin responder'
+                            : ' · todo al día');
+                })
+                .catch(function (error) {
+                    console.error('No se pudieron cargar las consultas:', error);
+                    contenedor.innerHTML = '<div class="admin-card admin-empty">No se pudieron cargar las consultas. Intenta con Actualizar.</div>';
+                    resumen.textContent = 'Error de conexión';
                 });
-                if (sinResponder > 0) {
-                    html += '<div class="responder-form"><input type="text" id="resp_' + msgs[0].id + '" placeholder="Respuesta..." autocomplete="off"><button onclick="responder(' + msgs[0].id + ')">Enviar</button></div>';
-                }
-                html += '</div>';
-            }
-            document.getElementById('chatsContainer').innerHTML = html || '<p style="text-align:center;color:#666;">No hay mensajes</p>';
+        }
+
+        function responder(id) {
+            var input = document.getElementById('resp_' + id);
+            if (!input) return;
+            var respuesta = input.value.trim();
+            if (!respuesta) { input.focus(); return; }
+
+            var boton = document.querySelector('[data-responder="' + id + '"]');
+            if (boton) { boton.disabled = true; boton.textContent = 'Enviando…'; }
+
+            var formData = new FormData();
+            formData.append('respuesta', respuesta);
+
+            fetch('/admin/responder/' + id, { method: 'POST', body: formData })
+                .then(function () { cargarChats(); })
+                .catch(function (error) {
+                    console.error('No se pudo enviar la respuesta:', error);
+                    if (boton) { boton.disabled = false; boton.textContent = 'Enviar'; }
+                });
+        }
+
+        contenedor.addEventListener('click', function (event) {
+            var boton = event.target.closest('[data-responder]');
+            if (boton) responder(boton.getAttribute('data-responder'));
         });
-    }
 
-    function responder(msgId) {
-        var input = document.getElementById('resp_' + msgId); if (!input) return;
-        var respuesta = input.value.trim(); if (!respuesta) return;
-        var formData = new FormData();
-        formData.append('respuesta', respuesta);
-        fetch('/admin/responder/' + msgId, { method: 'POST', body: formData }).then(function() { cargarChats(); });
-    }
+        contenedor.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' || !event.target.matches('.chat-reply input')) return;
+            var boton = event.target.parentElement.querySelector('[data-responder]');
+            if (boton) responder(boton.getAttribute('data-responder'));
+        });
 
-    cargarChats();
-    // Refresco cada 30 s y SOLO si la pestaña está visible y el admin no está
-    // escribiendo. Antes eran 10 s fijos: con la pestaña abierta todo el día
-    // son ~8.600 consultas diarias que impiden que Neon se suspenda.
-    setInterval(function() {
-        if (document.hidden) return;
-        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-        cargarChats();
-    }, 30000);
+        if (btn) btn.addEventListener('click', cargarChats);
 
-    // Al volver a la pestaña se refresca una vez.
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) cargarChats();
-    });
+        document.addEventListener('DOMContentLoaded', cargarChats);
+    })();
 </script>
+
 </body>
 </html>

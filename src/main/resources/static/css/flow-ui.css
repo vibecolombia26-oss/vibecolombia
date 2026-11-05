@@ -1,0 +1,1004 @@
+/* ============================================================
+   FLOW UI — componentes compartidos
+   Drawer del carrito, toast, wizard, modales y formularios.
+   Paleta: azul noche #050914 / tarjetas #0d142e / acento #2563EB
+   ============================================================ */
+
+:root {
+    --flow-bg: #050914;
+    --flow-surface: #0d142e;
+    --flow-surface-2: #121b3a;
+    --flow-border: rgba(255, 255, 255, 0.08);
+    --flow-border-strong: rgba(255, 255, 255, 0.14);
+    --flow-text: #ffffff;
+    --flow-muted: #9aa4bf;
+    --flow-muted-2: #6b7794;
+    --flow-accent: #2563eb;
+    --flow-accent-hover: #1d4ed8;
+    --flow-accent-light: #60a5fa;
+    --flow-accent-soft: rgba(37, 99, 235, 0.14);
+    --flow-radius: 16px;
+    --flow-radius-sm: 10px;
+    --flow-danger: #f87171;
+    --flow-ok: #34d399;
+    --flow-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --flow-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.95);
+    --cart-bar-h: 0px;
+}
+
+body.flow-lock { overflow: hidden; }
+
+/* ---------------- Botones ---------------- */
+.flow-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--flow-text);
+    font: 600 0.92rem/1.2 var(--flow-font);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.flow-btn--primary {
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+    color: #fff;
+    box-shadow: 0 14px 30px -16px rgba(37, 99, 235, 0.9);
+}
+
+.flow-btn--primary:hover {
+    background: var(--flow-accent-hover);
+    border-color: var(--flow-accent-hover);
+    transform: translateY(-1px);
+}
+
+.flow-btn--ghost {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--flow-border-strong);
+}
+
+.flow-btn--ghost:hover {
+    border-color: rgba(37, 99, 235, 0.6);
+    background: var(--flow-accent-soft);
+}
+
+.flow-btn--block { width: 100%; }
+.flow-btn--sm { padding: 9px 14px; font-size: 0.8rem; border-radius: 9px; }
+
+.flow-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.flow-link {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--flow-muted);
+    font: 500 0.76rem/1.4 var(--flow-font);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.flow-link:hover { color: var(--flow-text); }
+
+/* ---------------- Formularios ---------------- */
+.flow-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.flow-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #c7d2fe;
+}
+
+.flow-label span { color: var(--flow-muted-2); font-weight: 400; }
+
+.flow-input,
+.flow-select,
+.flow-textarea {
+    width: 100%;
+    padding: 12px 13px;
+    border-radius: var(--flow-radius-sm);
+    border: 1px solid var(--flow-border-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--flow-text);
+    font: 400 0.9rem/1.4 var(--flow-font);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.flow-textarea { resize: vertical; min-height: 76px; }
+
+.flow-select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #7c88a6 50%), linear-gradient(135deg, #7c88a6 50%, transparent 50%);
+    background-position: calc(100% - 18px) 19px, calc(100% - 13px) 19px;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 34px;
+}
+
+.flow-input::placeholder,
+.flow-textarea::placeholder { color: var(--flow-muted-2); }
+
+.flow-input:focus,
+.flow-select:focus,
+.flow-textarea:focus {
+    border-color: rgba(37, 99, 235, 0.7);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.flow-input[aria-invalid="true"],
+.flow-select[aria-invalid="true"],
+.flow-textarea[aria-invalid="true"] { border-color: rgba(248, 113, 113, 0.7); }
+
+.flow-error {
+    display: none;
+    font-size: 0.74rem;
+    color: var(--flow-danger);
+}
+
+.flow-error.is-visible { display: block; }
+
+.flow-hint { font-size: 0.72rem; color: var(--flow-muted-2); }
+
+/* ---------------- Toast ---------------- */
+.flow-toast-wrap {
+    position: fixed;
+    z-index: 3000;
+    left: 16px;
+    right: 16px;
+    bottom: calc(var(--cart-bar-h, 0px) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+@media (min-width: 720px) {
+    .flow-toast-wrap {
+        left: auto;
+        right: 20px;
+        width: 380px;
+        bottom: calc(var(--cart-bar-h, 0px) + 20px);
+    }
+}
+
+.flow-toast {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    border-radius: 14px;
+    background: rgba(13, 20, 46, 0.98);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--flow-shadow);
+    animation: flowToastIn 0.24s ease;
+}
+
+.flow-toast.is-hiding { animation: flowToastOut 0.2s ease forwards; }
+
+.flow-toast__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.flow-toast__img {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 9px;
+    object-fit: cover;
+    background: #0b1226;
+}
+
+.flow-toast__icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-light);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.flow-toast__body { flex: 1; min-width: 0; }
+
+.flow-toast__title {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--flow-text);
+}
+
+.flow-toast__message {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--flow-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.flow-toast__close {
+    flex: none;
+    border: 0;
+    background: transparent;
+    color: var(--flow-muted-2);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.flow-toast__close:hover { color: var(--flow-text); }
+
+.flow-toast__actions { display: flex; gap: 8px; }
+.flow-toast__actions .flow-btn { flex: 1; }
+
+/* ---------------- Drawer del carrito ---------------- */
+.flow-drawer { position: fixed; inset: 0; z-index: 2500; display: none; }
+.flow-drawer.is-open { display: block; }
+
+.flow-drawer__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 5, 15, 0.62);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    animation: flowFade 0.2s ease;
+}
+
+.flow-drawer__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(430px, 100%);
+    display: flex;
+    flex-direction: column;
+    background: #0a0f24;
+    border-left: 1px solid var(--flow-border-strong);
+    box-shadow: -24px 0 60px -30px rgba(0, 0, 0, 0.95);
+    animation: flowSlideIn 0.28s ease;
+}
+
+.flow-drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--flow-border);
+}
+
+.flow-drawer__head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.flow-drawer__head h2 span { color: var(--flow-muted); font-weight: 500; }
+
+.flow-drawer__close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--flow-border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--flow-muted);
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.flow-drawer__close:hover { color: #fff; border-color: rgba(37, 99, 235, 0.6); }
+
+.flow-drawer__items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px;
+}
+
+.flow-drawer__empty {
+    padding: 48px 10px;
+    text-align: center;
+    color: var(--flow-muted);
+    font-size: 0.88rem;
+}
+
+.flow-drawer__foot {
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--flow-border);
+    background: rgba(13, 20, 46, 0.9);
+}
+
+.flow-drawer__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.84rem;
+    color: var(--flow-muted);
+    margin-bottom: 6px;
+}
+
+.flow-drawer__row strong { color: var(--flow-text); font-weight: 600; }
+
+.flow-drawer__row--total {
+    margin: 10px 0 6px;
+    font-size: 1rem;
+    color: var(--flow-text);
+}
+
+.flow-drawer__row--total strong {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--flow-accent-light);
+}
+
+.flow-drawer__note {
+    margin: 0 0 12px;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: var(--flow-muted-2);
+}
+
+/* ---------------- Línea de producto (drawer y carrito) ---------------- */
+.flow-line {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--flow-border);
+}
+
+.flow-line:last-child { border-bottom: 0; }
+
+.flow-line__img {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #0b1226;
+    border: 1px solid var(--flow-border);
+}
+
+.flow-line__name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--flow-text);
+    display: block;
+}
+
+a.flow-line__name:hover { color: var(--flow-accent-light); }
+
+.flow-line__variant {
+    margin: 3px 0 0;
+    font-size: 0.74rem;
+    color: var(--flow-muted);
+}
+
+.flow-line__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.flow-line__price {
+    font-size: 0.82rem;
+    color: var(--flow-muted);
+    white-space: nowrap;
+}
+
+.flow-line__price strong {
+    color: var(--flow-text);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.flow-qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.flow-qty button {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.flow-qty button:hover { background: var(--flow-accent-soft); }
+.flow-qty button:disabled { color: var(--flow-muted-2); cursor: not-allowed; }
+
+.flow-qty span {
+    min-width: 30px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.flow-line__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* ---------------- Wizard (checkout) ---------------- */
+.flow-steps {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.flow-step {
+    flex: 1;
+    text-align: center;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    color: var(--flow-muted-2);
+    transition: color 0.2s ease;
+}
+
+.flow-step__num {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 5px;
+    border-radius: 50%;
+    border: 1px solid var(--flow-border-strong);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.76rem;
+    font-weight: 700;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.flow-step.is-active { color: var(--flow-text); }
+
+.flow-step.is-active .flow-step__num {
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+    color: #fff;
+}
+
+.flow-step.is-done { color: #bfdbfe; }
+
+.flow-step.is-done .flow-step__num {
+    background: var(--flow-accent-soft);
+    border-color: rgba(37, 99, 235, 0.55);
+    color: var(--flow-accent-light);
+}
+
+.flow-panel[hidden] { display: none; }
+
+.flow-panel { animation: flowFade 0.2s ease; }
+
+/* ---------------- Modal ---------------- */
+.flow-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(2, 5, 15, 0.7);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.flow-modal.is-open { display: flex; }
+
+.flow-modal__card {
+    width: min(420px, 100%);
+    padding: 26px;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: var(--flow-radius);
+    background: var(--flow-surface);
+    box-shadow: var(--flow-shadow);
+    text-align: center;
+    animation: flowToastIn 0.22s ease;
+}
+
+.flow-modal__card h2 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+}
+
+.flow-modal__card p {
+    margin: 0 0 18px;
+    color: var(--flow-muted);
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.flow-modal__actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------------- Lightbox ---------------- */
+.flow-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(2, 5, 15, 0.94);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.flow-lightbox.is-open { display: flex; }
+
+.flow-lightbox__img {
+    max-width: min(1100px, 92vw);
+    max-height: 84vh;
+    border-radius: 14px;
+    border: 1px solid var(--flow-border-strong);
+    object-fit: contain;
+    background: #0b1226;
+}
+
+.flow-lightbox__close,
+.flow-lightbox__nav {
+    position: fixed;
+    z-index: 2701;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--flow-border-strong);
+    background: rgba(13, 20, 46, 0.92);
+    color: var(--flow-text);
+    font-size: 1rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.flow-lightbox__close { top: 16px; right: 16px; }
+.flow-lightbox__nav--prev { left: 16px; top: 50%; transform: translateY(-50%); }
+.flow-lightbox__nav--next { right: 16px; top: 50%; transform: translateY(-50%); }
+.flow-lightbox__close:hover,
+.flow-lightbox__nav:hover { border-color: rgba(37, 99, 235, 0.7); background: rgba(37, 99, 235, 0.2); }
+
+/* ---------------- Utilidades ---------------- */
+.flow-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.flow-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--flow-border-strong);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--flow-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.flow-badge--ok {
+    border-color: rgba(52, 211, 153, 0.4);
+    background: rgba(52, 211, 153, 0.1);
+    color: #6ee7b7;
+}
+
+.flow-badge--off {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #fca5a5;
+}
+
+/* ---------------- Animaciones ---------------- */
+@keyframes flowToastIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes flowToastOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes flowSlideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes flowFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flow-toast,
+    .flow-drawer__panel,
+    .flow-drawer__overlay,
+    .flow-modal__card,
+    .flow-panel {
+        animation-duration: 0.001ms !important;
+    }
+}
+
+/* ============================================================
+   ASISTENTE DE COMPRAS (IA)
+   ============================================================ */
+.flow-ai-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 960;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid rgba(96, 165, 250, 0.55);
+    background: linear-gradient(145deg, #2563eb 0%, #3b82f6 55%, #60a5fa 100%);
+    color: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font: 800 1.3rem/1 var(--flow-font);
+    box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 0.95);
+    animation: flowAiPulse 3.4s ease-in-out infinite;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, bottom 0.25s ease;
+}
+
+.flow-ai-fab:hover { transform: translateY(-2px) scale(1.03); }
+
+.flow-ai-fab__dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--flow-ok);
+    border: 2px solid #050914;
+}
+
+body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
+
+@keyframes flowAiPulse {
+    0%, 100% { box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 0.9), 0 0 0 0 rgba(37, 99, 235, 0.35); }
+    50% { box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 1), 0 0 0 11px rgba(37, 99, 235, 0); }
+}
+
+.flow-ai-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 88px;
+    z-index: 2800;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    height: min(560px, calc(100vh - 120px));
+    display: flex;
+    flex-direction: column;
+    background: #0a0f24;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 18px;
+    box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.95);
+    overflow: hidden;
+    animation: flowAiIn 0.24s ease;
+}
+
+.flow-ai-panel[hidden] { display: none; }
+
+.flow-ai-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--flow-border);
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0) 100%);
+}
+
+.flow-ai-head__mark {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(140deg, #2563eb, #60a5fa);
+    color: #fff;
+    font-weight: 900;
+    font-size: 0.85rem;
+}
+
+.flow-ai-head__text { flex: 1; min-width: 0; }
+.flow-ai-head__text strong { display: block; font-size: 0.86rem; letter-spacing: -0.01em; }
+
+.flow-ai-head__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    color: var(--flow-muted);
+}
+
+.flow-ai-head__status i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--flow-ok);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+.flow-ai-close {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: 50%;
+    border: 1px solid var(--flow-border);
+    background: transparent;
+    color: var(--flow-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.flow-ai-close:hover { color: #fff; border-color: rgba(37, 99, 235, 0.6); }
+
+.flow-ai-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+}
+
+.flow-ai-msg { display: flex; }
+.flow-ai-msg--user { justify-content: flex-end; }
+
+.flow-ai-bubble {
+    max-width: 84%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.flow-ai-msg--bot .flow-ai-bubble {
+    background: var(--flow-surface-2);
+    border: 1px solid var(--flow-border);
+    color: #e2e8f0;
+    border-bottom-left-radius: 5px;
+}
+
+.flow-ai-msg--user .flow-ai-bubble {
+    background: var(--flow-accent);
+    color: #fff;
+    border-bottom-right-radius: 5px;
+}
+
+.flow-ai-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.flow-ai-chip {
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.45);
+    background: rgba(37, 99, 235, 0.1);
+    color: #c7d2fe;
+    font: 600 0.74rem/1.2 var(--flow-font);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.flow-ai-chip:hover { background: rgba(37, 99, 235, 0.22); color: #fff; border-color: rgba(37, 99, 235, 0.7); }
+
+.flow-ai-products { display: grid; gap: 8px; }
+
+.flow-ai-product {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.flow-ai-product:hover { border-color: rgba(37, 99, 235, 0.55); background: rgba(37, 99, 235, 0.08); }
+
+.flow-ai-product__img,
+.flow-ai-product__ph {
+    width: 52px;
+    height: 52px;
+    border-radius: 9px;
+    object-fit: cover;
+    background: #0b1226;
+    border: 1px solid var(--flow-border);
+}
+
+.flow-ai-product__ph {
+    display: grid;
+    place-items: center;
+    color: var(--flow-accent-light);
+    font-weight: 900;
+}
+
+.flow-ai-product__body { min-width: 0; }
+
+.flow-ai-product__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+}
+
+.flow-ai-product__price {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--flow-accent-light);
+}
+
+.flow-ai-product__cta {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.68rem;
+    color: var(--flow-muted);
+}
+
+.flow-ai-form {
+    display: flex;
+    gap: 8px;
+    padding: 11px 12px;
+    border-top: 1px solid var(--flow-border);
+    background: rgba(13, 20, 46, 0.92);
+}
+
+.flow-ai-input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--flow-border-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--flow-text);
+    font: 400 0.86rem/1.4 var(--flow-font);
+    outline: none;
+}
+
+.flow-ai-input::placeholder { color: var(--flow-muted-2); }
+.flow-ai-input:focus { border-color: rgba(37, 99, 235, 0.7); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+
+.flow-ai-send {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border: 0;
+    border-radius: 10px;
+    background: var(--flow-accent);
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.flow-ai-send:hover { background: var(--flow-accent-hover); }
+.flow-ai-send:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.flow-ai-foot {
+    padding: 0 12px 10px;
+    text-align: center;
+    font-size: 0.64rem;
+    color: var(--flow-muted-2);
+    background: rgba(13, 20, 46, 0.92);
+}
+
+.flow-ai-typing { display: inline-flex; align-items: center; gap: 4px; }
+
+.flow-ai-typing i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--flow-accent-light);
+    opacity: 0.35;
+    animation: flowAiTyping 1.2s infinite;
+}
+
+.flow-ai-typing i:nth-child(2) { animation-delay: 0.15s; }
+.flow-ai-typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes flowAiTyping {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@keyframes flowAiIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 640px) {
+    .flow-ai-fab {
+        right: 14px;
+        bottom: 14px;
+        width: 52px;
+        height: 52px;
+        font-size: 1.15rem;
+    }
+
+    body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 12px); }
+
+    .flow-ai-panel {
+        inset: 0;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .flow-ai-bubble { max-width: 88%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flow-ai-fab { animation: none; }
+    .flow-ai-panel { animation-duration: 0.001ms !important; }
+}
