@@ -1,7 +1,6 @@
 package com.flowcolombia.flowcolombia;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -85,27 +84,6 @@ public class SitemapController {
                 + "Disallow: /api/\n"
                 + "\n"
                 + "Sitemap: " + basePublica() + "/sitemap.xml\n";
-    }
-
-    /**
-     * Archivo de verificación de propiedad de Google Search Console.
-     *
-     * <p>Google pide subir un archivo con un nombre concreto
-     * ({@code google6c0e…html}) cuyo contenido debe ser exactamente una línea:
-     * {@code google-site-verification: <nombre-del-archivo>}.</p>
-     *
-     * <p>En lugar de versionar ese archivo (el nombre cambia si se cambia de
-     * cuenta o de propiedad), se genera al vuelo: cualquier
-     * {@code /googleXXXX.html} devuelve la línea correcta para ese nombre. Así
-     * la verificación funciona sin conocer el hash de antemano.</p>
-     *
-     * <p>Si algún día prefieres el archivo físico, basta con dejarlo en
-     * {@code src/main/resources/static/}: Spring Boot lo sirve igual, porque la
-     * ruta ya está abierta en {@code SecurityConfig}.</p>
-     */
-    @GetMapping(value = "/{archivo:google[a-zA-Z0-9_-]+\\.html}", produces = "text/html; charset=UTF-8")
-    public String verificacionGoogle(@PathVariable String archivo) {
-        return "google-site-verification: " + archivo;
     }
 
     // ============================================================
