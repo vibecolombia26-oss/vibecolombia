@@ -95,6 +95,12 @@ public class SecurityConfig {
                         // SEO: los buscadores tienen que poder leerlos sin sesión
                         .requestMatchers("/sitemap.xml", "/robots.txt").permitAll()
 
+                        // Verificación de dominio de Google Search Console.
+                        // Sin esta línea, /googleXXXX.html cae en
+                        // anyRequest().authenticated() → 302 al login y Google
+                        // no puede verificar la propiedad del sitio.
+                        .requestMatchers("/google*.html").permitAll()
+
                         // Login del administrador
                         .requestMatchers("/admin-login", "/admin/login").permitAll()
 

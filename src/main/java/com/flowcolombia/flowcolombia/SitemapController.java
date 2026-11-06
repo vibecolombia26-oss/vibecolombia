@@ -1,6 +1,7 @@
 package com.flowcolombia.flowcolombia;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -8,12 +9,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Sitemap dinámico y {@code robots.txt} para los buscadores.
+ * Archivos de infraestructura SEO: sitemap, {@code robots.txt} y la
+ * verificación de propiedad de Google Search Console.
  *
  * <p><strong>Coste en Neon:</strong> el sitemap se genera con
  * <em>una única consulta</em> que devuelve solo la columna {@code slug}
  * ({@link ProductoRepository#findSlugsParaSitemap()}). No se cargan entidades
- * ni colecciones perezosas: el XML se arma en memoria y no hay N+1.</p>
+ * ni colecciones perezosas: el XML se arma en memoria y no hay N+1. Los otros
+ * dos endpoints no tocan la base de datos.</p>
  *
  * <p>Las URLs se construyen a partir de la petición actual, así que funcionan
  * igual en local y en producción (con {@code forward-headers-strategy=framework}
@@ -82,6 +85,27 @@ public class SitemapController {
                 + "Disallow: /api/\n"
                 + "\n"
                 + "Sitemap: " + basePublica() + "/sitemap.xml\n";
+    }
+
+    /**
+     * Archivo de verificación de propiedad de Google Search Console.
+     *
+     * <p>Google pide subir un archivo con un nombre concreto
+     * ({@code google6c0e…html}) cuyo contenido debe ser exactamente una línea:
+     * {@code google-site-verification: <nombre-del-archivo>}.</p>
+     *
+     * <p>En lugar de versionar ese archivo (el nombre cambia si se cambia de
+     * cuenta o de propiedad), se genera al vuelo: cualquier
+     * {@code /googleXXXX.html} devuelve la línea correcta para ese nombre. Así
+     * la verificación funciona sin conocer el hash de antemano.</p>
+     *
+     * <p>Si algún día prefieres el archivo físico, basta con dejarlo en
+     * {@code src/main/resources/static/}: Spring Boot lo sirve igual, porque la
+     * ruta ya está abierta en {@code SecurityConfig}.</p>
+     */
+    @GetMapping(value = "/{archivo:google[a-zA-Z0-9_-]+\\.html}", produces = "text/html; charset=UTF-8")
+    public String verificacionGoogle(@PathVariable String archivo) {
+        return "google-site-verification: " + archivo;
     }
 
     // ============================================================
