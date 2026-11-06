@@ -6,22 +6,30 @@
      METADATOS COMPARTIDOS DE LAS PÁGINAS PÚBLICAS
      ------------------------------------------------------------
      Aquí vive lo que es igual en toda la tienda y no depende de la
-     vista: en este momento, la verificación de propiedad de Google
-     Search Console.
+     vista: verificación de dominio de Google Search Console y de
+     Meta (Facebook).
 
      Uso, dentro del <head> de cada plantilla pública:
-       <th:block th:replace="~{fragments/public-meta :: googleSiteVerification}"></th:block>
+       <th:block th:replace="~{fragments/public-meta :: publicMeta}"></th:block>
 
      Por qué <th:block>: es un contenedor que Thymeleaf NO renderiza,
-     así que el reemplazo inyecta únicamente la etiqueta <meta>. Un
+     así que el reemplazo inyecta únicamente las etiquetas <meta>. Un
      <div> o un <head> dentro del <head> sería HTML inválido.
 
-     El token solo necesita estar en la portada para verificar la
-     propiedad, pero se deja en todas las vistas públicas para no
+     Duplicar meta de verificación es correcto: Search Console y Meta
+     leen la que les corresponde. Google solo necesita la suya en la
+     portada, pero se dejan en todas las vistas públicas para no
      depender de una página concreta.
      ============================================================ -->
-<th:block th:fragment="googleSiteVerification">
-    <meta name="google-site-verification" content="vpz9nScZSVSBxjGN-qIJJG68hMBsdzP8NmMZ8R_S0u8">
+<th:block th:fragment="publicMeta">
+    <!-- Google Search Console -->
+    <meta name="google-site-verification" content="vpz9nScZSVSBxjGN-qIJJG68hMBsdzP8NmMZ8R_S0u8" />
+
+    <!-- Meta (Facebook) - Dominio futuro -->
+    <meta name="facebook-domain-verification" content="eus43wbtavhmjwhc29khng8705x4pz" />
+
+    <!-- Meta (Facebook) - Dominio Render actual -->
+    <meta name="facebook-domain-verification" content="ff67agqhiiijtn3v58zvahsejh7tym" />
 </th:block>
 
 </body>
