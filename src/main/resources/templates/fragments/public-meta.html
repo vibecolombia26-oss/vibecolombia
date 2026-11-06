@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================
+     METADATOS COMPARTIDOS DE LAS PÁGINAS PÚBLICAS
+     ------------------------------------------------------------
+     Aquí vive lo que es igual en toda la tienda y no depende de la
+     vista: en este momento, la verificación de propiedad de Google
+     Search Console.
+
+     Uso, dentro del <head> de cada plantilla pública:
+       <th:block th:replace="~{fragments/public-meta :: googleSiteVerification}"></th:block>
+
+     Por qué <th:block>: es un contenedor que Thymeleaf NO renderiza,
+     así que el reemplazo inyecta únicamente la etiqueta <meta>. Un
+     <div> o un <head> dentro del <head> sería HTML inválido.
+
+     El token solo necesita estar en la portada para verificar la
+     propiedad, pero se deja en todas las vistas públicas para no
+     depender de una página concreta.
+     ============================================================ -->
+<th:block th:fragment="googleSiteVerification">
+    <meta name="google-site-verification" content="vpz9nScZSVSBxjGN-qIJJG68hMBsdzP8NmMZ8R_S0u8">
+</th:block>
+
+</body>
+</html>
