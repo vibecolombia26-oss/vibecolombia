@@ -92,6 +92,9 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/health", "/error").permitAll()
 
+                        // SEO: los buscadores tienen que poder leerlos sin sesión
+                        .requestMatchers("/sitemap.xml", "/robots.txt").permitAll()
+
                         // Login del administrador
                         .requestMatchers("/admin-login", "/admin/login").permitAll()
 

@@ -19,9 +19,18 @@
                         Información del producto
                     </p>
                 </div>
-                <a class="admin-btn admin-btn--ghost admin-btn--sm" th:href="@{/admin/panel} + '#catalogo'">
-                    ← Volver al catálogo
-                </a>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <!-- SEO: enlace a la URL canónica (slug) en la tienda -->
+                    <a class="admin-btn admin-btn--ghost admin-btn--sm"
+                       th:if="${producto.slug != null}"
+                       th:href="@{/producto/{slug}(slug=${producto.slug})}"
+                       target="_blank" rel="noopener">
+                        Ver en la tienda ↗
+                    </a>
+                    <a class="admin-btn admin-btn--ghost admin-btn--sm" th:href="@{/admin/panel} + '#catalogo'">
+                        ← Volver al catálogo
+                    </a>
+                </div>
             </div>
 
             <!-- ============================================================ -->

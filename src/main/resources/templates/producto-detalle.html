@@ -3,8 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${producto.nombre} + ' · FLOW COLOMBIA'">Producto · FLOW COLOMBIA</title>
     <meta name="theme-color" content="#050914">
+
+    <!-- ============================================================
+         SEO: título, descripción y URL canónica con slug
+         ============================================================ -->
+    <title th:text="${producto.nombre} + ' | Flow Colombia'">Producto | Flow Colombia</title>
+    <meta name="description"
+          th:content="'Conoce ' + ${producto.nombre} + '. Consulta precio, disponibilidad y opciones de entrega en Flow Colombia.'">
+    <link rel="canonical" th:href="@{/producto/{slug}(slug=${producto.slug})}">
+
+    <!-- Open Graph: lo leen WhatsApp, Facebook y X al compartir el enlace -->
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="FLOW COLOMBIA">
+    <meta property="og:title" th:content="${producto.nombre} + ' | Flow Colombia'">
+    <meta property="og:description" th:content="${seoDescripcion}">
+    <meta property="og:url" th:content="${urlCanonica}">
+    <meta property="og:image" th:if="${imagenPrincipal != null}" th:content="${imagenPrincipal}">
+
     <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=3)}" href="/css/flow-ui.css">
     <style>
         :root {
@@ -667,6 +683,43 @@
             #cartFloat.show { animation: none; }
         }
     </style>
+
+    <!-- ============================================================
+         DATOS ESTRUCTURADOS (schema.org/Product + Offer)
+         Se generan con th:inline="javascript": Thymeleaf serializa cada
+         valor como literal JSON válido (comillas y escapes incluidos),
+         así que no se concatenan comillas a mano en el HTML.
+         Todo el texto sale de la base de datos; no se inventa nada.
+         ============================================================ -->
+    <script type="application/ld+json" th:inline="javascript">
+    /*<![CDATA[*/
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": /*[[${producto.nombre}]]*/ "Producto",
+      "description": /*[[${seoDescripcion}]]*/ "",
+      "sku": /*[[${producto.sku}]]*/ "",
+      "image": /*[[${seoImagenes}]]*/ [],
+      "url": /*[[${urlCanonica}]]*/ "",
+      "brand": {
+        "@type": "Brand",
+        "name": "FLOW COLOMBIA"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": /*[[${urlCanonica}]]*/ "",
+        "priceCurrency": "COP",
+        "price": /*[[${seoPrecio}]]*/ 0,
+        "availability": /*[[${seoDisponible ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'}]]*/ "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition",
+        "seller": {
+          "@type": "Organization",
+          "name": "FLOW COLOMBIA"
+        }
+      }
+    }
+    /*]]>*/
+    </script>
 </head>
 <body>
 
@@ -948,7 +1001,7 @@
 </div>
 
 <script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
-<script th:src="@{/js/flow-assistant.js(v=2)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=3)}" src="/js/flow-assistant.js"></script>
 <script th:inline="javascript">
     // ============================================================
     // DATOS DE LA VISTA (DTOs planos del controlador)
@@ -957,7 +1010,7 @@
     const variantesLista = Array.isArray(variantes) ? variantes : [];
     const productoId = /*[[${producto.id}]]*/ null;
     const productoNombre = /*[[${producto.nombre}]]*/ '';
-    const productoUrl = productoId != null ? ('/producto/' + productoId) : '/';
+    const productoUrl = /*[[${urlProducto}]]*/ '/';
     const precioBase = Number(/*[[${producto.precio}]]*/ 0) || 0;
 
     let varianteSeleccionada = null;

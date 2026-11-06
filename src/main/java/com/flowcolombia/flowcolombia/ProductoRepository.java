@@ -77,4 +77,37 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findRelacionados(@Param("productoId") Long productoId,
                                     @Param("categoria") String categoria,
                                     Pageable pageable);
+
+    // ============================================================
+    // SEO: URL amigable y sitemap
+    // ============================================================
+
+    /**
+     * Búsqueda por slug (URL canónica {@code /producto/{slug}}).
+     *
+     * <p>Trae las imágenes en la misma consulta con {@code EntityGraph}: es
+     * una sola colección, así que no aparece la {@code MultipleBagFetchException}
+     * que obliga a separar las variantes en otra consulta.</p>
+     */
+    @EntityGraph(attributePaths = "imagenes")
+    Optional<Producto> findBySlug(String slug);
+
+    /** ¿Ese slug ya está ocupado? (generación de slug al crear) */
+    boolean existsBySlug(String slug);
+
+    /** ¿Ese slug lo usa otro producto distinto? (generación al editar) */
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    /**
+     * Slugs del catálogo para el sitemap.
+     *
+     * <p>Devuelve solo la columna del slug: ni entidades ni colecciones
+     * perezosas, para no gastar cómputo en Neon al generar el XML.</p>
+     */
+    @Query("SELECT p.slug FROM Producto p WHERE p.slug IS NOT NULL AND p.slug <> '' ORDER BY p.id")
+    List<String> findSlugsParaSitemap();
+
+    /** IDs de productos que todavía no tienen slug (migración de arranque). */
+    @Query("SELECT p.id FROM Producto p WHERE p.slug IS NULL OR p.slug = ''")
+    List<Long> findIdsSinSlug();
 }

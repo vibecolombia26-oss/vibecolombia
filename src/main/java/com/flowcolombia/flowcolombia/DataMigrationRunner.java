@@ -32,6 +32,57 @@ public class DataMigrationRunner implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        migrarImagenesYVariantes();
+        migrarSlugs();
+    }
+
+    /**
+     * Rellena el slug SEO de los productos que todavía no lo tienen.
+     *
+     * <p>Es idempotente y solo trabaja mientras queden pendientes: en un
+     * arranque normal hace <strong>una</strong> consulta
+     * ({@code findIdsSinSlug}) y termina. Para no gastar consultas, carga de
+     * una vez todos los slugs ya usados y resuelve los duplicados en memoria.</p>
+     */
+    private void migrarSlugs() {
+        List<Long> pendientes = productoRepository.findIdsSinSlug();
+        if (pendientes.isEmpty()) {
+            return;
+        }
+
+        Set<String> usados = new HashSet<>(productoRepository.findSlugsParaSitemap());
+        int generados = 0;
+
+        for (Long id : pendientes) {
+            Producto producto = productoRepository.findById(id).orElse(null);
+            if (producto == null || producto.getNombre() == null) {
+                continue;
+            }
+
+            String base = SlugUtil.generar(producto.getNombre());
+            if (base.isEmpty()) {
+                base = "producto-" + id;
+            }
+
+            String candidato = base;
+            int intento = 2;
+            while (usados.contains(candidato)) {
+                candidato = SlugUtil.conSufijo(base, intento++);
+            }
+
+            producto.setSlug(candidato);
+            usados.add(candidato);
+            productoRepository.save(producto);
+            generados++;
+        }
+
+        if (generados > 0) {
+            System.out.println("✅ Slugs SEO generados: " + generados + " producto(s).");
+        }
+    }
+
+    /** Migración legacy de imágenes y variantes (solo lo que esté pendiente). */
+    private void migrarImagenesYVariantes() {
         Set<Long> idsSinImagenes = new HashSet<>(productoRepository.findIdsSinImagenes());
         Set<Long> idsSinVariantes = new HashSet<>(productoRepository.findIdsSinVariantes());
 

@@ -183,11 +183,17 @@
         box.className = 'flow-ai-products';
 
         productos.slice(0, 4).forEach(function (p) {
-            if (!p || p.id == null) return;
+            if (!p || (!p.slug && p.id == null)) return;
 
             var link = document.createElement('a');
             link.className = 'flow-ai-product';
-            link.href = '/producto/' + encodeURIComponent(p.id);
+
+            // URL canónica con slug: el usuario entra directo al producto, sin
+            // pasar por la redirección 301 de la ruta antigua por id.
+            // Si un producto todavía no tuviera slug, se usa el id como respaldo.
+            link.href = (p.slug && String(p.slug).trim() !== '')
+                ? '/producto/' + encodeURIComponent(p.slug)
+                : '/producto/' + encodeURIComponent(p.id);
 
             if (p.imagen) {
                 var img = document.createElement('img');

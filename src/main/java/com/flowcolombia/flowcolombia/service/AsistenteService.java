@@ -168,7 +168,8 @@ public class AsistenteService {
                         p.getPrecio(),
                         stock,
                         imagen == null ? "" : imagen,
-                        p.getSku() == null ? "" : p.getSku()
+                        p.getSku() == null ? "" : p.getSku(),
+                        p.getSlug() == null ? "" : p.getSlug()
                 ));
             }
 
@@ -389,7 +390,7 @@ public class AsistenteService {
         }
 
         return elegidos.values().stream()
-                .map(p -> new ProductoRecomendado(p.id(), p.nombre(), p.precio(), p.imagen()))
+                .map(p -> new ProductoRecomendado(p.id(), p.nombre(), p.precio(), p.imagen(), p.slug()))
                 .toList();
     }
 
@@ -471,11 +472,24 @@ public class AsistenteService {
     // ============================================================
     // DTOs
     // ============================================================
+    /**
+     * Entrada del catálogo en memoria.
+     *
+     * @param slug URL canónica del producto; se usa para que las tarjetas del
+     *             chat enlacen directo a {@code /producto/{slug}} sin pasar por
+     *             la redirección 301 de la ruta antigua por id
+     */
     public record ProductoCatalogo(Long id, String nombre, String categoria, Double precio,
-                                   int stock, String imagen, String sku) {
+                                   int stock, String imagen, String sku, String slug) {
     }
 
-    public record ProductoRecomendado(Long id, String nombre, Double precio, String imagen) {
+    /**
+     * Tarjeta de producto que devuelve el chat.
+     *
+     * @param slug URL canónica; {@code flow-assistant.js} la prefiere y solo
+     *             cae al {@code id} si faltara
+     */
+    public record ProductoRecomendado(Long id, String nombre, Double precio, String imagen, String slug) {
     }
 
     /**

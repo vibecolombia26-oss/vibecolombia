@@ -39,6 +39,25 @@ public class Producto {
     private String sku;
 
     /**
+     * Slug de la URL amigable: {@code /producto/combo-uro-o-plus}.
+     *
+     * <p>Es único para que dos productos nunca compartan URL. Lo genera la
+     * aplicación a partir del nombre ({@link SlugUtil}) y, una vez asignado,
+     * no cambia al renombrar el producto: las URLs estables no rompen los
+     * enlaces ni el posicionamiento ya ganado.</p>
+     *
+     * <p><strong>Nota de despliegue:</strong> la columna se crea como
+     * anulable a propósito. En PostgreSQL, añadir una columna {@code NOT NULL}
+     * a una tabla con filas falla al arrancar (Hibernate la crearía vacía), así
+     * que la obligatoriedad se garantiza en el código —la migración de arranque
+     * rellena todos los productos existentes y cada guardado fija el slug— y el
+     * esquema se puede endurecer después con:
+     * {@code ALTER TABLE producto ALTER COLUMN slug SET NOT NULL;}</p>
+     */
+    @Column(name = "slug", length = 180, unique = true)
+    private String slug;
+
+    /**
      * Precio base del producto (se usa como referencia si la variante no define precio propio).
      */
     @Column(nullable = false)
@@ -173,6 +192,14 @@ public class Producto {
 
     public void setSku(String sku) {
         this.sku = sku;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public Double getPrecio() {

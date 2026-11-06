@@ -1110,7 +1110,7 @@
 
             <!-- Producto destacado + miniatura (collage) -->
             <div class="hero-media" th:if="${destacado != null}">
-                <a class="hero-card" th:href="@{/producto/{id}(id=${destacado.id})}">
+                <a class="hero-card" th:href="@{/producto/{slug}(slug=${destacado.slug})}">
                     <img th:if="${not #lists.isEmpty(destacado.imagenes) or destacado.imagen1 != null}"
                          th:src="${not #lists.isEmpty(destacado.imagenes) ? destacado.imagenes[0].url : destacado.imagen1}"
                          th:alt="${destacado.nombre}"
@@ -1128,7 +1128,7 @@
 
                 <a class="hero-card-mini"
                    th:if="${secundario != null and (not #lists.isEmpty(secundario.imagenes) or secundario.imagen1 != null)}"
-                   th:href="@{/producto/{id}(id=${secundario.id})}"
+                   th:href="@{/producto/{slug}(slug=${secundario.slug})}"
                    aria-hidden="true" tabindex="-1">
                     <img th:src="${not #lists.isEmpty(secundario.imagenes) ? secundario.imagenes[0].url : secundario.imagen1}"
                          alt="" loading="lazy" decoding="async">
@@ -1199,7 +1199,7 @@
                      th:each="producto : ${productos}"
                      th:attr="data-busqueda=${producto.nombre + ' ' + (producto.categoria != null ? producto.categoria : '') + ' ' + (producto.descripcion != null ? producto.descripcion : '') + ' ' + (producto.sku != null ? producto.sku : '')}">
 
-                <a class="product-media" th:href="@{/producto/{id}(id=${producto.id})}">
+                <a class="product-media" th:href="@{/producto/{slug}(slug=${producto.slug})}">
                     <img th:if="${not #lists.isEmpty(producto.imagenes) or producto.imagen1 != null}"
                          th:src="${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : producto.imagen1}"
                          th:alt="${producto.nombre}" loading="lazy" decoding="async">
@@ -1210,7 +1210,7 @@
 
                 <div class="product-body">
                     <span class="product-cat" th:text="${producto.categoria}">Categoría</span>
-                    <a class="product-name" th:href="@{/producto/{id}(id=${producto.id})}"
+                    <a class="product-name" th:href="@{/producto/{slug}(slug=${producto.slug})}"
                        th:text="${producto.nombre}">Nombre</a>
                     <p class="product-desc" th:text="${producto.descripcion}">Descripción</p>
                     <span class="product-sku" th:text="'Ref. ' + ${producto.sku != null ? producto.sku : 'N/A'}">Ref. N/A</span>
@@ -1219,7 +1219,7 @@
                         <span class="product-price"
                               th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</span>
                         <button type="button" class="btn-add"
-                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id}">
+                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id},data-url=@{/producto/{slug}(slug=${producto.slug})}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"></path>
@@ -1358,12 +1358,12 @@
      SCRIPTS DE LA TIENDA
      ============================================================ -->
 <script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
-<script th:src="@{/js/flow-assistant.js(v=2)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=3)}" src="/js/flow-assistant.js"></script>
 <script>
     // ============================================================
     // AGREGAR AL CARRITO (misma firma y mismo localStorage)
     // ============================================================
-    function agregarAlCarrito(nombre, precio, imagen, productoId) {
+    function agregarAlCarrito(nombre, precio, imagen, productoId, urlProducto) {
         const id = (productoId != null && productoId !== '') ? Number(productoId) : null;
         FlowCart.add({
             sku: '',
@@ -1374,7 +1374,8 @@
             color: '',
             talla: '',
             productoId: id,
-            url: id ? ('/producto/' + id) : ''
+            // URL amigable con slug (la envía Thymeleaf en data-url)
+            url: urlProducto || (id ? ('/producto/' + id) : '')
         }, { title: 'Añadido al carrito' });
     }
 
@@ -1385,7 +1386,8 @@
             btn.dataset.nombre || '',
             Number(btn.dataset.precio) || 0,
             btn.dataset.imagen || '',
-            btn.dataset.productoId
+            btn.dataset.productoId,
+            btn.dataset.url || ''
         );
     });
 

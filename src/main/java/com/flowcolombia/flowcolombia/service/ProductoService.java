@@ -4,6 +4,7 @@ import com.flowcolombia.flowcolombia.Producto;
 import com.flowcolombia.flowcolombia.ProductoImagen;
 import com.flowcolombia.flowcolombia.ProductoImagenRepository;
 import com.flowcolombia.flowcolombia.ProductoRepository;
+import com.flowcolombia.flowcolombia.SlugUtil;
 import com.flowcolombia.flowcolombia.VarianteProducto;
 import com.flowcolombia.flowcolombia.VarianteProductoRepository;
 import org.springframework.data.domain.PageRequest;
@@ -140,10 +141,41 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public DetalleProductoVista obtenerDetalleVista(Long id) {
         Producto producto = obtenerDetalleProducto(id);
+        return producto == null ? null : construirVista(producto);
+    }
+
+    /**
+     * Detalle por slug: es la ruta canónica del SEO ({@code /producto/{slug}}).
+     *
+     * <p>Mismas consultas que la variante por id: producto + imágenes
+     * ({@code EntityGraph}) y variantes en una segunda consulta, porque dos
+     * bolsas a la vez romperían Hibernate con {@code MultipleBagFetchException}.</p>
+     *
+     * @param slug slug del producto (se normaliza a minúsculas)
+     * @return la vista o {@code null} si no existe
+     */
+    @Transactional(readOnly = true)
+    public DetalleProductoVista obtenerDetalleVistaPorSlug(String slug) {
+        if (slug == null || slug.isBlank()) {
+            return null;
+        }
+
+        Producto producto = productoRepository.findBySlug(slug.trim().toLowerCase(Locale.ROOT)).orElse(null);
         if (producto == null) {
             return null;
         }
 
+        productoRepository.findWithVariantes(producto.getId()).orElse(null);
+        inicializarColecciones(producto);
+
+        return construirVista(producto);
+    }
+
+    /**
+     * Arma la vista plana (mapas) a partir de un producto cuyas colecciones ya
+     * están inicializadas dentro de la transacción.
+     */
+    private DetalleProductoVista construirVista(Producto producto) {
         // ------------------------------------------------------------
         // VARIANTES -> lista de mapas planos
         // ------------------------------------------------------------
@@ -213,6 +245,16 @@ public class ProductoService {
         return productoRepository.findBySku(sku).orElse(null);
     }
 
+    /**
+     * Producto por slug (URL amigable). Devuelve {@code null} si no existe.
+     */
+    public Producto obtenerPorSlug(String slug) {
+        if (slug == null || slug.isBlank()) {
+            return null;
+        }
+        return productoRepository.findBySlug(slug.trim().toLowerCase(Locale.ROOT)).orElse(null);
+    }
+
     public Producto guardar(Producto producto) {
         return productoRepository.save(producto);
     }
@@ -279,6 +321,10 @@ public class ProductoService {
         } else {
             productoGuardado = productoRepository.save(productoForm);
         }
+
+        // SEO: slug único y estable. Se genera a partir del nombre la primera
+        // vez y NO se recalcula al renombrar, para no romper URLs ya indexadas.
+        productoGuardado.setSlug(asegurarSlug(productoGuardado, productoForm.getSlug()));
 
         // 2. Sincronizar la colección normalizada de imágenes (ProductoImagen)
         //    con los campos legacy imagen1..imagen6, que es lo que edita el
@@ -488,8 +534,7 @@ public class ProductoService {
     // ============================================================
     // VALIDACIÓN DE VARIANTE
     // ============================================================
-    private void validarVariante(VarianteProducto variante) {
-        List<String> errores = new ArrayList<>();
+    private void validarVariante(VarianteProducto variante) {        List<String> errores = new ArrayList<>();
 
         if (variante.getSku() == null || variante.getSku().trim().isEmpty()) {
             errores.add("El SKU de la variante es obligatorio.");
@@ -552,5 +597,53 @@ public class ProductoService {
             return new ArrayList<>();
         }
         return obtenerRelacionados(productoId, producto.getCategoria(), limite);
+    }
+
+    // ============================================================
+    // SEO: GENERACIÓN DEL SLUG
+    // ============================================================
+
+    /**
+     * Devuelve el slug definitivo de un producto.
+     *
+     * <p>Si ya tenía uno se respeta (URL estable: renombrar el producto no
+     * cambia su dirección). Si no, se genera a partir del nombre —o del slug
+     * propuesto— y se le añade un sufijo numérico si otro producto ya lo usa.</p>
+     *
+     * @param producto      producto a guardar (id null si es nuevo)
+     * @param slugPropuesto slug enviado desde el formulario, si existe
+     */
+    private String asegurarSlug(Producto producto, String slugPropuesto) {
+        String actual = producto.getSlug();
+        if (actual != null && !actual.isBlank()) {
+            return actual;
+        }
+
+        String texto = (slugPropuesto != null && !slugPropuesto.isBlank())
+                ? slugPropuesto
+                : producto.getNombre();
+
+        String base = SlugUtil.generar(texto);
+        if (base.isEmpty()) {
+            base = "producto";
+        }
+
+        String candidato = base;
+        int intento = 2;
+        while (slugEnUso(candidato, producto.getId())) {
+            candidato = SlugUtil.conSufijo(base, intento++);
+            if (intento > 500) {
+                // Salida de emergencia: no debería ocurrir con un catálogo real.
+                candidato = SlugUtil.conSufijo(base, (int) (System.currentTimeMillis() % 100_000));
+                break;
+            }
+        }
+        return candidato;
+    }
+
+    private boolean slugEnUso(String slug, Long idProducto) {
+        return idProducto == null
+                ? productoRepository.existsBySlug(slug)
+                : productoRepository.existsBySlugAndIdNot(slug, idProducto);
     }
 }
