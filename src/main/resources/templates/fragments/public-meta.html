@@ -30,6 +30,40 @@
 
     <!-- Meta (Facebook) - Dominio Render actual -->
     <meta name="facebook-domain-verification" content="ff67agqhiiijtn3v58zvahsejh7tym" />
+
+    <!-- ============================================================
+         META PÍXEL - código base
+         El ID del píxel es público (viaja en el HTML). El token de la
+         API de Conversiones NO está aquí: vive en el servidor.
+         La CSP de SecurityConfig permite connect.facebook.net; sin eso
+         el navegador bloquearía el script.
+         ============================================================ -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () {
+                n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+        fbq('init', '28602483122785418');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+             alt=""
+             src="https://www.facebook.com/tr?id=28602483122785418&amp;ev=PageView&amp;noscript=1" />
+    </noscript>
 </th:block>
 
 </body>

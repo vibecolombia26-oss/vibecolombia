@@ -114,6 +114,26 @@
     }
 
     /* ------------------------------------------------------------
+       Meta Pixel (opcional)
+       ------------------------------------------------------------
+       Un fallo del píxel NUNCA debe afectar al carrito ni a la compra.
+       Si el script de Meta no cargó (bloqueador, CSP, red), fbq no
+       existe y simplemente no se envía nada.
+       ------------------------------------------------------------ */
+    function trackMeta(evento, datos, eventId) {
+        try {
+            if (typeof window.fbq !== 'function') return;
+            if (eventId) {
+                window.fbq('track', evento, datos || {}, { eventID: eventId });
+            } else {
+                window.fbq('track', evento, datos || {});
+            }
+        } catch (e) {
+            console.warn('Meta Pixel: no se pudo registrar ' + evento, e);
+        }
+    }
+
+    /* ------------------------------------------------------------
        Operaciones
        ------------------------------------------------------------ */
     /* Ventana anti-doble-disparo. El mismo artículo dos veces en menos de
@@ -158,6 +178,17 @@
         }
 
         write(items);
+
+        // Meta Pixel: AddToCart (solo cuando el alta es real; el guard de
+        // doble disparo de arriba ya descartó los clics repetidos).
+        trackMeta('AddToCart', {
+            content_ids: [nuevo.sku || nuevo.nombre],
+            content_name: nuevo.nombre,
+            content_type: 'product',
+            value: (Number(nuevo.precio) || 0) * (Number(nuevo.cantidad) || 1),
+            currency: 'COP',
+            num_items: Number(nuevo.cantidad) || 1
+        });
 
         if (options.toast !== false) {
             toast({
@@ -625,7 +656,8 @@
         openDrawer: openDrawer,
         closeDrawer: closeDrawer,
         goToCart: goToCart,
-        toast: toast
+        toast: toast,
+        trackMeta: trackMeta
     };
 
     if (document.readyState === 'loading') {

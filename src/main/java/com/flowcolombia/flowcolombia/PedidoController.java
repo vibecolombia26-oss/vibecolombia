@@ -1,8 +1,11 @@
 package com.flowcolombia.flowcolombia;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.flowcolombia.flowcolombia.service.MetaConversionsService;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,11 +25,16 @@ public class PedidoController {
     private final PedidoRepository pedidoRepository;
     private final MensajeRepository mensajeRepository;
     private final EmailService emailService;
+    private final MetaConversionsService metaConversionsService;
 
-    public PedidoController(PedidoRepository pedidoRepository, MensajeRepository mensajeRepository, EmailService emailService) {
+    public PedidoController(PedidoRepository pedidoRepository,
+                            MensajeRepository mensajeRepository,
+                            EmailService emailService,
+                            MetaConversionsService metaConversionsService) {
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
         this.emailService = emailService;
+        this.metaConversionsService = metaConversionsService;
     }
 
     /**
@@ -111,7 +119,7 @@ public class PedidoController {
 
     @PostMapping("/api/pedido")
     @ResponseBody
-    public Map<String, String> guardarPedido(@RequestBody Pedido pedido) {
+    public Map<String, String> guardarPedido(@RequestBody Pedido pedido, HttpServletRequest request) {
         System.out.println("=========================================");
         System.out.println("📦 NUEVO PEDIDO RECIBIDO:");
         System.out.println("  Cliente: " + pedido.getNombreCliente());
@@ -156,7 +164,54 @@ public class PedidoController {
         Map<String, String> response = new HashMap<>();
         response.put("codigo", pedido.getCodigo());
         response.put("status", "OK");
+        // ============================================================
+        // META CAPI: evento Purchase desde el servidor.
+        // El event_id es el código del pedido, el MISMO que enviará el
+        // navegador desde la pantalla de confirmación: Meta los reconoce
+        // como un único evento y no cuenta la venta dos veces.
+        // El envío es asíncrono: no retrasa ni puede romper el checkout.
+        // ============================================================
+        metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
+
         return response;
+    }
+
+    /**
+     * Recoge del navegador lo que Meta usa para mejorar el matching:
+     * IP, user-agent, cookies del píxel y la URL de origen.
+     */
+    private static MetaConversionsService.Contexto contextoMeta(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return new MetaConversionsService.Contexto(
+                ipDe(request),
+                request.getHeader("User-Agent"),
+                cookieDe(request, "_fbp"),
+                cookieDe(request, "_fbc"),
+                request.getHeader("Referer"));
+    }
+
+    private static String cookieDe(HttpServletRequest request, String nombre) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (nombre.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * IP del cliente. Con {@code server.forward-headers-strategy=framework}
+     * el proxy ya la deja en {@code getRemoteAddr()}.
+     */
+    private static String ipDe(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        return (ip == null || ip.isBlank()) ? null : ip;
     }
 
     @GetMapping("/api/pedido/{codigo}")

@@ -644,7 +644,7 @@
 <!-- ==================== FOOTER COMPARTIDO ==================== -->
 <div th:replace="~{fragments/public-footer :: publicFooter}"></div>
 
-<script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=3)}" src="/js/flow-cart.js"></script>
 <script>
     // ============================================================
     // DEPARTAMENTOS Y CIUDADES DE COLOMBIA
@@ -996,11 +996,32 @@
         if (paso === 4) renderizarRevision();
     }
 
+    /** El InitiateCheckout se mide una sola vez por visita. */
+    let checkoutMedido = false;
+
     function iniciarCheckout() {
         if (!itemsCarrito().length) {
             FlowCart.toast({ title: 'Tu carrito está vacío', message: 'Agrega un producto para continuar.' });
             return;
         }
+
+        // ============================================================
+        // META PÍXEL: InitiateCheckout
+        // Se dispara al entrar al checkout, venga del botón del carrito o
+        // de /carrito?checkout=1 (drawer), pero solo una vez por visita.
+        // ============================================================
+        if (!checkoutMedido) {
+            checkoutMedido = true;
+            const items = itemsCarrito();
+            FlowCart.trackMeta('InitiateCheckout', {
+                content_ids: items.map(function (item) { return item.sku || item.nombre; }),
+                content_type: 'product',
+                value: FlowCart.subtotal(items),
+                currency: 'COP',
+                num_items: items.reduce(function (acc, item) { return acc + (Number(item.cantidad) || 1); }, 0)
+            });
+        }
+
         vistaCarrito.hidden = true;
         vistaConfirmacion.hidden = true;
         vistaCheckout.hidden = false;
@@ -1119,11 +1140,26 @@
         };
     }
 
-    function mostrarConfirmacion(codigo) {
+    /**
+     * Pinta la confirmación y dispara el Purchase del navegador.
+     *
+     * @param codigo      código del pedido (lo devuelve el backend)
+     * @param datosCompra contenido y valor capturados ANTES de vaciar el
+     *                    carrito; se usan para el evento del píxel
+     */
+    function mostrarConfirmacion(codigo, datosCompra) {
         vistaCarrito.hidden = true;
         vistaCheckout.hidden = true;
         vistaConfirmacion.hidden = false;
         document.getElementById('codigoPedido').textContent = codigo || '---';
+
+        // ============================================================
+        // META PÍXEL: Purchase con eventID = código del pedido.
+        // El backend (API de Conversiones) manda el MISMO event_name con el
+        // MISMO event_id. Meta los une y cuenta la venta UNA sola vez.
+        // ============================================================
+        FlowCart.trackMeta('Purchase', datosCompra || {}, codigo);
+
         // El pedido ya está en el backend: aquí (y solo aquí) se descarta el
         // borrador del checkout.
         limpiarEstadoCheckout();
@@ -1210,8 +1246,21 @@
             })
             .then(function (data) {
                 if (data && data.status === 'OK') {
+                    // Se capturan los datos del carrito ANTES de vaciarlo:
+                    // el píxel necesita el valor y los artículos del pedido.
+                    const itemsComprados = itemsCarrito();
+                    const datosPixel = {
+                        content_ids: itemsComprados.map(function (item) { return item.sku || item.nombre; }),
+                        content_type: 'product',
+                        value: FlowCart.subtotal(itemsComprados),
+                        currency: 'COP',
+                        num_items: itemsComprados.reduce(function (acc, item) {
+                            return acc + (Number(item.cantidad) || 1);
+                        }, 0)
+                    };
+
                     FlowCart.clear();
-                    mostrarConfirmacion(data.codigo);
+                    mostrarConfirmacion(data.codigo, datosPixel);
                 } else {
                     throw new Error('Respuesta inválida del servidor');
                 }

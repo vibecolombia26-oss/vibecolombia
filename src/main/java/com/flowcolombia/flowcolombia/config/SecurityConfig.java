@@ -167,15 +167,17 @@ public class SecurityConfig {
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31_536_000))
-                        // CSP permisiva a propósito: las plantillas usan estilos
-                        // y manejadores inline. No hay ningún CDN externo, así
-                        // que el navegador solo carga recursos propios.
+                        // CSP: las plantillas usan estilos y manejadores inline,
+                        // y el Píxel de Meta necesita cargar su script desde
+                        // connect.facebook.net y enviar los eventos a
+                        // facebook.com. Sin estas dos excepciones el píxel
+                        // queda bloqueado en silencio (solo se ve en consola).
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "default-src 'self'; "
                                         + "img-src 'self' data: https:; "
                                         + "style-src 'self' 'unsafe-inline'; "
-                                        + "script-src 'self' 'unsafe-inline'; "
-                                        + "connect-src 'self'; "
+                                        + "script-src 'self' 'unsafe-inline' https://connect.facebook.net; "
+                                        + "connect-src 'self' https://www.facebook.com https://connect.facebook.net; "
                                         + "font-src 'self' data:; "
                                         + "object-src 'none'; "
                                         + "base-uri 'self'; "

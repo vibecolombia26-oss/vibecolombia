@@ -1001,7 +1001,7 @@
     <button type="button" class="flow-lightbox__nav flow-lightbox__nav--next" id="lightboxNext" aria-label="Imagen siguiente">›</button>
 </div>
 
-<script th:src="@{/js/flow-cart.js(v=2)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=3)}" src="/js/flow-cart.js"></script>
 <script th:src="@{/js/flow-assistant.js(v=3)}" src="/js/flow-assistant.js"></script>
 <script th:inline="javascript">
     // ============================================================
@@ -1455,6 +1455,23 @@
         irAImagen(0);
         renderizarSelectores();
         FlowCart.refresh();
+
+        // ============================================================
+        // META PÍXEL: ViewContent de esta ficha
+        // content_ids usa el SKU real del producto y value el precio base.
+        // ============================================================
+        const skuPixel = /*[[${producto.sku}]]*/ '';
+        const precioPixel = /*[[${producto.precio}]]*/ 0;
+
+        if (skuPixel) {
+            FlowCart.trackMeta('ViewContent', {
+                content_ids: [skuPixel],
+                content_name: /*[[${producto.nombre}]]*/ '',
+                content_type: 'product',
+                value: Number(precioPixel) || 0,
+                currency: 'COP'
+            });
+        }
     });
 </script>
 
