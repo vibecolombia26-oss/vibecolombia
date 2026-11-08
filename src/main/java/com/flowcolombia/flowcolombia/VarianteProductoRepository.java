@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,13 @@ import java.util.Optional;
 public interface VarianteProductoRepository extends JpaRepository<VarianteProducto, Long> {
 
     List<VarianteProducto> findByProductoId(Long productoId);
+
+    /**
+     * Variantes de varios productos en UNA sola consulta.
+     * Lo usa el asistente de administración al buscar productos: evita el N+1
+     * de recorrer cada producto pidiendo sus variantes.
+     */
+    List<VarianteProducto> findByProductoIdIn(Collection<Long> productoIds);
 
     /**
      * Trae la variante junto con su producto en la misma consulta.

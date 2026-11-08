@@ -210,6 +210,9 @@
 
 <div th:replace="~{fragments/admin-layout :: confirmModal}"></div>
 
+<!-- Asistente IA del panel -->
+<div th:replace="~{fragments/admin-layout :: asistenteAdmin}"></div>
+
 <script th:inline="javascript">
     // Solo se serializa el ID del pedido seleccionado (nunca la entidad completa).
     var pedidoSeleccionadoId = /*[[${pedidoSeleccionado != null ? pedidoSeleccionado.id : null}]]*/ null;

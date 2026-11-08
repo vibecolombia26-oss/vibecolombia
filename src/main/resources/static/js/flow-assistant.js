@@ -8,14 +8,15 @@
     'use strict';
 
     var API_URL = '/api/asistente';
-    var GREETING = '¡Hola! Soy tu asistente de Flow Colombia. ¿Qué estás buscando hoy? ' +
-        'Algo para ti, para tu casa, o para regalar.';
+    var GREETING = '¡Hola! Soy Sofía de Flow Colombia 🌸. ¿Buscas algo para ti, para tu casa o un regalo especial?';
     var QUICK_OPTIONS = [
-        { label: 'Algo para mí', text: 'Busco algo para mí.' },
+        { label: 'Para mí', text: 'Busco algo para mí.' },
         { label: 'Para mi casa', text: 'Busco algo para mi casa.' },
-        { label: 'Para regalar', text: 'Busco un regalo.' }
+        { label: 'Un regalo', text: 'Busco un regalo especial.' }
     ];
     var MAX_HISTORIAL = 6;
+    /** El prompt pide máximo 2 productos: el chat muestra esos 2. */
+    var MAX_TARJETAS = 2;
 
     var fab = null;
     var panel = null;
@@ -54,14 +55,14 @@
         panel = document.createElement('section');
         panel.className = 'flow-ai-panel';
         panel.setAttribute('role', 'dialog');
-        panel.setAttribute('aria-label', 'Asistente de compras de Flow Colombia');
+        panel.setAttribute('aria-label', 'Sofía, asesora de Flow Colombia');
         panel.hidden = true;
         panel.innerHTML =
             '<header class="flow-ai-head">' +
-            '  <span class="flow-ai-head__mark" aria-hidden="true">F</span>' +
+            '  <span class="flow-ai-head__mark" aria-hidden="true">S</span>' +
             '  <div class="flow-ai-head__text">' +
-            '    <strong>Asistente Flow</strong>' +
-            '    <span class="flow-ai-head__status"><i aria-hidden="true"></i> Guía de compras</span>' +
+            '    <strong>Sofía · Flow Colombia</strong>' +
+            '    <span class="flow-ai-head__status"><i aria-hidden="true"></i> Asesora de estilo</span>' +
             '  </div>' +
             '  <button type="button" class="flow-ai-close" aria-label="Cerrar asistente">✕</button>' +
             '</header>' +
@@ -72,7 +73,7 @@
             '         placeholder="Ej: busco algo para mi casa" autocomplete="off">' +
             '  <button type="submit" class="flow-ai-send" aria-label="Enviar mensaje">→</button>' +
             '</form>' +
-            '<p class="flow-ai-foot">Recomendaciones basadas en el catálogo real de la tienda.</p>';
+            '<p class="flow-ai-foot">Sofía responde con el catálogo real · envío gratis y pago contra entrega.</p>';
 
         document.body.appendChild(fab);
         document.body.appendChild(panel);
@@ -182,18 +183,23 @@
         var box = document.createElement('div');
         box.className = 'flow-ai-products';
 
-        productos.slice(0, 4).forEach(function (p) {
+        productos.slice(0, MAX_TARJETAS).forEach(function (p) {
             if (!p || (!p.slug && p.id == null)) return;
-
-            var link = document.createElement('a');
-            link.className = 'flow-ai-product';
 
             // URL canónica con slug: el usuario entra directo al producto, sin
             // pasar por la redirección 301 de la ruta antigua por id.
             // Si un producto todavía no tuviera slug, se usa el id como respaldo.
-            link.href = (p.slug && String(p.slug).trim() !== '')
+            var destino = (p.slug && String(p.slug).trim() !== '')
                 ? '/producto/' + encodeURIComponent(p.slug)
                 : '/producto/' + encodeURIComponent(p.id);
+
+            var card = document.createElement('div');
+            card.className = 'flow-ai-product';
+
+            // ---- zona clicable: imagen + nombre + precio ----
+            var link = document.createElement('a');
+            link.className = 'flow-ai-product__main';
+            link.href = destino;
 
             if (p.imagen) {
                 var img = document.createElement('img');
@@ -211,7 +217,7 @@
                 link.appendChild(ph);
             }
 
-            var body = document.createElement('div');
+            var body = document.createElement('span');
             body.className = 'flow-ai-product__body';
 
             var name = document.createElement('span');
@@ -222,19 +228,92 @@
             price.className = 'flow-ai-product__price';
             price.textContent = formatPrice(p.precio);
 
-            var cta = document.createElement('span');
-            cta.className = 'flow-ai-product__cta';
-            cta.textContent = 'Ver producto →';
-
             body.appendChild(name);
             body.appendChild(price);
-            body.appendChild(cta);
             link.appendChild(body);
-            box.appendChild(link);
+            card.appendChild(link);
+
+            // ---- acciones: comprar desde el chat + ver ficha ----
+            var acciones = document.createElement('div');
+            acciones.className = 'flow-ai-product__actions';
+
+            var agregar = document.createElement('button');
+            agregar.type = 'button';
+            agregar.className = 'flow-ai-add';
+            agregar.textContent = 'Agregar al carrito';
+            agregar.addEventListener('click', function (evento) {
+                evento.preventDefault();
+                agregarDesdeChat(p, agregar);
+            });
+
+            var ver = document.createElement('a');
+            ver.className = 'flow-ai-product__cta';
+            ver.href = destino;
+            ver.textContent = 'Ver →';
+
+            acciones.appendChild(agregar);
+            acciones.appendChild(ver);
+            card.appendChild(acciones);
+            box.appendChild(card);
         });
 
         feed.appendChild(box);
         scrollToEnd();
+    }
+
+    /**
+     * Compra rápida desde el chat.
+     *
+     * Reutiliza el carrito compartido (flow-cart.js): misma clave de
+     * localStorage, mismo drawer, mismo toast y mismo píxel de Meta. No hay
+     * lógica de carrito duplicada.
+     */
+    function agregarDesdeChat(producto, boton) {
+        if (!window.FlowCart || typeof window.FlowCart.add !== 'function') {
+            boton.textContent = 'Abre la tienda';
+            return;
+        }
+
+        try {
+            window.FlowCart.add({
+                sku: '',
+                nombre: producto.nombre || 'Producto',
+                precio: Number(producto.precio) || 0,
+                imagen: producto.imagen || '',
+                cantidad: 1,
+                color: '',
+                talla: '',
+                productoId: producto.id != null ? producto.id : null,
+                url: producto.slug ? ('/producto/' + producto.slug) : ''
+            }, { title: 'Añadido desde el chat' });
+        } catch (e) {
+            console.error('Asistente: no se pudo agregar al carrito', e);
+            boton.textContent = 'Intenta de nuevo';
+            return;
+        }
+
+        // Confirmación visual en el propio botón.
+        boton.textContent = '✓ Agregado';
+        boton.classList.add('is-added');
+        setTimeout(function () {
+            boton.textContent = 'Agregar al carrito';
+            boton.classList.remove('is-added');
+        }, 2200);
+    }
+
+    /** Lo que el cliente ya tiene en el carrito (solo nombres). */
+    function carritoActual() {
+        try {
+            if (window.FlowCart && typeof window.FlowCart.read === 'function') {
+                return window.FlowCart.read()
+                    .map(function (item) { return String(item.nombre || ''); })
+                    .filter(function (nombre) { return nombre; })
+                    .slice(0, 6);
+            }
+        } catch (e) {
+            /* sin carrito disponible */
+        }
+        return [];
     }
 
     function scrollToEnd() {
@@ -268,7 +347,7 @@
         busy = value;
         if (input) input.disabled = value;
         if (sendBtn) sendBtn.disabled = value;
-        if (input) input.placeholder = value ? 'Pensando…' : 'Ej: busco algo para mi casa';
+        if (input) input.placeholder = value ? 'Sofía está escribiendo…' : 'Ej: busco algo para mi casa';
     }
 
     function send(text) {
@@ -290,7 +369,12 @@
         fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ mensaje: message, historial: previous })
+            // El carrito viaja para que Sofía pueda ofrecer un complemento lógico.
+            body: JSON.stringify({
+                mensaje: message,
+                historial: previous,
+                carrito: carritoActual()
+            })
         })
             .then(function (response) {
                 return response.json()

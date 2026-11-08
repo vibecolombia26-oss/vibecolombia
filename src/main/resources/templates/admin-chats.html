@@ -29,6 +29,9 @@
 
 <div th:replace="~{fragments/admin-layout :: confirmModal}"></div>
 
+<!-- Asistente IA del panel -->
+<div th:replace="~{fragments/admin-layout :: asistenteAdmin}"></div>
+
 <script>
     // Sin polling: se carga al abrir, al responder y con el botón Actualizar
     // (o el Refrescar del header). Así no se mantiene despierta la BD.

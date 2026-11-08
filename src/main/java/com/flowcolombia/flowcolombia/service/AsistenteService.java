@@ -2,7 +2,6 @@ package com.flowcolombia.flowcolombia.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.flowcolombia.flowcolombia.Producto;
 import com.flowcolombia.flowcolombia.ProductoRepository;
@@ -32,17 +31,28 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Asistente de compras con IA.
+ * Sofía, la asesora de ventas de Flow Colombia (asistente con IA).
  *
- * <p>El catálogo (nombre, categoría, precio, stock e imagen) se carga
- * <strong>una sola vez</strong> en memoria al arrancar la aplicación. Cada
- * mensaje del chat usa esta copia: no se consulta la base de datos por
- * mensaje, por lo que no se despierta Neon ni se gasta el free tier.</p>
+ * <p><strong>Personalidad y método:</strong> el prompt la convierte en una
+ * vendedora senior (metodología SPIN adaptada: entender la necesidad → ofrecer
+ * máximo 2 productos → beneficio principal → ganchos de la tienda → manejo de
+ * objeciones), con límites estrictos para no inventar nada.</p>
+ *
+ * <p><strong>Búsqueda dinámica (tool calling):</strong> además del catálogo que
+ * viaja en el prompt, la IA puede llamar a la función
+ * {@code buscarProductos(termino)}. El modelo no ejecuta nada: devuelve un
+ * {@code tool_calls}, el backend filtra y le devuelve el resultado como mensaje
+ * {@code role: "tool"}, y con eso compone la respuesta final.</p>
+ *
+ * <p><strong>Coste en Neon:</strong> el catálogo se carga
+ * <strong>una sola vez</strong> al arrancar y la búsqueda filtra sobre esa
+ * copia en memoria: ni una consulta por mensaje. Si la carga inicial falló
+ * (Neon dormido), se reintenta una vez por mensaje mientras el catálogo siga
+ * vacío.</p>
  *
  * <p>La clave de DeepSeek vive solo en el servidor
- * ({@code DEEPSEEK_API_KEY}); el frontend nunca la recibe. Si no hay clave
- * o la API falla, el asistente responde con una guía local basada en el
- * catálogo real.</p>
+ * ({@code DEEPSEEK_API_KEY}); el navegador nunca la recibe. Si no hay clave o
+ * la API falla, el asistente responde con el catálogo real en modo local.</p>
  */
 @Service
 public class AsistenteService {
@@ -50,9 +60,38 @@ public class AsistenteService {
     private static final Logger log = LoggerFactory.getLogger(AsistenteService.class);
 
     private static final int MAX_PRODUCTOS_CONTEXTO = 150;
-    private static final int MAX_RECOMENDADOS = 4;
+    /** El prompt le pide máximo 2 productos: las tarjetas respetan lo mismo. */
+    private static final int MAX_RECOMENDADOS = 2;
     private static final int MAX_HISTORIAL = 6;
     private static final int MAX_MENSAJE = 600;
+    /** Resultados que devuelve la búsqueda al modelo. */
+    private static final int MAX_RESULTADOS_BUSQUEDA = 6;
+    /** Llamadas a la IA por mensaje: una con herramientas y una final sin ellas. */
+    private static final int MAX_ITERACIONES_IA = 2;
+
+    // ============================================================
+    // HERRAMIENTA DE BÚSQUEDA
+    // ============================================================
+    public static final String TOOL_BUSCAR = "buscarProductos";
+
+    private static final String TOOLS_JSON = """
+            [
+              {
+                "type": "function",
+                "function": {
+                  "name": "buscarProductos",
+                  "description": "Busca productos del catálogo de Flow Colombia por nombre, categoría o uso (por ejemplo 'sol', 'hogar', 'regalo', 'mochila'). Devuelve hasta 6 productos con nombre, precio, stock e imagen. Úsala antes de recomendar cuando el cliente pida algo concreto.",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "termino": { "type": "string", "description": "Palabra o frase corta a buscar: producto, categoría o uso" }
+                    },
+                    "required": ["termino"]
+                  }
+                }
+              }
+            ]
+            """;
 
     // ============================================================
     // RASTREO DE PEDIDOS (puente con la página Flow Track)
@@ -79,20 +118,44 @@ public class AsistenteService {
             "numero de guia", "guia de envio"
     };
 
+    // ============================================================
+    // EL CEREBRO: personalidad + metodología + límites
+    // ============================================================
     private static final String SYSTEM_PROMPT =
-            "Eres el asistente de compras de FLOW COLOMBIA, una tienda colombiana. " +
-            "Solo puedes recomendar productos del catálogo proporcionado. " +
-            "Si no sabes un precio o stock, invita al usuario a verificar en la tienda. " +
-            "No diagnostiques problemas médicos ni prometas resultados. " +
-            "Sé breve, amable y enfocado en ayudar a elegir. " +
-            "Reglas adicionales: responde en español, en un máximo de 90 palabras, sin markdown; " +
-            "nunca inventes productos, precios ni stock; cuando recomiendes algo, usa el nombre " +
-            "exacto del producto tal como aparece en el catálogo y menciona a lo sumo 3 productos. " +
-            "REGLA DE SEGUIMIENTO: si el usuario pregunta por el estado, la ubicación o el rastreo " +
-            "de un pedido, o pide consultar su pedido, NO inventes estados, fechas ni guías y NO pidas " +
-            "datos personales: responde exactamente \"" + RESPUESTA_RASTREO + "\" y añade al final, " +
-            "en una línea aparte, el token " + MARCA_SEGUIMIENTO + ". " +
-            "En cualquier otro caso no menciones el seguimiento ni escribas ese token.";
+            "Eres Sofía, la asesora experta en estilo y bienestar de Flow Colombia. "
+            + "Eres cálida, profesional y usas un tono colombiano amable (puedes usar 'parce' o 'con gusto' con moderación). "
+            + "Tu trabajo es ayudar al cliente a encontrar lo que necesita y acompañarlo hasta la compra, sin ser invasiva.\n\n"
+
+            + "METODOLOGÍA (venta consultiva, estilo SPIN):\n"
+            + "1. Primero entiende la necesidad. Si el cliente no ha dicho para qué es, haz UNA sola pregunta corta y concreta "
+            + "(por ejemplo: '¿es para uso diario o para un viaje?'). Nunca más de una pregunta por mensaje.\n"
+            + "2. Cuando ya sepas la necesidad, recomienda como máximo 2 productos del catálogo que de verdad encajen, "
+            + "con el nombre exacto tal como aparece.\n"
+            + "3. Destaca siempre el beneficio principal de cada producto ('es impermeable y muy liviana'), no solo sus características.\n"
+            + "4. Menciona los ganchos de la tienda en el momento oportuno, sin repetirlos en todos los mensajes: "
+            + "'Tenemos envío gratis y pago contra entrega'.\n\n"
+
+            + "MANEJO DE OBJECIONES:\n"
+            + "- Si duda por el precio, no inventes descuentos ni rebajes: destaca la calidad y la tranquilidad de pagar al recibir "
+            + "('lo pagas cuando ya lo tienes en tus manos').\n"
+            + "- Si duda por talla, color o stock, invítala a ver la ficha del producto, donde están las opciones reales.\n"
+            + "- Si pide algo que no tenemos, dilo con honestidad y ofrece la alternativa más cercana del catálogo.\n\n"
+
+            + "LÍMITES:\n"
+            + "- No inventes productos, precios, descuentos ni stock. Si no sabes algo, invita a ver la ficha del producto.\n"
+            + "- No prometas resultados médicos ni curas: eres asesora de estilo y bienestar, no profesional de la salud.\n"
+            + "- No pidas datos personales (correo, teléfono, dirección) en el chat.\n"
+            + "- Responde en español, sin markdown, en un máximo de 80 palabras y con tono conversacional: "
+            + "nada de listas con viñetas.\n\n"
+
+            + "HERRAMIENTA: si el cliente pide algo concreto por nombre, categoría o uso ('algo para el sol', 'para la casa', "
+            + "'un regalo'), llama a " + TOOL_BUSCAR + " con un término corto ANTES de responder y usa solo lo que devuelva esa "
+            + "búsqueda. Si no devuelve nada, dilo y ofrece una categoría que sí exista.\n\n"
+
+            + "REGLA DE SEGUIMIENTO: si el usuario pregunta por el estado, la ubicación o el rastreo de un pedido, o pide "
+            + "consultar su pedido, NO inventes estados, fechas ni guías y NO pidas datos personales: responde exactamente \""
+            + RESPUESTA_RASTREO + "\" y añade al final, en una línea aparte, el token " + MARCA_SEGUIMIENTO + ". "
+            + "En cualquier otro caso no menciones el seguimiento ni escribas ese token.";
 
     private final ProductoRepository productoRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -194,10 +257,27 @@ public class AsistenteService {
     // ============================================================
     // RESPUESTA
     // ============================================================
+
+    /** Compatibilidad: conversación sin contexto de carrito. */
     public RespuestaAsistente responder(String mensaje, List<MensajeHistorial> historial) {
+        return responder(mensaje, historial, null);
+    }
+
+    /**
+     * Genera la respuesta de Sofía.
+     *
+     * @param mensaje   lo que escribe el cliente
+     * @param historial conversación reciente
+     * @param carrito   lo que el cliente ya tiene en el carrito (puede ser null)
+     */
+    public RespuestaAsistente responder(String mensaje,
+                                        List<MensajeHistorial> historial,
+                                        ContextoCarrito carrito) {
+
         String texto = mensaje == null ? "" : mensaje.trim();
         if (texto.isEmpty()) {
-            return new RespuestaAsistente("Cuéntame qué estás buscando y te ayudo a elegir.", List.of());
+            return new RespuestaAsistente(
+                    "Cuéntame qué estás buscando y con gusto te ayudo a elegir 🌸", List.of());
         }
         texto = recortar(texto, MAX_MENSAJE);
 
@@ -214,28 +294,113 @@ public class AsistenteService {
                     "Estoy cargando el catálogo de la tienda. Intenta de nuevo en unos segundos.", List.of());
         }
 
-        String respuesta = null;
+        ResultadoIA resultado = null;
         if (apiKey != null && !apiKey.isBlank()) {
             try {
-                respuesta = llamarDeepSeek(texto, historial);
+                resultado = conversar(texto, historial, carrito);
             } catch (Exception e) {
                 log.warn("Asistente: fallo al llamar a DeepSeek: {}", e.getMessage());
             }
         }
 
+        String respuesta = (resultado == null) ? null : resultado.texto();
+        List<ProductoCatalogo> buscados = (resultado == null) ? List.of() : resultado.buscados();
+
         if (respuesta == null || respuesta.isBlank()) {
-            List<ProductoCatalogo> sugeridos = productosPorPalabras(texto);
+            List<ProductoCatalogo> sugeridos = buscados.isEmpty() ? productosPorPalabras(texto) : buscados;
             respuesta = respuestaLocal(sugeridos);
         }
 
         // La IA señaló la acción con el token: se descarta su redacción y se
         // responde con el texto canónico, para no inventar estados de pedido.
-        if (respuesta != null && respuesta.contains(MARCA_SEGUIMIENTO)) {
+        if (respuesta.contains(MARCA_SEGUIMIENTO)) {
             return new RespuestaAsistente(RESPUESTA_RASTREO, List.of(), ACCION_IR_A_SEGUIMIENTO);
         }
 
-        List<ProductoRecomendado> productos = recomendar(respuesta, texto);
+        List<ProductoRecomendado> productos = recomendar(respuesta, texto, buscados);
         return new RespuestaAsistente(respuesta.trim(), productos);
+    }
+
+    /**
+     * Conversación con el modelo, incluyendo el bucle de herramientas.
+     *
+     * <p>En la última iteración se envía la petición <em>sin</em> herramientas,
+     * así el modelo está obligado a cerrar con texto en lugar de encadenar
+     * búsquedas sin fin.</p>
+     */
+    private ResultadoIA conversar(String mensaje, List<MensajeHistorial> historial, ContextoCarrito carrito) {
+
+        List<Map<String, Object>> mensajes = new ArrayList<>();
+        Map<String, Object> sistema = new LinkedHashMap<>();
+        sistema.put("role", "system");
+        sistema.put("content", promptSistema(carrito));
+        mensajes.add(sistema);
+
+        if (historial != null) {
+            historial.stream()
+                    .filter(Objects::nonNull)
+                    .filter(m -> "user".equals(m.role()) || "assistant".equals(m.role()))
+                    .filter(m -> m.content() != null && !m.content().isBlank())
+                    .limit(MAX_HISTORIAL)
+                    .forEach(m -> mensajes.add(mensajeRol(m.role(), recortar(m.content().trim(), 500))));
+        }
+
+        mensajes.add(mensajeRol("user", mensaje));
+
+        List<ProductoCatalogo> buscados = new ArrayList<>();
+
+        for (int iteracion = 0; iteracion < MAX_ITERACIONES_IA; iteracion++) {
+            boolean ultima = iteracion == MAX_ITERACIONES_IA - 1;
+
+            JsonNode mensajeIA = llamarDeepSeek(mensajes, !ultima);
+            if (mensajeIA == null) {
+                return null;
+            }
+
+            JsonNode toolCalls = mensajeIA.path("tool_calls");
+            String contenido = mensajeIA.path("content").asText("");
+
+            if (toolCalls.isArray() && !toolCalls.isEmpty()) {
+                mensajes.add(objectMapper.convertValue(mensajeIA, Map.class));
+
+                for (JsonNode llamada : toolCalls) {
+                    String nombre = llamada.path("function").path("name").asText("");
+                    String id = llamada.path("id").asText("");
+                    JsonNode argumentos = leerArgumentos(llamada);
+
+                    String salida;
+                    if (TOOL_BUSCAR.equals(nombre)) {
+                        List<ProductoCatalogo> encontrados =
+                                buscarProductos(argumentos.path("termino").asText(""));
+                        // Se conserva la primera búsqueda: es la que guió la respuesta.
+                        if (buscados.isEmpty()) {
+                            buscados.addAll(encontrados);
+                        }
+                        salida = jsonBusqueda(encontrados);
+                    } else {
+                        salida = "{\"error\":\"Herramienta desconocida\"}";
+                    }
+
+                    Map<String, Object> mensajeTool = new LinkedHashMap<>();
+                    mensajeTool.put("role", "tool");
+                    mensajeTool.put("tool_call_id", id);
+                    mensajeTool.put("content", salida);
+                    mensajes.add(mensajeTool);
+                }
+                continue;
+            }
+
+            return new ResultadoIA(contenido, List.copyOf(buscados));
+        }
+
+        return new ResultadoIA("", List.copyOf(buscados));
+    }
+
+    private static Map<String, Object> mensajeRol(String rol, String contenido) {
+        Map<String, Object> mensaje = new LinkedHashMap<>();
+        mensaje.put("role", rol);
+        mensaje.put("content", contenido);
+        return mensaje;
     }
 
     /** ¿El mensaje pide rastrear o consultar un pedido? */
@@ -255,63 +420,166 @@ public class AsistenteService {
      */
     private String respuestaLocal(List<ProductoCatalogo> sugeridos) {
         if (sugeridos.isEmpty()) {
-            return "Ahora mismo no puedo generar una recomendación personalizada. " +
-                    "Puedes explorar el catálogo completo en la tienda o escribirnos por WhatsApp.";
+            return "Ahora mismo no puedo darte una recomendación personalizada, pero puedes explorar el catálogo "
+                    + "completo en la tienda o escribirnos por WhatsApp. Tenemos envío gratis y pago contra entrega.";
         }
-        return "Ahora mismo no puedo generar una recomendación personalizada, pero estas opciones " +
-                "del catálogo de FLOW COLOMBIA pueden servirte. Toca una para ver el detalle y el stock actualizado.";
+        return "Ahora mismo no puedo darte una recomendación personalizada, pero estas opciones del catálogo de "
+                + "Flow Colombia pueden servirte. Toca una para ver el detalle y el stock real. "
+                + "Tenemos envío gratis y pago contra entrega.";
+    }
+
+    // ============================================================
+    // BÚSQUEDA DINÁMICA (filtra sobre la copia en memoria)
+    // ============================================================
+
+    /**
+     * Filtra el catálogo en memoria por nombre, categoría o uso.
+     *
+     * <p>No toca la base de datos: el catálogo ya está cargado y esta búsqueda
+     * se resuelve con operaciones de cadenas en el proceso.</p>
+     *
+     * @param termino palabra o frase corta ("sol", "hogar", "mochila", "regalo")
+     * @return hasta {@value #MAX_RESULTADOS_BUSQUEDA} productos, con stock primero
+     */
+    public List<ProductoCatalogo> buscarProductos(String termino) {
+        if (termino == null || termino.isBlank()) {
+            return List.of();
+        }
+
+        String completo = normalizar(termino);
+        List<String> tokens = new ArrayList<>();
+        for (String parte : completo.split("\\s+")) {
+            if (parte.length() >= 2) {
+                tokens.add(parte);
+            }
+        }
+        if (tokens.isEmpty()) {
+            return List.of();
+        }
+
+        List<ProductoCatalogo> puntuados = new ArrayList<>();
+        Map<Long, Integer> puntaje = new HashMap<>();
+
+        for (ProductoCatalogo producto : catalogo) {
+            int score = puntuar(producto, completo, tokens);
+            if (score > 0) {
+                puntuados.add(producto);
+                puntaje.put(producto.id(), score);
+            }
+        }
+
+        puntuados.sort(Comparator
+                .comparingInt((ProductoCatalogo p) -> puntaje.getOrDefault(p.id(), 0)).reversed()
+                .thenComparing(p -> p.stock() > 0 ? 0 : 1)
+                .thenComparing(ProductoCatalogo::nombre));
+
+        return puntuados.size() <= MAX_RESULTADOS_BUSQUEDA
+                ? List.copyOf(puntuados)
+                : List.copyOf(puntuados.subList(0, MAX_RESULTADOS_BUSQUEDA));
+    }
+
+    private static int puntuar(ProductoCatalogo producto, String completo, List<String> tokens) {
+        String nombre = normalizar(producto.nombre());
+        String categoria = normalizar(producto.categoria());
+
+        int score = 0;
+        // Coincidencia de la frase completa: pesa más que palabra por palabra.
+        if (nombre.contains(completo)) {
+            score += 6;
+        }
+        if (categoria.contains(completo)) {
+            score += 5;
+        }
+        for (String token : tokens) {
+            if (nombre.contains(token)) {
+                score += 3;
+            }
+            if (categoria.contains(token)) {
+                score += 2;
+            }
+        }
+        // Lo agotado nunca debe ganarle a lo disponible.
+        if (score > 0 && producto.stock() <= 0) {
+            score -= 2;
+        }
+        return score;
+    }
+
+    /** Resultado de la búsqueda que se le devuelve al modelo. */
+    private String jsonBusqueda(List<ProductoCatalogo> encontrados) {
+        List<Map<String, Object>> resultados = new ArrayList<>();
+        for (ProductoCatalogo p : encontrados) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nombre", p.nombre());
+            item.put("categoria", p.categoria());
+            item.put("precio", p.precio());
+            item.put("disponible", p.stock() > 0);
+            item.put("referencia", p.sku());
+            resultados.add(item);
+        }
+
+        Set<String> categorias = new java.util.TreeSet<>();
+        for (ProductoCatalogo p : catalogo) {
+            categorias.add(p.categoria());
+        }
+
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("resultados", resultados);
+        cuerpo.put("total", resultados.size());
+        cuerpo.put("categorias_disponibles", new ArrayList<>(categorias));
+        if (resultados.isEmpty()) {
+            cuerpo.put("nota", "Sin coincidencias para ese término. Ofrece una de las categorías disponibles.");
+        }
+
+        try {
+            return objectMapper.writeValueAsString(cuerpo);
+        } catch (Exception e) {
+            return "{\"resultados\":[],\"total\":0}";
+        }
     }
 
     // ============================================================
     // DEEPSEEK
     // ============================================================
-    private String llamarDeepSeek(String mensaje, List<MensajeHistorial> historial) throws Exception {
-        ObjectNode payload = objectMapper.createObjectNode();
-        payload.put("model", model);
-        payload.put("temperature", 0.5);
-        payload.put("max_tokens", maxTokens);
-        payload.put("stream", false);
+    private JsonNode llamarDeepSeek(List<Map<String, Object>> mensajes, boolean incluirHerramientas) {
+        try {
+            ObjectNode payload = objectMapper.createObjectNode();
+            payload.put("model", model);
+            payload.put("temperature", 0.6);
+            payload.put("max_tokens", maxTokens);
+            payload.put("stream", false);
+            payload.set("messages", objectMapper.valueToTree(mensajes));
 
-        ArrayNode messages = payload.putArray("messages");
-        messages.addObject().put("role", "system").put("content", promptSistema());
+            if (incluirHerramientas) {
+                payload.set("tools", objectMapper.readTree(TOOLS_JSON));
+                payload.put("tool_choice", "auto");
+            }
 
-        if (historial != null) {
-            historial.stream()
-                    .filter(Objects::nonNull)
-                    .filter(m -> "user".equals(m.role()) || "assistant".equals(m.role()))
-                    .filter(m -> m.content() != null && !m.content().isBlank())
-                    .limit(MAX_HISTORIAL)
-                    .forEach(m -> messages.addObject()
-                            .put("role", m.role())
-                            .put("content", recortar(m.content().trim(), 500)));
-        }
-        messages.addObject().put("role", "user").put("content", mensaje);
+            HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint()))
+                    .timeout(Duration.ofSeconds(timeoutSeconds))
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(
+                            objectMapper.writeValueAsString(payload), StandardCharsets.UTF_8))
+                    .build();
 
-        String body = objectMapper.writeValueAsString(payload);
+            HttpResponse<String> response = httpClient.send(request,
+                    HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-        HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint()))
-                .timeout(Duration.ofSeconds(timeoutSeconds))
-                .header("Authorization", "Bearer " + apiKey)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
-                .build();
+            if (response.statusCode() != 200) {
+                log.warn("Asistente: DeepSeek respondió {}: {}", response.statusCode(),
+                        recortar(response.body(), 300));
+                return null;
+            }
 
-        HttpResponse<String> response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        if (response.statusCode() != 200) {
-            log.warn("Asistente: DeepSeek respondió {}: {}", response.statusCode(),
-                    recortar(response.body(), 300));
+            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode mensaje = root.path("choices").path(0).path("message");
+            return mensaje.isMissingNode() || mensaje.isNull() ? null : mensaje;
+        } catch (Exception e) {
+            log.warn("Asistente: error de red con DeepSeek: {}", e.getMessage());
             return null;
         }
-
-        JsonNode root = objectMapper.readTree(response.body());
-        JsonNode content = root.path("choices").path(0).path("message").path("content");
-        if (content.isMissingNode() || content.isNull() || content.asText().isBlank()) {
-            return null;
-        }
-        return content.asText();
     }
 
     private String endpoint() {
@@ -324,8 +592,50 @@ public class AsistenteService {
         return base + "/chat/completions";
     }
 
-    private String promptSistema() {
-        return SYSTEM_PROMPT + "\n\nCATÁLOGO DISPONIBLE (solo estos productos):\n" + catalogoTexto;
+    private JsonNode leerArgumentos(JsonNode llamada) {
+        String crudo = llamada.path("function").path("arguments").asText("");
+        if (crudo.isBlank()) {
+            return objectMapper.createObjectNode();
+        }
+        try {
+            return objectMapper.readTree(crudo);
+        } catch (Exception e) {
+            log.warn("Asistente: argumentos no válidos: {}", recortar(crudo, 200));
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    /** Prompt final: personalidad + contexto del carrito + catálogo. */
+    private String promptSistema(ContextoCarrito carrito) {
+        return SYSTEM_PROMPT
+                + contextoCarrito(carrito)
+                + "\nCATÁLOGO DISPONIBLE (solo estos productos):\n" + catalogoTexto;
+    }
+
+    /**
+     * Personalización: qué tiene ya el cliente en el carrito.
+     * Sirve para ofrecer un complemento lógico sin sonar a robot.
+     */
+    private String contextoCarrito(ContextoCarrito carrito) {
+        if (carrito == null || carrito.unidades() <= 0) {
+            return "\n\nCONTEXTO DEL CLIENTE:\n- Todavía no tiene productos en el carrito.\n";
+        }
+
+        StringBuilder lista = new StringBuilder();
+        if (carrito.productos() != null) {
+            int mostrados = 0;
+            for (String nombre : carrito.productos()) {
+                if (nombre == null || nombre.isBlank() || mostrados >= 5) {
+                    continue;
+                }
+                lista.append(mostrados == 0 ? "" : ", ").append('"').append(recortar(nombre.trim(), 60)).append('"');
+                mostrados++;
+            }
+        }
+
+        return "\n\nCONTEXTO DEL CLIENTE:\n- Tiene " + carrito.unidades() + " producto(s) en el carrito"
+                + (lista.isEmpty() ? "" : ": " + lista)
+                + ". Si encaja de forma lógica, ofrécele UN complemento en una sola frase, sin presionar.\n";
     }
 
     private String construirCatalogoTexto(List<ProductoCatalogo> items) {
@@ -346,7 +656,9 @@ public class AsistenteService {
     // ============================================================
     // RECOMENDACIÓN DE PRODUCTOS (siempre del catálogo real)
     // ============================================================
-    private List<ProductoRecomendado> recomendar(String respuesta, String mensaje) {
+    private List<ProductoRecomendado> recomendar(String respuesta,
+                                                 String mensaje,
+                                                 List<ProductoCatalogo> buscados) {
         LinkedHashMap<Long, ProductoCatalogo> elegidos = new LinkedHashMap<>();
 
         // 1. Productos que la IA mencionó por su nombre exacto.
@@ -364,7 +676,17 @@ public class AsistenteService {
             }
         }
 
-        // 2. Si la IA no nombró productos, se usan palabras clave del usuario.
+        // 2. Si no las nombró, las que devolvió su propia búsqueda.
+        if (elegidos.isEmpty() && buscados != null) {
+            for (ProductoCatalogo p : buscados) {
+                elegidos.putIfAbsent(p.id(), p);
+                if (elegidos.size() >= MAX_RECOMENDADOS) {
+                    break;
+                }
+            }
+        }
+
+        // 3. Palabras clave del cliente.
         if (elegidos.isEmpty()) {
             for (ProductoCatalogo p : productosPorPalabras(mensaje)) {
                 elegidos.putIfAbsent(p.id(), p);
@@ -374,7 +696,7 @@ public class AsistenteService {
             }
         }
 
-        // 3. Último recurso: primeras referencias con stock (o del catálogo).
+        // 4. Último recurso: primeras referencias con stock (o del catálogo).
         if (elegidos.isEmpty()) {
             List<ProductoCatalogo> fuente = catalogo;
             List<ProductoCatalogo> conStock = catalogo.stream().filter(p -> p.stock() > 0).toList();
@@ -401,7 +723,7 @@ public class AsistenteService {
         if (contiene(n, "casa", "hogar", "sala", "cocina", "habitacion", "decor", "lampara", "mueble")) {
             categorias.add("hogar");
         }
-        if (contiene(n, "rutina", "cuidado", "piel", "personal", "cabello", "crema", "perfume")) {
+        if (contiene(n, "rutina", "cuidado", "piel", "personal", "cabello", "crema", "perfume", "bienestar")) {
             categorias.add("cuidado personal");
         }
         if (contiene(n, "zapato", "calzado", "tenis", "sneaker", "talla", "comod", "caminar")) {
@@ -455,6 +777,7 @@ public class AsistenteService {
         return Normalizer.normalize(texto, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(Locale.ROOT)
+                .replaceAll("\\s+", " ")
                 .trim();
     }
 
@@ -472,6 +795,11 @@ public class AsistenteService {
     // ============================================================
     // DTOs
     // ============================================================
+
+    /** Lo que el cliente ya tiene en el carrito (lo envía el navegador). */
+    public record ContextoCarrito(int unidades, List<String> productos) {
+    }
+
     /**
      * Entrada del catálogo en memoria.
      *
@@ -509,5 +837,9 @@ public class AsistenteService {
     }
 
     public record MensajeHistorial(String role, String content) {
+    }
+
+    /** Resultado interno del bucle con el modelo. */
+    private record ResultadoIA(String texto, List<ProductoCatalogo> buscados) {
     }
 }

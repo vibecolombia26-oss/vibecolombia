@@ -847,21 +847,27 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 
 .flow-ai-products { display: grid; gap: 8px; }
 
+/* Tarjeta del producto recomendado: ficha clicable arriba + acciones abajo */
 .flow-ai-product {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr);
-    align-items: center;
-    gap: 10px;
+    gap: 8px;
     padding: 8px;
     border: 1px solid var(--flow-border);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.03);
-    text-decoration: none;
-    color: inherit;
     transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .flow-ai-product:hover { border-color: rgba(37, 99, 235, 0.55); background: rgba(37, 99, 235, 0.08); }
+
+.flow-ai-product__main {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+}
 
 .flow-ai-product__img,
 .flow-ai-product__ph {
@@ -880,7 +886,7 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     font-weight: 900;
 }
 
-.flow-ai-product__body { min-width: 0; }
+.flow-ai-product__body { display: block; min-width: 0; }
 
 .flow-ai-product__name {
     display: -webkit-box;
@@ -906,6 +912,40 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     margin-top: 2px;
     font-size: 0.68rem;
     color: var(--flow-muted);
+}
+
+/* Acciones de la tarjeta: comprar sin salir del chat + ver la ficha */
+.flow-ai-product__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.flow-ai-product__actions .flow-ai-product__cta {
+    margin: 0;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.flow-ai-add {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--flow-accent);
+    background: var(--flow-accent);
+    color: #fff;
+    font: 700 0.74rem/1.2 var(--flow-font);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.flow-ai-add:hover { background: var(--flow-accent-hover); border-color: var(--flow-accent-hover); }
+
+/* Confirmación en el propio botón, sin ventanas emergentes */
+.flow-ai-add.is-added {
+    background: rgba(52, 211, 153, 0.18);
+    border-color: rgba(52, 211, 153, 0.6);
+    color: #6ee7b7;
 }
 
 .flow-ai-form {

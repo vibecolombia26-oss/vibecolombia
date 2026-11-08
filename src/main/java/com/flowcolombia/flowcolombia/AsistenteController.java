@@ -49,8 +49,13 @@ public class AsistenteController {
         }
 
         try {
+            // Contexto del carrito: solo nombres (nunca datos personales).
+            List<String> carrito = peticion.carrito() == null ? List.of() : peticion.carrito();
+            AsistenteService.ContextoCarrito contexto =
+                    new AsistenteService.ContextoCarrito(carrito.size(), carrito);
+
             AsistenteService.RespuestaAsistente respuesta =
-                    asistenteService.responder(peticion.mensaje(), peticion.historial());
+                    asistenteService.responder(peticion.mensaje(), peticion.historial(), contexto);
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("respuesta", respuesta.respuesta());
@@ -105,9 +110,16 @@ public class AsistenteController {
     }
 
     /**
-     * Cuerpo de la petición: mensaje actual + historial corto (opcional)
-     * para dar contexto sin disparar el costo en tokens.
+     * Cuerpo de la petición.
+     *
+     * @param mensaje   lo que escribe el cliente
+     * @param historial conversación reciente (para dar contexto sin gastar tokens)
+     * @param carrito   nombres de los productos que el cliente ya tiene en el
+     *                  carrito (los lee el navegador de localStorage). Se usan
+     *                  para personalizar la recomendación con un complemento.
      */
-    public record Peticion(String mensaje, List<AsistenteService.MensajeHistorial> historial) {
+    public record Peticion(String mensaje,
+                           List<AsistenteService.MensajeHistorial> historial,
+                           List<String> carrito) {
     }
 }

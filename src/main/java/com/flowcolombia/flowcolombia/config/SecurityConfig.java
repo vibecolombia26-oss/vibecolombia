@@ -116,6 +116,11 @@ public class SecurityConfig {
                         // Bandeja de consultas completa: SOLO administrador
                         .requestMatchers("/api/chat/todos").hasRole("ADMIN")
 
+                        // API interna del panel (asistente de administración):
+                        // solo ADMIN. Al ser un POST con sesión, además exige el
+                        // token CSRF que añade window.adminFetch.
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         // Panel de administración completo
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
