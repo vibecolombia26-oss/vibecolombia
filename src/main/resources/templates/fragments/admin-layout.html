@@ -928,12 +928,19 @@
 
         .ad-ia-bubble {
             max-width: 88%;
+            /* Un texto largo pegado (inventario de Dropi) se ve en una caja
+               con scroll interno en vez de estirar el chat hasta el infinito. */
+            max-height: 260px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding: 9px 12px;
             border-radius: 12px;
             font-size: 0.82rem;
             line-height: 1.5;
             white-space: pre-wrap;
             word-break: break-word;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(37, 99, 235, 0.55) transparent;
         }
 
         .ad-ia-msg--bot .ad-ia-bubble {
@@ -966,7 +973,14 @@
             font-weight: 700;
         }
 
-        .ad-ia-action__text { font-size: 0.84rem; color: #fff; }
+        /* El detalle de la acción puede venir en varias líneas (vista previa de
+           las variantes detectadas en un inventario de Dropi). */
+        .ad-ia-action__text {
+            font-size: 0.84rem;
+            color: #fff;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
 
         /* Acción masiva: se avisa en ámbar antes de aprobar */
         .ad-ia-action--warn {
@@ -999,14 +1013,21 @@
 
         .ad-ia-form {
             display: flex;
+            /* El botón se queda abajo mientras la caja de texto crece. */
+            align-items: flex-end;
             gap: 8px;
             padding: 12px;
             border-top: 1px solid var(--ad-border);
         }
 
-        .ad-ia-form input {
+        /* Caja de escritura del chat.
+           Es un <textarea> de una línea que crece hasta 4 líneas (lo mide el
+           JS) y a partir de ahí hace scroll interno: así se puede pegar un
+           inventario de Dropi entero sin que el panel se coma la pantalla. */
+        .ad-ia-form textarea {
             flex: 1;
             min-width: 0;
+            max-height: 96px;
             padding: 10px 12px;
             border-radius: 9px;
             border: 1px solid var(--ad-border-strong);
@@ -1014,11 +1035,24 @@
             color: #fff;
             font: 400 0.84rem/1.4 var(--ad-font);
             outline: none;
+            resize: none;
+            overflow-y: hidden;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(37, 99, 235, 0.65) transparent;
         }
 
-        .ad-ia-form input:focus { border-color: rgba(37, 99, 235, 0.7); }
+        .ad-ia-form textarea::placeholder { color: var(--ad-muted-2); }
+
+        .ad-ia-form textarea:focus {
+            border-color: rgba(37, 99, 235, 0.7);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
 
         .ad-ia-form button {
+            flex: 0 0 auto;
+            height: 38px;
             padding: 0 14px;
             border-radius: 9px;
             border: 1px solid var(--ad-accent);
@@ -1029,6 +1063,26 @@
         }
 
         .ad-ia-form button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .ad-ia-hint {
+            margin: 0;
+            padding: 0 12px 10px;
+            font-size: 0.66rem;
+            color: var(--ad-muted-2);
+            text-align: right;
+        }
+
+        /* Scroll fino y oscuro dentro del chat (burbujas largas y caja de texto) */
+        .ad-ia-body::-webkit-scrollbar,
+        .ad-ia-bubble::-webkit-scrollbar,
+        .ad-ia-form textarea::-webkit-scrollbar { width: 8px; }
+
+        .ad-ia-body::-webkit-scrollbar-thumb,
+        .ad-ia-bubble::-webkit-scrollbar-thumb,
+        .ad-ia-form textarea::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, 0.55);
+            border-radius: 999px;
+        }
 
         @media (max-width: 560px) {
             .ad-ia-fab { right: 14px; bottom: 14px; }
@@ -1321,7 +1375,7 @@
             <span class="ad-ia-head__mark" aria-hidden="true">🤖</span>
             <div class="ad-ia-head__text">
                 <strong>Asistente IA</strong>
-                <span>Stock · precios · descripciones</span>
+                <span>Stock · precios · importar Dropi</span>
             </div>
             <button type="button" class="ad-ia-close" data-ad-ia-close aria-label="Cerrar asistente">✕</button>
         </header>
@@ -1330,10 +1384,11 @@
 
         <form class="ad-ia-form" id="adIaForm">
             <label class="ad-sr" for="adIaInput">Mensaje para el asistente</label>
-            <input id="adIaInput" type="text" maxlength="500" autocomplete="off"
-                   placeholder="Ej: sube el stock de MOCH-M a 20">
+            <textarea id="adIaInput" rows="1" maxlength="12000" autocomplete="off" spellcheck="false"
+                      placeholder="Pide un cambio o pega el inventario de Dropi"></textarea>
             <button type="submit" aria-label="Enviar mensaje">➤</button>
         </form>
+        <p class="ad-ia-hint">Enter envía · Shift + Enter hace un salto de línea</p>
     </section>
 
     <!-- ============================================================
@@ -1363,9 +1418,11 @@
             panel.hidden = false;
             if (!iniciado) {
                 iniciado = true;
-                burbuja('bot', 'Hola. Puedo buscar productos y proponer cambios de stock, precio o descripción. '
+                burbuja('bot', 'Hola. Puedo buscar productos, cambiar stock, precio o descripción, '
+                    + 'e importar un inventario de Dropi que pegues aquí. '
                     + 'Cada cambio te lo muestro antes de aplicarlo: nada se ejecuta sin tu aprobación.');
             }
+            ajustarAltoEntrada();
             setTimeout(function () { entrada.focus(); }, 60);
         }
 
@@ -1396,6 +1453,63 @@
 
         document.addEventListener('keydown', function (evento) {
             if (evento.key === 'Escape' && !panel.hidden) cerrar();
+        });
+
+        // ------------------------------------------------------------
+        // Caja de escritura
+        // ------------------------------------------------------------
+        // El campo es un <textarea> de una línea que crece con el contenido
+        // hasta 4 líneas y luego hace scroll interno. Eso permite pegar un
+        // inventario de Dropi completo sin que el panel se coma la pantalla.
+        var cajaTexto = { altoMax: 0, borde: 0 };
+
+        function medirCajaTexto() {
+            var estilo = window.getComputedStyle(entrada);
+            var interlineado = parseFloat(estilo.lineHeight);
+            if (!isFinite(interlineado) || interlineado <= 0) {
+                interlineado = (parseFloat(estilo.fontSize) || 13) * 1.4;
+            }
+            var relleno = (parseFloat(estilo.paddingTop) || 0) + (parseFloat(estilo.paddingBottom) || 0);
+            cajaTexto.borde = (parseFloat(estilo.borderTopWidth) || 0)
+                + (parseFloat(estilo.borderBottomWidth) || 0);
+            cajaTexto.altoMax = Math.round(interlineado * 4 + relleno + cajaTexto.borde);
+        }
+
+        function ajustarAltoEntrada() {
+            if (!cajaTexto.altoMax) medirCajaTexto();
+
+            entrada.style.height = 'auto';
+            // scrollHeight no cuenta el borde; con box-sizing:border-box hay
+            // que sumarlo o la última línea queda cortada.
+            var necesario = entrada.scrollHeight + cajaTexto.borde;
+            entrada.style.height = Math.min(necesario, cajaTexto.altoMax) + 'px';
+            entrada.style.overflowY = necesario > cajaTexto.altoMax ? 'auto' : 'hidden';
+        }
+
+        entrada.addEventListener('input', ajustarAltoEntrada);
+
+        entrada.addEventListener('paste', function () {
+            // Al soltar el texto aún no está en el campo: se mide en el
+            // siguiente ciclo, cuando el navegador ya lo insertó.
+            window.setTimeout(ajustarAltoEntrada, 0);
+        });
+
+        // Enter envía; Shift + Enter hace un salto de línea. Sin esto, pegar
+        // un inventario y pulsar Enter para separar líneas enviaría el
+        // mensaje a medias (y en un <textarea> Enter escribe, no envía).
+        entrada.addEventListener('keydown', function (evento) {
+            if (evento.key !== 'Enter' || evento.shiftKey || evento.altKey
+                || evento.ctrlKey || evento.metaKey
+                || evento.isComposing || evento.keyCode === 229) {
+                return;
+            }
+            evento.preventDefault();
+            if (ocupado) return;
+            if (typeof formulario.requestSubmit === 'function') {
+                formulario.requestSubmit();
+            } else {
+                enviar(entrada.value, null, null);
+            }
         });
 
         function alFinal() { cuerpo.scrollTop = cuerpo.scrollHeight; }
@@ -1454,11 +1568,13 @@
             alFinal();
         }
 
+        var PLACEHOLDER = 'Pide un cambio o pega el inventario de Dropi';
+
         function ocupadoUI(valor) {
             ocupado = valor;
             entrada.disabled = valor;
             formulario.querySelector('button').disabled = valor;
-            entrada.placeholder = valor ? 'Pensando…' : 'Ej: sube el stock de MOCH-M a 20';
+            entrada.placeholder = valor ? 'Pensando…' : PLACEHOLDER;
         }
 
         function enviar(texto, accion, botonAprobar) {
@@ -1470,6 +1586,7 @@
             if (!accion) {
                 burbuja('user', mensaje);
                 entrada.value = '';
+                ajustarAltoEntrada();
             }
 
             ocupadoUI(true);

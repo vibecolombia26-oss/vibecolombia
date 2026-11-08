@@ -3,6 +3,7 @@ package com.flowcolombia.flowcolombia;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -36,6 +37,19 @@ public interface VarianteProductoRepository extends JpaRepository<VarianteProduc
 
     // Valida existencia de SKU excluyendo una variante específica (para actualizaciones)
     boolean existsBySkuAndIdNot(String sku, Long id);
+
+    /**
+     * De una lista de SKU candidatos, devuelve los que ya existen.
+     *
+     * <p>La usa la importación de Dropi para reservar el SKU de las variantes
+     * nuevas con <strong>una sola consulta</strong> en lugar de preguntar
+     * {@code existsBySku} una vez por variante (cada pregunta es un viaje de
+     * ida y vuelta a Neon).</p>
+     *
+     * @param skus candidatos generados en memoria; no debe ir vacía
+     */
+    @Query("SELECT v.sku FROM VarianteProducto v WHERE v.sku IN :skus")
+    List<String> findSkusExistentes(@Param("skus") Collection<String> skus);
 
     List<VarianteProducto> findByProductoIdAndActivoTrue(Long productoId);
 

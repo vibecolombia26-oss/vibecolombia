@@ -3,8 +3,10 @@ package com.flowcolombia.flowcolombia.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.flowcolombia.flowcolombia.DropiParserUtil;
 import com.flowcolombia.flowcolombia.Producto;
 import com.flowcolombia.flowcolombia.ProductoRepository;
+import com.flowcolombia.flowcolombia.VarianteImportada;
 import com.flowcolombia.flowcolombia.VarianteProducto;
 import com.flowcolombia.flowcolombia.VarianteProductoRepository;
 import org.slf4j.Logger;
@@ -20,11 +22,15 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Asistente de administración con <strong>Tool Calling</strong> (llamada a
@@ -66,14 +72,24 @@ public class AdminAsistenteService {
     public static final String TOOL_STOCK_PRODUCTO = "actualizarStockDeTodoElProducto";
     public static final String TOOL_PRECIO = "actualizarPrecioVariante";
     public static final String TOOL_DESCRIPCION = "actualizarDescripcionProducto";
+    public static final String TOOL_DROPI = "importarVariantesDropi";
 
     private static final int MAX_HISTORIAL = 10;
-    private static final int MAX_MENSAJE = 600;
+    /**
+     * Tope del mensaje del administrador. Se subió para que quepa un inventario
+     * de Dropi pegado en el chat (antes eran 600 caracteres).
+     */
+    private static final int MAX_MENSAJE = 12_000;
     private static final int MAX_DESCRIPCION = 2000;
     private static final int MAX_PRODUCTOS_BUSQUEDA = 8;
     private static final int MAX_ITERACIONES_IA = 3;
+    private static final int MAX_VARIANTES_PREVIEW = 10;
+    private static final int MAX_LARGO_SKU = 80;
     private static final double PRECIO_MAXIMO = 100_000_000d;
     private static final int STOCK_MAXIMO = 1_000_000;
+
+    /** Cuánto tiempo se recuerda el último texto de Dropi pegado (ver {@link #textoDropiReciente()}). */
+    private static final Duration VIGENCIA_TEXTO_DROPI = Duration.ofMinutes(20);
 
     private static final String SYSTEM_PROMPT =
             "Eres el asistente del administrador de Flow Colombia. Tienes permiso para actualizar stock y precios, "
@@ -84,14 +100,24 @@ public class AdminAsistenteService {
             + "- " + TOOL_STOCK_PRODUCTO + "(nombreProducto, nuevoStock): actualiza el stock de TODAS las variantes "
             + "de un producto a la vez (acción masiva).\n"
             + "- " + TOOL_PRECIO + "(sku, nuevoPrecio): cambia el precio de una variante (mayor que 0).\n"
-            + "- " + TOOL_DESCRIPCION + "(productoId, nuevaDescripcion): cambia la descripción de un producto.\n\n"
+            + "- " + TOOL_DESCRIPCION + "(productoId, nuevaDescripcion): cambia la descripción de un producto.\n"
+            + "- " + TOOL_DROPI + "(productoId, textoDropi): importa un inventario de Dropi a un producto que ya existe. "
+            + "El texto lo lee un parser determinista en Java: crea las variantes que falten y actualiza stock, "
+            + "costo y precio de las que ya están. Es una acción masiva.\n\n"
             + "Reglas: usa " + TOOL_BUSCAR + " antes de modificar algo si no conoces el SKU o el id. "
             + "Si el usuario pide actualizar el stock de un producto entero (por ejemplo 'todas las tallas de las mochilas'), "
             + "puedes usar la herramienta " + TOOL_STOCK_PRODUCTO + ". En 'nombreProducto' pasa SOLO el nombre del producto, "
             + "sin frases como 'todas las tallas de'. Si la herramienta responde que hay varios productos con ese nombre, "
             + "pide al usuario que sea más específico en lugar de elegir uno tú. "
             + "No inventes productos, SKU ni precios: si la búsqueda no devuelve nada, dilo. "
-            + "Nunca propongas precios negativos o cero. Propón una sola acción por mensaje. Responde en español.";
+            + "Nunca propongas precios negativos o cero. Propón una sola acción por mensaje. Responde en español.\n\n"
+            + "Importación de Dropi: si el administrador dice 'importa este inventario', 'actualiza con este texto de Dropi' "
+            + "o pega un texto con Color, Tallas, Stock, Costo y Precio, primero identifica el producto con " + TOOL_BUSCAR
+            + " y pasa su id a " + TOOL_DROPI + ". Si hay varios productos parecidos pide el nombre completo; si no hay "
+            + "ninguno dilo y no inventes. El texto NO lo interpretas tú: no lo transcribas, no lo resumas, no calcules "
+            + "variantes ni precios y no lo repitas en tu respuesta, porque el sistema ya lo leyó. Si el mensaje del "
+            + "administrador acaba de traer ese texto pegado, llama a la herramienta con textoDropi vacío. "
+            + "La herramienta solo añade variantes a productos existentes: nunca crees productos nuevos.";
 
     /**
      * Definiciones que se envían en {@code tools}. Es JSON Schema: así el
@@ -172,6 +198,21 @@ public class AdminAsistenteService {
                     "required": ["productoId", "nuevaDescripcion"]
                   }
                 }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "importarVariantesDropi",
+                  "description": "Importa un inventario de Dropi (varias variantes con color, talla, stock, costo y precio sugerido) a un producto que YA existe. El texto lo procesa un parser determinista en Java, no tú. Crea las variantes que falten y actualiza stock, costo y precio de las que ya existen. Es una acción masiva: siempre requiere confirmación.",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "productoId": { "type": "integer", "description": "Id del producto existente, obtenido con buscarProductosPorNombre" },
+                      "textoDropi": { "type": "string", "description": "Texto crudo de Dropi. Déjalo vacío si el administrador acaba de pegarlo en su último mensaje: el sistema recupera ese texto." }
+                    },
+                    "required": ["productoId"]
+                  }
+                }
               }
             ]
             """;
@@ -184,6 +225,20 @@ public class AdminAsistenteService {
     private final String baseUrl;
     private final String model;
     private final int timeoutSeconds;
+
+    /**
+     * Último inventario de Dropi que el parser entendió.
+     *
+     * <p>Sirve para el flujo en dos turnos: el administrador pega el texto y
+     * dice «impórtalo en la mochila»; o pega el texto y, cuando el asistente le
+     * pregunta a qué producto, contesta solo con el nombre. En ese segundo
+     * mensaje ya no viene el texto, y sin esta memoria habría que pedirlo otra
+     * vez. Vive en memoria del proceso (no se guarda en Neon) y caduca: el
+     * panel de administración es de un único usuario, así que no hay riesgo de
+     * mezclar textos entre sesiones.</p>
+     */
+    private volatile String ultimoTextoDropi;
+    private volatile Instant ultimoTextoDropiEn;
 
     public AdminAsistenteService(ProductoRepository productoRepository,
                                  VarianteProductoRepository varianteProductoRepository,
@@ -245,6 +300,12 @@ public class AdminAsistenteService {
      *
      * <p>Si el modelo pide una herramienta de escritura, NO se ejecuta: se
      * devuelve la propuesta para que la persona la apruebe.</p>
+     *
+     * <p><strong>Inventario pegado:</strong> si el mensaje trae un texto de
+     * Dropi, se lee aquí con {@link DropiParserUtil} y al modelo se le envía
+     * solo un resumen. Así el texto largo no gasta tokens de entrada ni hay
+     * forma de que el modelo transcriba mal un precio: el original queda en
+     * Java, que es quien lo va a usar.</p>
      */
     public Respuesta responder(String mensaje, List<MensajeHistorial> historial) {
         String texto = mensaje == null ? "" : mensaje.trim();
@@ -259,6 +320,16 @@ public class AdminAsistenteService {
                     + "Mientras tanto puedo seguir ayudándote desde el panel.");
         }
 
+        // El inventario se detecta y se guarda ANTES de hablar con el modelo:
+        // el texto crudo nunca sale de Java.
+        List<VarianteImportada> inventarioPegado = DropiParserUtil.parsear(texto);
+        boolean esInventario = DropiParserUtil.esInventario(inventarioPegado);
+        String textoParaElModelo = texto;
+        if (esInventario) {
+            recordarTextoDropi(texto);
+            textoParaElModelo = resumenInventarioPegado(inventarioPegado);
+        }
+
         List<Map<String, Object>> mensajes = new ArrayList<>();
         mensajes.add(Map.of("role", "system", "content", SYSTEM_PROMPT));
 
@@ -267,10 +338,11 @@ public class AdminAsistenteService {
                     .filter(m -> m != null && m.content() != null && !m.content().isBlank())
                     .filter(m -> "user".equals(m.role()) || "assistant".equals(m.role()))
                     .limit(MAX_HISTORIAL)
-                    .forEach(m -> mensajes.add(Map.of("role", m.role(), "content", recortar(m.content().trim(), 500))));
+                    .forEach(m -> mensajes.add(Map.of("role", m.role(),
+                            "content", historialParaElModelo(m.content()))));
         }
 
-        mensajes.add(Map.of("role", "user", "content", texto));
+        mensajes.add(Map.of("role", "user", "content", textoParaElModelo));
 
         try {
             for (int iteracion = 0; iteracion < MAX_ITERACIONES_IA; iteracion++) {
@@ -299,7 +371,10 @@ public class AdminAsistenteService {
                     JsonNode argumentos = leerArgumentos(llamada);
 
                     if (esEscritura(tool)) {
-                        Preparacion preparacion = prepararAccion(tool, argumentos);
+                        // El texto pegado por el administrador viaja como
+                        // respaldo: si el modelo dejó textoDropi vacío (o lo
+                        // copió a medias), manda el original, no su transcripción.
+                        Preparacion preparacion = prepararAccion(tool, argumentos, texto);
 
                         // No se pudo preparar (producto inexistente o ambiguo):
                         // el motivo vuelve al modelo para que pida más detalle
@@ -559,14 +634,459 @@ public class AdminAsistenteService {
                         + producto.getNombre() + "» quedó en " + nuevoStock + " unidades."));
     }
 
+    // ============================================================
+    // IMPORTACIÓN MASIVA DESDE DROPI
+    // ============================================================
+
+    /**
+     * Aplica un inventario de Dropi sobre un producto (upsert por Color+Talla).
+     *
+     * @param productoId  producto destino
+     * @param textoDropi  texto crudo pegado por el administrador
+     */
+    @Transactional
+    public String importarVariantesDropi(Long productoId, String textoDropi) {
+        return importarVariantesDropi(productoId, null, textoDropi);
+    }
+
+    /**
+     * Aplica un inventario de Dropi sobre un producto (upsert por Color+Talla).
+     *
+     * <p>Todo ocurre dentro de <strong>una sola transacción</strong>: se lee la
+     * lista actual de variantes con una consulta, se decide en memoria qué se
+     * actualiza y qué se crea, se reservan los SKU con una segunda consulta y
+     * se guarda de una vez. Nada de preguntar por cada variante: cada viaje de
+     * ida y vuelta a Neon Free Tier cuenta.</p>
+     *
+     * <p>Lógica de escritura:</p>
+     * <ul>
+     *   <li>Existe Color+Talla → se actualizan stock, costo y precio. Un dato
+     *       que el texto no trajo ({@code null}) <strong>no borra</strong> el
+     *       valor actual: la ausencia de dato no es un dato.</li>
+     *   <li>No existe → se crea la variante, activa y con SKU único.</li>
+     *   <li>Si vuelve stock, una variante desactivada se reactiva.</li>
+     * </ul>
+     *
+     * @param productoId     id ya resuelto en la propuesta
+     * @param nombreProducto nombre aprobado, para verificar que id y nombre
+     *                       cuadran (defensa ante un reenvío manipulado)
+     * @param textoDropi     texto del inventario; si llega vacío se usa el
+     *                       último que el parser aceptó
+     */
+    @Transactional
+    public String importarVariantesDropi(Long productoId, String nombreProducto, String textoDropi) {
+        if (productoId == null) {
+            return json(Map.of("error", "Falta el id del producto donde importar."));
+        }
+
+        String texto = (textoDropi == null || textoDropi.isBlank()) ? textoDropiReciente() : textoDropi;
+        if (texto == null || texto.isBlank()) {
+            return json(Map.of("error", "No recibí el texto de Dropi. Pega el inventario en el chat."));
+        }
+
+        List<VarianteImportada> detectadas = DropiParserUtil.parsear(texto);
+        if (detectadas.isEmpty()) {
+            return json(Map.of(
+                    "error", "No reconocí ninguna variante (Color + Talla) en ese texto.",
+                    "sugerencia", "Debe incluir líneas como «Color: Negro», «Tallas: 38, 39» y «Stock: 10»."));
+        }
+
+        Producto producto = productoRepository.findById(productoId).orElse(null);
+        if (producto == null) {
+            return json(Map.of("error", "El producto con id " + productoId + " ya no existe."));
+        }
+        if (nombreProducto != null && !nombreProducto.isBlank()
+                && !seParecen(producto.getNombre(), nombreProducto)) {
+            return json(Map.of("error", "El producto indicado no coincide con el nombre que se aprobó."));
+        }
+
+        // Una consulta trae todas las variantes actuales del producto.
+        List<VarianteProducto> actuales = varianteProductoRepository.findByProductoId(producto.getId());
+        Map<String, VarianteProducto> porClave = new LinkedHashMap<>();
+        Set<String> skusOcupados = new LinkedHashSet<>();
+        for (VarianteProducto variante : actuales) {
+            porClave.putIfAbsent(DropiParserUtil.clave(variante.getColor(), variante.getTalla()), variante);
+            if (variante.getSku() != null && !variante.getSku().isBlank()) {
+                skusOcupados.add(variante.getSku());
+            }
+        }
+
+        int actualizadas = 0;
+        int sinCambios = 0;
+        List<String> avisos = new ArrayList<>();
+        List<VarianteImportada> porCrear = new ArrayList<>();
+        List<String> candidatosSku = new ArrayList<>();
+
+        for (VarianteImportada detectada : detectadas) {
+            VarianteProducto existente = porClave.get(detectada.clave());
+            if (existente == null) {
+                porCrear.add(detectada);
+                candidatosSku.add(skuBase(producto, detectada));
+                continue;
+            }
+            // Las variantes ya cargadas están gestionadas por la transacción:
+            // el UPDATE sale solo al confirmar (dirty checking), sin save().
+            if (aplicar(existente, detectada, avisos)) {
+                actualizadas++;
+            } else {
+                sinCambios++;
+            }
+        }
+
+        if (!candidatosSku.isEmpty()) {
+            // Un solo viaje a Neon para saber qué SKU candidatos ya existen.
+            skusOcupados.addAll(varianteProductoRepository.findSkusExistentes(candidatosSku));
+        }
+
+        List<VarianteProducto> nuevas = new ArrayList<>();
+        for (int i = 0; i < porCrear.size(); i++) {
+            VarianteImportada detectada = porCrear.get(i);
+            VarianteProducto variante = new VarianteProducto();
+            variante.setProducto(producto);
+            variante.setSku(skuLibre(candidatosSku.get(i), skusOcupados));
+            variante.setColor(detectada.color());
+            variante.setTalla(detectada.talla());
+            variante.setStock(detectada.stock() == null ? 0 : Math.min(detectada.stock(), STOCK_MAXIMO));
+            variante.setPrecio(precioDeAlta(producto, detectada, avisos));
+            if (detectada.costo() != null && detectada.costo() > 0 && detectada.costo() <= PRECIO_MAXIMO) {
+                variante.setCosto(detectada.costo());
+            }
+            variante.setActivo(true);
+            nuevas.add(variante);
+        }
+
+        if (!nuevas.isEmpty()) {
+            varianteProductoRepository.saveAll(nuevas);
+        }
+
+        StringBuilder mensaje = new StringBuilder()
+                .append("Importación aplicada en «").append(producto.getNombre()).append("»: ")
+                .append(nuevas.size()).append(" variante(s) nueva(s) y ")
+                .append(actualizadas).append(" actualizada(s)");
+        if (sinCambios > 0) {
+            mensaje.append(" (").append(sinCambios).append(" sin cambios)");
+        }
+        mensaje.append(". Las variantes detectadas: ").append(detectadas.size()).append('.');
+
+        Map<String, Object> salida = new LinkedHashMap<>();
+        salida.put("ok", true);
+        salida.put("mensaje", mensaje.toString());
+        salida.put("producto", producto.getNombre());
+        salida.put("variantesDetectadas", detectadas.size());
+        salida.put("creadas", nuevas.size());
+        salida.put("actualizadas", actualizadas);
+        salida.put("sinCambios", sinCambios);
+        if (!avisos.isEmpty()) {
+            salida.put("avisos", avisos.subList(0, Math.min(avisos.size(), 8)));
+        }
+        return json(salida);
+    }
+
+    /**
+     * Vuelca una variante leída sobre la fila existente.
+     *
+     * @return {@code true} si cambió algo (hay UPDATE pendiente)
+     */
+    private boolean aplicar(VarianteProducto existente, VarianteImportada detectada, List<String> avisos) {
+        boolean cambio = false;
+
+        if (detectada.stock() != null) {
+            int stock = Math.max(0, Math.min(detectada.stock(), STOCK_MAXIMO));
+            if (!Integer.valueOf(stock).equals(existente.getStock())) {
+                existente.setStock(stock);
+                cambio = true;
+            }
+        }
+
+        if (detectada.precioVenta() != null) {
+            Double precio = detectada.precioVenta();
+            if (precio > 0 && precio <= PRECIO_MAXIMO) {
+                if (!precio.equals(existente.getPrecio())) {
+                    existente.setPrecio(precio);
+                    cambio = true;
+                }
+            } else {
+                avisos.add("precio fuera de rango en " + detectada.etiqueta() + " ($" + pesos(precio) + ")");
+            }
+        }
+
+        if (detectada.costo() != null && detectada.costo() > 0 && detectada.costo() <= PRECIO_MAXIMO) {
+            if (!detectada.costo().equals(existente.getCosto())) {
+                existente.setCosto(detectada.costo());
+                cambio = true;
+            }
+        }
+
+        // Una variante que vuelve a tener stock vuelve a la tienda.
+        if (Boolean.FALSE.equals(existente.getActivo())
+                && existente.getStock() != null && existente.getStock() > 0) {
+            existente.setActivo(true);
+            cambio = true;
+        }
+
+        return cambio;
+    }
+
+    /** Precio de una variante nueva: el del texto o, si no vino, el del producto. */
+    private static Double precioDeAlta(Producto producto, VarianteImportada detectada, List<String> avisos) {
+        Double precio = detectada.precioVenta();
+        if (precio != null && precio > 0 && precio <= PRECIO_MAXIMO) {
+            return precio;
+        }
+        if (precio != null) {
+            avisos.add("precio fuera de rango en " + detectada.etiqueta()
+                    + "; se usó el precio base del producto");
+        }
+        return producto.getPrecio() == null ? 0d : producto.getPrecio();
+    }
+
+    /**
+     * SKU propuesto para una variante nueva: {@code SKU_PRODUCTO-COLOR-TALLA}.
+     *
+     * <p>Incluye el SKU del producto (o su id) para que dos productos distintos
+     * no puedan generar el mismo candidato.</p>
+     */
+    private static String skuBase(Producto producto, VarianteImportada variante) {
+        String raiz = (producto.getSku() != null && !producto.getSku().isBlank())
+                ? producto.getSku()
+                : "P" + producto.getId();
+
+        StringBuilder sb = new StringBuilder(limpiarSku(raiz));
+        String color = limpiarSku(variante.color());
+        String talla = limpiarSku(variante.talla());
+        if (!color.isEmpty()) {
+            sb.append('-').append(color);
+        }
+        if (!talla.isEmpty()) {
+            sb.append('-').append(talla);
+        }
+
+        String sku = sb.toString().replaceAll("^-+", "");
+        if (sku.isEmpty()) {
+            sku = "P" + producto.getId() + "-VARIANTE";
+        }
+        return sku.length() > MAX_LARGO_SKU ? sku.substring(0, MAX_LARGO_SKU) : sku;
+    }
+
+    /** Deja un texto en mayúsculas alfanuméricas separadas por guiones. */
+    private static String limpiarSku(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "-")
+                .replaceAll("^-+", "")
+                .replaceAll("-+$", "");
+    }
+
+    /** Primer SKU libre de la forma {@code base}, {@code base-2}, {@code base-3}… */
+    private static String skuLibre(String base, Set<String> ocupados) {
+        String candidato = base;
+        int intento = 1;
+        while (ocupados.contains(candidato)) {
+            intento++;
+            if (intento > 200) {
+                candidato = base + "-" + Math.abs(System.nanoTime() % 100_000L);
+                break;
+            }
+            candidato = base + "-" + intento;
+        }
+        ocupados.add(candidato);
+        return candidato;
+    }
+
+    /**
+     * Prepara la importación: lee el texto, resuelve el producto y describe el
+     * cambio para la tarjeta de confirmación.
+     *
+     * <p><strong>De dónde sale el texto</strong> (en este orden):</p>
+     * <ol>
+     *   <li>lo que el administrador acaba de pegar en este mensaje — la fuente
+     *       fiable, ya que el modelo no lo transcribe;</li>
+     *   <li>lo que el modelo envió en {@code textoDropi};</li>
+     *   <li>el último inventario aceptado, por si el texto se pegó en un
+     *       mensaje anterior y ahora solo se responde con el nombre.</li>
+     * </ol>
+     */
+    private Preparacion prepararImportacionDropi(JsonNode argumentos, String textoMensaje) {
+        Long productoId = argumentos.hasNonNull("productoId") ? argumentos.path("productoId").asLong() : null;
+        if (productoId == null) {
+            return new Preparacion(null, json(Map.of(
+                    "error", "Falta productoId.",
+                    "sugerencia", "Usa " + TOOL_BUSCAR + " para encontrar el producto y luego vuelve a llamar a "
+                            + TOOL_DROPI + " con su id.")));
+        }
+
+        String texto = null;
+        List<VarianteImportada> detectadas = List.of();
+
+        if (DropiParserUtil.pareceInventario(textoMensaje)) {
+            texto = textoMensaje;
+            detectadas = DropiParserUtil.parsear(texto);
+        } else {
+            String delModelo = argumentos.path("textoDropi").asText("");
+            if (DropiParserUtil.pareceInventario(delModelo)) {
+                texto = delModelo;
+                detectadas = DropiParserUtil.parsear(texto);
+            } else {
+                String reciente = textoDropiReciente();
+                if (reciente != null && DropiParserUtil.pareceInventario(reciente)) {
+                    texto = reciente;
+                    detectadas = DropiParserUtil.parsear(texto);
+                }
+            }
+        }
+
+        if (detectadas.isEmpty()) {
+            return new Preparacion(null, json(Map.of(
+                    "error", "No tengo ningún inventario de Dropi que importar.",
+                    "sugerencia", "Pide al administrador que pegue el texto (Color, Tallas, Stock, Costo y Precio).")));
+        }
+
+        Producto producto = productoRepository.findById(productoId).orElse(null);
+        if (producto == null) {
+            return new Preparacion(null, json(Map.of(
+                    "error", "No existe ningún producto con id " + productoId + ".",
+                    "sugerencia", "Busca el producto con " + TOOL_BUSCAR + ".")));
+        }
+
+        // Comparación para la vista previa: cuántas se crean y cuántas se tocan.
+        Set<String> yaExisten = new HashSet<>();
+        for (VarianteProducto variante : varianteProductoRepository.findByProductoId(producto.getId())) {
+            yaExisten.add(DropiParserUtil.clave(variante.getColor(), variante.getTalla()));
+        }
+
+        int nuevas = 0;
+        int cambios = 0;
+        int mostradas = 0;
+        StringBuilder vista = new StringBuilder();
+
+        for (VarianteImportada detectada : detectadas) {
+            boolean existe = yaExisten.contains(detectada.clave());
+            if (existe) {
+                cambios++;
+            } else {
+                nuevas++;
+            }
+            if (mostradas < MAX_VARIANTES_PREVIEW) {
+                mostradas++;
+                vista.append("\n• ").append(detectada.etiqueta());
+                if (detectada.stock() != null) {
+                    vista.append(" · stock ").append(detectada.stock());
+                }
+                if (detectada.precioVenta() != null) {
+                    vista.append(" · $").append(pesos(detectada.precioVenta()));
+                }
+                vista.append(existe ? "  (actualizar)" : "  (nueva)");
+            }
+        }
+        if (detectadas.size() > mostradas) {
+            vista.append("\n… y ").append(detectadas.size() - mostradas).append(" más");
+        }
+
+        Map<String, Object> aprobados = new LinkedHashMap<>();
+        aprobados.put("productoId", producto.getId());
+        aprobados.put("nombreProducto", producto.getNombre());
+        aprobados.put("textoDropi", texto == null ? "" : texto);
+        aprobados.put("variantesDetectadas", detectadas.size());
+
+        String descripcion = "importar " + detectadas.size() + " variante(s) de Dropi en «"
+                + producto.getNombre() + "» (" + nuevas + " nueva(s), " + cambios + " a actualizar)" + vista;
+
+        // masiva = true → el chat pinta la tarjeta en ámbar y exige un clic.
+        return new Preparacion(new AccionPendiente(TOOL_DROPI, descripcion, aprobados, true), null);
+    }
+
+    /**
+     * Versión de un mensaje del historial que se envía al modelo.
+     *
+     * <p>Si es un inventario de Dropi pegado (cientos o miles de caracteres) se
+     * sustituye por una marca: el texto ya está leído por Java y al modelo no
+     * le aporta nada, así que no tiene sentido pagarlo en tokens en cada
+     * turno.</p>
+     */
+    private static String historialParaElModelo(String contenido) {
+        String limpio = contenido == null ? "" : contenido.trim();
+        if (limpio.length() > 200 && DropiParserUtil.pareceInventario(limpio)) {
+            return "[inventario de Dropi pegado en un mensaje anterior: ya está cargado en el servidor]";
+        }
+        return recortar(limpio, 500);
+    }
+
+    /**
+     * Resumen del inventario pegado que se envía al modelo en lugar del texto.
+     *
+     * <p>Mantiene al asistente informado (qué variantes se detectaron) sin
+     * pagar el texto completo en tokens y sin darle nada que pueda transcribir
+     * mal: los números que aparecen aquí son los ya leídos por Java.</p>
+     */
+    private static String resumenInventarioPegado(List<VarianteImportada> variantes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[El administrador pegó un inventario de Dropi. El texto crudo ya está cargado en el servidor: "
+                + "no lo repitas, no lo transcribas y no calcules nada. Variantes detectadas: ")
+                .append(variantes.size()).append('.');
+
+        int mostradas = 0;
+        for (VarianteImportada variante : variantes) {
+            if (mostradas >= 12) {
+                sb.append(" …");
+                break;
+            }
+            mostradas++;
+            sb.append(' ').append(variante.etiqueta());
+            if (variante.stock() != null) {
+                sb.append(" stock ").append(variante.stock());
+            }
+            if (variante.precioVenta() != null) {
+                sb.append(" precio $").append(pesos(variante.precioVenta()));
+            }
+            sb.append(';');
+        }
+
+        sb.append(" Identifica el producto con ").append(TOOL_BUSCAR)
+                .append(" y llama a ").append(TOOL_DROPI).append(" con su id y textoDropi vacío.]");
+        return sb.toString();
+    }
+
+    /** Guarda el inventario recién aceptado (para el flujo en dos turnos). */
+    private void recordarTextoDropi(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return;
+        }
+        this.ultimoTextoDropi = texto;
+        this.ultimoTextoDropiEn = Instant.now();
+    }
+
+    /** @return el último inventario aceptado, o {@code null} si ya caducó */
+    private String textoDropiReciente() {
+        String texto = ultimoTextoDropi;
+        Instant cuando = ultimoTextoDropiEn;
+        if (texto == null || cuando == null) {
+            return null;
+        }
+        if (cuando.plus(VIGENCIA_TEXTO_DROPI).isBefore(Instant.now())) {
+            return null;
+        }
+        return texto;
+    }
+
     /**
      * Convierte una llamada de escritura en una acción propuesta.
      *
-     * <p>Para la acción masiva el producto se resuelve aquí: si no existe o hay
-     * varios candidatos, se devuelve un error que vuelve al modelo para que
+     * <p>Para las acciones masivas el producto se resuelve aquí: si no existe o
+     * hay varios candidatos, se devuelve un error que vuelve al modelo para que
      * pida más detalle, y <strong>no se propone ninguna acción</strong>.</p>
+     *
+     * @param textoMensaje lo que escribió el administrador en este turno (ya
+     *                     recortado); es la fuente fiable del inventario pegado
      */
-    private Preparacion prepararAccion(String tool, JsonNode argumentos) {
+    private Preparacion prepararAccion(String tool, JsonNode argumentos, String textoMensaje) {
+        if (TOOL_DROPI.equals(tool)) {
+            return prepararImportacionDropi(argumentos, textoMensaje);
+        }
+
         if (!TOOL_STOCK_PRODUCTO.equals(tool)) {
             return new Preparacion(
                     new AccionPendiente(tool, describirAccion(tool, argumentos), aMapa(argumentos), false),
@@ -680,7 +1200,8 @@ public class AdminAsistenteService {
         return TOOL_STOCK.equals(tool)
                 || TOOL_STOCK_PRODUCTO.equals(tool)
                 || TOOL_PRECIO.equals(tool)
-                || TOOL_DESCRIPCION.equals(tool);
+                || TOOL_DESCRIPCION.equals(tool)
+                || TOOL_DROPI.equals(tool);
     }
 
     private String ejecutarLectura(String tool, JsonNode argumentos) {
@@ -705,6 +1226,10 @@ public class AdminAsistenteService {
             case TOOL_DESCRIPCION -> actualizarDescripcionProducto(
                     argumentos.hasNonNull("productoId") ? argumentos.path("productoId").asLong() : null,
                     argumentos.path("nuevaDescripcion").asText(""));
+            case TOOL_DROPI -> importarVariantesDropi(
+                    argumentos.hasNonNull("productoId") ? argumentos.path("productoId").asLong() : null,
+                    argumentos.path("nombreProducto").asText(""),
+                    argumentos.path("textoDropi").asText(""));
             default -> json(Map.of("error", "Solo se pueden ejecutar acciones de escritura conocidas."));
         };
     }
@@ -797,6 +1322,8 @@ public class AdminAsistenteService {
             case TOOL_PRECIO -> "cambiar el precio de la variante " + argumentos.path("sku").asText("(sin SKU)")
                     + " a $" + pesos(argumentos.path("nuevoPrecio").asDouble(0));
             case TOOL_DESCRIPCION -> "cambiar la descripción del producto con id "
+                    + argumentos.path("productoId").asText("(sin id)");
+            case TOOL_DROPI -> "importar un inventario de Dropi en el producto con id "
                     + argumentos.path("productoId").asText("(sin id)");
             default -> tool;
         };
