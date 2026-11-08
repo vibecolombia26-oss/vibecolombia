@@ -22,7 +22,7 @@
     <meta property="og:url" th:content="${urlCanonica}">
     <meta property="og:image" th:if="${imagenPrincipal != null}" th:content="${imagenPrincipal}">
 
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=5)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
     <style>
         :root {
             --pdp-max: 1180px;
@@ -415,6 +415,15 @@
 
         .pdp__cta { display: grid; gap: 8px; }
 
+        /* Los dos botones que cierran la venta en la ficha llevan un glow
+           tricolor permanente y muy tenue: el ojo cae ahí antes que en el
+           resto del contenido, sin que parezca un cartel. */
+        .pdp__cta .flow-btn--primary {
+            box-shadow: 0 16px 34px -18px rgba(37, 99, 235, 0.95),
+                        0 0 0 1px rgba(252, 209, 22, 0.16),
+                        0 14px 30px -22px var(--flow-glow-red);
+        }
+
         @media (min-width: 560px) {
             .pdp__cta { grid-template-columns: 1fr 1fr; }
         }
@@ -660,7 +669,12 @@
             cursor: pointer;
         }
 
-        .cart-float-btn--primary { background: var(--flow-accent); border-color: var(--flow-accent); }
+        .cart-float-btn--primary {
+            background: var(--flow-accent);
+            border-color: var(--flow-accent);
+            box-shadow: 0 10px 24px -16px rgba(37, 99, 235, 0.95),
+                        0 0 0 1px rgba(252, 209, 22, 0.18);
+        }
 
         @media (min-width: 560px) {
             .cart-float-inner {
@@ -693,7 +707,6 @@
          Todo el texto sale de la base de datos; no se inventa nada.
          ============================================================ -->
     <script type="application/ld+json" th:inline="javascript">
-    /*<![CDATA[*/
     {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -719,7 +732,6 @@
         }
       }
     }
-    /*]]>*/
     </script>
 </head>
 <body>

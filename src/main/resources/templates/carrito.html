@@ -11,7 +11,7 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
 
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=5)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -430,6 +430,11 @@
             border: 1px solid rgba(52, 211, 153, 0.45);
             color: #6ee7b7;
             font-size: 1.4rem;
+            /* El instante de la compra se celebra con un halo tricolor:
+               refuerza la marca justo cuando hay más emoción. */
+            box-shadow: 0 0 0 1px rgba(252, 209, 22, 0.22),
+                        0 0 26px -6px var(--flow-glow-yellow),
+                        0 14px 28px -18px var(--flow-glow-red);
         }
 
         .confirm h2 { font-size: clamp(1.4rem, 4.4vw, 1.9rem); letter-spacing: -0.02em; }

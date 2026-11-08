@@ -7,7 +7,7 @@
     <title>Flow Track · Seguimiento de pedido · FLOW COLOMBIA</title>
     <meta name="theme-color" content="#050914">
     <meta name="description" content="Consulta el estado de tu pedido en FLOW COLOMBIA con tu código y tu teléfono.">
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=5)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
     <style>
         /* ============================================================
            FLOW TRACK — seguimiento de pedidos
@@ -289,16 +289,18 @@
         }
 
         .track-step.is-done .track-step__dot {
-            background: rgba(37, 99, 235, 0.18);
-            border-color: rgba(37, 99, 235, 0.6);
-            color: #93c5fd;
+            background: rgba(206, 17, 38, 0.16);
+            border-color: rgba(206, 17, 38, 0.6);
+            color: #fda4af;
         }
 
         .track-step.is-current .track-step__dot {
             background: var(--flow-accent, #2563eb);
             border-color: var(--flow-accent, #2563eb);
             color: #fff;
-            box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.16);
+            /* Punto de luz amarillo en el paso actual */
+            box-shadow: 0 0 0 6px rgba(252, 209, 22, 0.14),
+                        0 0 20px -2px rgba(252, 209, 22, 0.6);
         }
 
         .track-step__body { min-width: 0; padding-top: 5px; }

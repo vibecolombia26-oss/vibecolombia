@@ -7,7 +7,7 @@
     <meta name="description" content="FLOW COLOMBIA — Productos que le ponen flow a tu día. Envío gratis y pago contra entrega en toda Colombia.">
     <meta name="theme-color" content="#050914">
     <title>FLOW COLOMBIA</title>
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=5)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
     <style>
         /* ============================================================
            TOKENS DE DISEÑO
@@ -96,6 +96,32 @@
             border-bottom: 1px solid var(--border);
         }
 
+        /* Rayo de luz tricolor que barre el borde inferior al cargar la
+           página: un gesto de marca de 1px, sin peso visual ni imágenes. */
+        .site-header::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 1px;
+            background: var(--flow-tricolor);
+            transform: scaleX(0);
+            transform-origin: left center;
+            animation: flowBarrido 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.25s 1 forwards;
+            pointer-events: none;
+        }
+
+        @keyframes flowBarrido {
+            from { transform: scaleX(0); opacity: 0.2; }
+            65%  { transform: scaleX(1); opacity: 1; }
+            to   { transform: scaleX(1); opacity: 0.5; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .site-header::after { animation: none; transform: scaleX(1); opacity: 0.5; }
+        }
+
         .header-inner {
             max-width: var(--max);
             margin: 0 auto;
@@ -143,8 +169,11 @@
             gap: 8px;
             padding: 0 12px;
             min-height: 42px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
+            /* Glassmorphism: el fondo difumina lo que pasa por detrás */
+            background: rgba(13, 20, 46, 0.55);
+            -webkit-backdrop-filter: blur(14px) saturate(150%);
+            backdrop-filter: blur(14px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 999px;
             transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
@@ -447,11 +476,13 @@
             left: 14px;
             padding: 5px 11px;
             border-radius: 999px;
-            background: rgba(5, 9, 20, 0.72);
-            -webkit-backdrop-filter: blur(8px);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(37, 99, 235, 0.45);
-            color: #bfdbfe;
+            /* Cristal + acento amarillo bandera en el sello "Destacado" */
+            background: rgba(5, 9, 20, 0.5);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            backdrop-filter: blur(14px) saturate(160%);
+            border: 1px solid rgba(252, 209, 22, 0.45);
+            color: #fde68a;
+            box-shadow: 0 10px 24px -16px var(--flow-glow-yellow);
             font-size: 0.66rem;
             font-weight: 600;
             letter-spacing: 0.08em;
@@ -634,6 +665,7 @@
         }
 
         .product-card {
+            position: relative;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -643,10 +675,44 @@
             transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
         }
 
+        /* Línea superior tricolor al descubrir una tarjeta: la señal de
+           "producto de acá, de calidad" sin recargar el bloque. */
+        .product-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--flow-tricolor);
+            opacity: 0;
+            transform: scaleX(0.55);
+            transition: opacity 0.25s ease, transform 0.35s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+
         .product-card:hover {
-            border-color: rgba(37, 99, 235, 0.45);
-            box-shadow: 0 22px 44px -28px rgba(37, 99, 235, 0.75);
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 22px 44px -28px rgba(37, 99, 235, 0.7),
+                        0 0 0 1px rgba(252, 209, 22, 0.10);
             transform: translateY(-3px);
+        }
+
+        .product-card:hover::before,
+        .product-card:focus-within::before {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* En táctil no existe el hover: el acento salta al tocar la tarjeta */
+        @media (hover: none) {
+            .product-card:active::before { opacity: 1; transform: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .product-card::before { transition: opacity 0.2s ease; transform: none; }
+            .product-card:hover { transform: none; }
         }
 
         .product-media {

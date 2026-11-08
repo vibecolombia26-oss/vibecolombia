@@ -24,6 +24,21 @@
     --flow-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --flow-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.95);
     --cart-bar-h: 0px;
+
+    /* ============================================================
+       ACENTOS BANDERA (Colombia) — un solo lugar para tocarlos.
+       Se usan SIEMPRE en detalles de 1-2px, glows o degradados:
+       nunca como fondo de bloques grandes.
+       ============================================================ */
+    --flow-flag-yellow: #fcd116;
+    --flow-flag-blue: #2563eb;   /* el azul eléctrico de la marca */
+    --flow-flag-red: #ce1126;
+    --flow-tricolor: linear-gradient(90deg,
+            var(--flow-flag-yellow) 0%,
+            var(--flow-flag-blue) 50%,
+            var(--flow-flag-red) 100%);
+    --flow-glow-yellow: rgba(252, 209, 22, 0.55);
+    --flow-glow-red: rgba(206, 17, 38, 0.45);
 }
 
 body.flow-lock { overflow: hidden; }
@@ -46,16 +61,67 @@ body.flow-lock { overflow: hidden; }
 }
 
 .flow-btn--primary {
+    position: relative;
     background: var(--flow-accent);
     border-color: var(--flow-accent);
     color: #fff;
     box-shadow: 0 14px 30px -16px rgba(37, 99, 235, 0.9);
 }
 
+/* Acento tricolor del botón de compra: borde de 1px con degradado
+   amarillo→azul→rojo, dibujado con máscara (sin imágenes extra).
+   El ojo va al botón porque es el único elemento con los tres colores. */
+.flow-btn--primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+            var(--flow-flag-yellow),
+            var(--flow-flag-blue),
+            var(--flow-flag-red),
+            var(--flow-flag-yellow));
+    background-size: 300% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    /* Si el navegador no entiende la máscara, este borde no se pinta:
+       sin ella se vería un degradado sólido tapando el texto del botón. */
+    display: none;
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+    .flow-btn--primary::after { display: block; }
+}
+
 .flow-btn--primary:hover {
     background: var(--flow-accent-hover);
     border-color: var(--flow-accent-hover);
     transform: translateY(-1px);
+    box-shadow: 0 16px 34px -18px rgba(37, 99, 235, 0.95),
+                0 10px 26px -18px var(--flow-glow-red);
+}
+
+/* El "rayo" recorre el contorno solo donde hay puntero real */
+@media (hover: hover) and (pointer: fine) {
+    .flow-btn--primary:hover::after {
+        opacity: 1;
+        animation: flowLaser 2.6s linear infinite;
+    }
+}
+
+/* En táctil el acento salta al toque, no al hover */
+.flow-btn--primary:active::after { opacity: 1; }
+.flow-btn--primary:active { transform: scale(0.985); }
+
+@keyframes flowLaser {
+    from { background-position: 0% 50%; }
+    to   { background-position: 300% 50%; }
 }
 
 .flow-btn--ghost {
@@ -493,18 +559,34 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
 
 .flow-step.is-active { color: var(--flow-text); }
 
+/* Paso actual: punto de luz amarillo (foco de atención) */
 .flow-step.is-active .flow-step__num {
     background: var(--flow-accent);
     border-color: var(--flow-accent);
     color: #fff;
+    box-shadow: 0 0 0 4px rgba(252, 209, 22, 0.14),
+                0 0 16px -2px var(--flow-glow-yellow);
 }
 
 .flow-step.is-done { color: #bfdbfe; }
 
+/* Pasos completados: check rojo sutil en lugar del número */
 .flow-step.is-done .flow-step__num {
-    background: var(--flow-accent-soft);
-    border-color: rgba(37, 99, 235, 0.55);
-    color: var(--flow-accent-light);
+    position: relative;
+    background: rgba(206, 17, 38, 0.16);
+    border-color: rgba(206, 17, 38, 0.6);
+    color: transparent;
+}
+
+.flow-step.is-done .flow-step__num::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fb7185;
+    font-size: 0.82rem;
+    font-weight: 800;
 }
 
 .flow-panel[hidden] { display: none; }
@@ -1055,8 +1137,10 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     animation: flowAiTyping 1.2s infinite;
 }
 
-.flow-ai-typing i:nth-child(2) { animation-delay: 0.15s; }
-.flow-ai-typing i:nth-child(3) { animation-delay: 0.3s; }
+/* Los tres puntos de "escribiendo" parpadean en amarillo, azul y rojo */
+.flow-ai-typing i:nth-child(1) { background: var(--flow-flag-yellow); animation-delay: 0s; }
+.flow-ai-typing i:nth-child(2) { background: var(--flow-flag-blue); animation-delay: 0.15s; }
+.flow-ai-typing i:nth-child(3) { background: var(--flow-flag-red); animation-delay: 0.3s; }
 
 @keyframes flowAiTyping {
     0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
@@ -1206,12 +1290,25 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 
 /* ---------------- Redes sociales ---------------- */
 .footer-social-section {
+    position: relative;
     width: 100%;
     max-width: 1160px;
     margin: 0 auto;
     padding: 26px 18px 30px;
-    /* Línea fina de azul eléctrico que separa del contenido superior */
-    border-top: 1px solid #2563eb;
+    border-top: 0;
+}
+
+/* Línea de 1px con los tres colores de la bandera (antes azul plano) */
+.footer-social-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--flow-tricolor);
+    opacity: 0.85;
+    pointer-events: none;
 }
 
 @media (min-width: 720px) {
@@ -1355,4 +1452,12 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     color: #fff;
     border-color: rgba(37, 99, 235, 0.6);
     background: rgba(37, 99, 235, 0.12);
+}
+/* ============================================================
+   ACCESIBILIDAD: quien pide menos movimiento no ve el rayo
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    .flow-btn--primary::after { animation: none !important; }
+    .flow-btn--primary:hover { transform: none; }
+    .flow-ai-typing i { animation-duration: 2.4s; }
 }
