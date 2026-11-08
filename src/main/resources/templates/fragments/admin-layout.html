@@ -968,6 +968,21 @@
 
         .ad-ia-action__text { font-size: 0.84rem; color: #fff; }
 
+        /* Acción masiva: se avisa en ámbar antes de aprobar */
+        .ad-ia-action--warn {
+            border-color: rgba(251, 191, 36, 0.55);
+            background: rgba(251, 191, 36, 0.10);
+        }
+
+        .ad-ia-action--warn .ad-ia-action__label { color: #fbbf24; }
+
+        .ad-ia-approve--warn {
+            border-color: #d97706;
+            background: #b45309;
+        }
+
+        .ad-ia-approve--warn:hover { background: #92400e; border-color: #92400e; }
+
         .ad-ia-approve {
             padding: 10px 14px;
             border-radius: 10px;
@@ -1400,21 +1415,32 @@
         }
 
         function tarjetaAprobacion(accion) {
+            // Las acciones masivas (todo el stock de un producto) se avisan
+            // en ámbar para que no se aprueben por inercia.
+            var masiva = !!accion.masiva;
+
             var tarjeta = document.createElement('div');
-            tarjeta.className = 'ad-ia-action';
+            tarjeta.className = 'ad-ia-action' + (masiva ? ' ad-ia-action--warn' : '');
 
             var etiqueta = document.createElement('span');
             etiqueta.className = 'ad-ia-action__label';
-            etiqueta.textContent = 'Cambio pendiente de aprobación';
+            etiqueta.textContent = masiva
+                ? '⚠️ Acción masiva · requiere confirmación'
+                : 'Cambio pendiente de aprobación';
 
             var detalle = document.createElement('span');
             detalle.className = 'ad-ia-action__text';
-            detalle.textContent = 'Voy a ' + (accion.descripcion || 'aplicar un cambio') + '.';
+            detalle.textContent = 'Voy a ' + (accion.descripcion || 'aplicar un cambio') + '.'
+                + (masiva ? ' ¿Confirmas?' : '');
+
+            var etiquetaBoton = masiva ? '⚠️ Aprobar cambio masivo' : 'Aprobar y Ejecutar';
 
             var boton = document.createElement('button');
             boton.type = 'button';
-            boton.className = 'ad-ia-approve';
-            boton.textContent = 'Aprobar y Ejecutar';
+            boton.className = 'ad-ia-approve' + (masiva ? ' ad-ia-approve--warn' : '');
+            boton.textContent = etiquetaBoton;
+            // Se guarda para restaurarlo si la ejecución falla.
+            boton.setAttribute('data-etiqueta', etiquetaBoton);
             boton.addEventListener('click', function () {
                 boton.disabled = true;
                 boton.textContent = 'Ejecutando…';
@@ -1497,7 +1523,7 @@
                     burbuja('bot', '⚠ ' + (error && error.message ? error.message : 'No se pudo contactar al asistente.'));
                     if (botonAprobar) {
                         botonAprobar.disabled = false;
-                        botonAprobar.textContent = 'Aprobar y Ejecutar';
+                        botonAprobar.textContent = botonAprobar.getAttribute('data-etiqueta') || 'Aprobar y Ejecutar';
                     }
                 })
                 .finally(function () {

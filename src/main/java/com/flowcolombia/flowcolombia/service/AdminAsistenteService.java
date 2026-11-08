@@ -18,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -62,6 +63,7 @@ public class AdminAsistenteService {
     // ============================================================
     public static final String TOOL_BUSCAR = "buscarProductosPorNombre";
     public static final String TOOL_STOCK = "actualizarStockVariante";
+    public static final String TOOL_STOCK_PRODUCTO = "actualizarStockDeTodoElProducto";
     public static final String TOOL_PRECIO = "actualizarPrecioVariante";
     public static final String TOOL_DESCRIPCION = "actualizarDescripcionProducto";
 
@@ -79,9 +81,15 @@ public class AdminAsistenteService {
             + "Herramientas disponibles (no las ejecutas tú: las propone el sistema y el administrador aprueba):\n"
             + "- " + TOOL_BUSCAR + "(nombre): busca productos y devuelve id, SKU de cada variante, precio y stock.\n"
             + "- " + TOOL_STOCK + "(sku, nuevoStock): cambia el stock de una variante (entero mayor o igual a 0).\n"
+            + "- " + TOOL_STOCK_PRODUCTO + "(nombreProducto, nuevoStock): actualiza el stock de TODAS las variantes "
+            + "de un producto a la vez (acción masiva).\n"
             + "- " + TOOL_PRECIO + "(sku, nuevoPrecio): cambia el precio de una variante (mayor que 0).\n"
             + "- " + TOOL_DESCRIPCION + "(productoId, nuevaDescripcion): cambia la descripción de un producto.\n\n"
             + "Reglas: usa " + TOOL_BUSCAR + " antes de modificar algo si no conoces el SKU o el id. "
+            + "Si el usuario pide actualizar el stock de un producto entero (por ejemplo 'todas las tallas de las mochilas'), "
+            + "puedes usar la herramienta " + TOOL_STOCK_PRODUCTO + ". En 'nombreProducto' pasa SOLO el nombre del producto, "
+            + "sin frases como 'todas las tallas de'. Si la herramienta responde que hay varios productos con ese nombre, "
+            + "pide al usuario que sea más específico en lugar de elegir uno tú. "
             + "No inventes productos, SKU ni precios: si la búsqueda no devuelve nada, dilo. "
             + "Nunca propongas precios negativos o cero. Propón una sola acción por mensaje. Responde en español.";
 
@@ -117,6 +125,21 @@ public class AdminAsistenteService {
                       "nuevoStock": { "type": "integer", "minimum": 0, "maximum": 1000000, "description": "Unidades disponibles" }
                     },
                     "required": ["sku", "nuevoStock"]
+                  }
+                }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "actualizarStockDeTodoElProducto",
+                  "description": "Actualiza el stock de TODAS las variantes de un producto específico usando el nombre del producto. Úsala cuando el administrador pida cambiar el stock de un producto completo (por ejemplo 'todas las tallas de las mochilas'). Es una acción masiva: siempre requiere confirmación.",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "nombreProducto": { "type": "string", "description": "Nombre del producto (solo el nombre, sin frases como 'todas las tallas de')" },
+                      "nuevoStock": { "type": "integer", "minimum": 0, "maximum": 1000000, "description": "Unidades que tendrá cada variante" }
+                    },
+                    "required": ["nombreProducto", "nuevoStock"]
                   }
                 }
               },
@@ -184,7 +207,14 @@ public class AdminAsistenteService {
     // ============================================================
 
     /** Acción propuesta por la IA, pendiente de aprobación humana. */
-    public record AccionPendiente(String tool, String descripcion, Map<String, Object> argumentos) {
+    /**
+     * Acción propuesta por la IA, pendiente de aprobación humana.
+     *
+     * @param masiva true cuando la acción afecta a varias filas a la vez
+     *               (por ejemplo todo el stock de un producto); el chat la
+     *               muestra con un aviso destacado.
+     */
+    public record AccionPendiente(String tool, String descripcion, Map<String, Object> argumentos, boolean masiva) {
     }
 
     /**
@@ -259,27 +289,36 @@ public class AdminAsistenteService {
                             : contenido.trim());
                 }
 
-                // ¿Hay alguna escritura? Entonces hay que pedir confirmación.
-                for (JsonNode llamada : toolCalls) {
-                    String tool = llamada.path("function").path("name").asText("");
-                    if (!esEscritura(tool)) {
-                        continue;
-                    }
-                    JsonNode argumentos = leerArgumentos(llamada);
-                    String descripcion = describirAccion(tool, argumentos);
-                    String aviso = contenido == null || contenido.isBlank()
-                            ? "Voy a " + descripcion + " ¿Lo apruebas?"
-                            : contenido.trim() + "\n\nAcción propuesta: " + descripcion;
-                    return new Respuesta(aviso, true,
-                            new AccionPendiente(tool, descripcion, aMapa(argumentos)));
-                }
-
-                // Solo lecturas: se ejecutan y el resultado vuelve al modelo.
+                // El mensaje del modelo con sus tool_calls vuelve al historial
+                // para poder devolverle el resultado de cada herramienta.
                 mensajes.add(objectMapper.convertValue(mensajeIA, Map.class));
+
                 for (JsonNode llamada : toolCalls) {
                     String tool = llamada.path("function").path("name").asText("");
                     String id = llamada.path("id").asText("");
-                    String salida = ejecutarLectura(tool, leerArgumentos(llamada));
+                    JsonNode argumentos = leerArgumentos(llamada);
+
+                    if (esEscritura(tool)) {
+                        Preparacion preparacion = prepararAccion(tool, argumentos);
+
+                        // No se pudo preparar (producto inexistente o ambiguo):
+                        // el motivo vuelve al modelo para que pida más detalle
+                        // en lugar de ejecutar sobre el producto equivocado.
+                        if (preparacion.error() != null) {
+                            mensajes.add(Map.of("role", "tool", "tool_call_id", id,
+                                    "content", preparacion.error()));
+                            continue;
+                        }
+
+                        AccionPendiente accion = preparacion.accion();
+                        String aviso = contenido == null || contenido.isBlank()
+                                ? "Voy a " + accion.descripcion() + " ¿Lo apruebas?"
+                                : contenido.trim() + "\n\nAcción propuesta: " + accion.descripcion();
+
+                        return new Respuesta(aviso, true, accion);
+                    }
+
+                    String salida = ejecutarLectura(tool, argumentos);
                     mensajes.add(Map.of("role", "tool", "tool_call_id", id,
                             "content", salida == null ? "{}" : salida));
                 }
@@ -455,12 +494,193 @@ public class AdminAsistenteService {
                 "mensaje", "Actualicé la descripción de «" + producto.getNombre() + "»."));
     }
 
+    /**
+     * Actualiza el stock de TODAS las variantes de un producto.
+     *
+     * <p>Es la única herramienta que toca varias filas a la vez, así que el
+     * producto se resuelve <strong>antes</strong> de pedir la aprobación (en
+     * {@link #prepararAccion}) y el id resuelto viaja en la acción aprobada.
+     * Al ejecutar se usa ese id, no el nombre: así el cambio no puede caer en
+     * otro producto aunque el nombre se repita o el catálogo cambie entre la
+     * propuesta y la aprobación.</p>
+     *
+     * @param productoId     id ya resuelto en la propuesta (preferente)
+     * @param nombreProducto nombre aprobado, para verificar que id y nombre cuadran
+     * @param nuevoStock     unidades que tendrá cada variante
+     */
+    @Transactional
+    public String actualizarStockDeTodoElProducto(Long productoId, String nombreProducto, Integer nuevoStock) {
+        if (nuevoStock == null || nuevoStock < 0) {
+            return json(Map.of("error", "El stock debe ser un entero mayor o igual a 0."));
+        }
+        if (nuevoStock > STOCK_MAXIMO) {
+            return json(Map.of("error", "El stock no puede superar " + STOCK_MAXIMO + " unidades."));
+        }
+
+        Producto producto;
+
+        if (productoId != null) {
+            producto = productoRepository.findById(productoId).orElse(null);
+            if (producto == null) {
+                return json(Map.of("error", "El producto con id " + productoId + " ya no existe."));
+            }
+            // Defensa: el navegador podría reenviar otro id; el id y el nombre
+            // aprobados tienen que seguir siendo el mismo producto.
+            if (nombreProducto != null && !nombreProducto.isBlank()
+                    && !seParecen(producto.getNombre(), nombreProducto)) {
+                return json(Map.of("error", "El producto indicado no coincide con el nombre que se aprobó."));
+            }
+        } else {
+            List<Producto> encontrados = resolverPorNombre(nombreProducto);
+            if (encontrados.isEmpty()) {
+                return json(Map.of("error", "No existe ningún producto que coincida con «"
+                        + (nombreProducto == null ? "" : nombreProducto) + "»."));
+            }
+            if (encontrados.size() > 1) {
+                return json(Map.of("error", "Hay " + encontrados.size()
+                        + " productos que coinciden con ese nombre: indica el nombre completo."));
+            }
+            producto = encontrados.get(0);
+        }
+
+        List<VarianteProducto> variantes = varianteProductoRepository.findByProductoId(producto.getId());
+        if (variantes.isEmpty()) {
+            return json(Map.of("error", "El producto «" + producto.getNombre()
+                    + "» no tiene variantes que actualizar."));
+        }
+
+        for (VarianteProducto variante : variantes) {
+            variante.setStock(nuevoStock);
+        }
+        varianteProductoRepository.saveAll(variantes);
+
+        return json(Map.of("ok", true,
+                "mensaje", "El stock de las " + variantes.size() + " variante(s) de «"
+                        + producto.getNombre() + "» quedó en " + nuevoStock + " unidades."));
+    }
+
+    /**
+     * Convierte una llamada de escritura en una acción propuesta.
+     *
+     * <p>Para la acción masiva el producto se resuelve aquí: si no existe o hay
+     * varios candidatos, se devuelve un error que vuelve al modelo para que
+     * pida más detalle, y <strong>no se propone ninguna acción</strong>.</p>
+     */
+    private Preparacion prepararAccion(String tool, JsonNode argumentos) {
+        if (!TOOL_STOCK_PRODUCTO.equals(tool)) {
+            return new Preparacion(
+                    new AccionPendiente(tool, describirAccion(tool, argumentos), aMapa(argumentos), false),
+                    null);
+        }
+
+        String nombre = argumentos.path("nombreProducto").asText("").trim();
+        Integer stock = argumentos.hasNonNull("nuevoStock") ? argumentos.path("nuevoStock").asInt() : null;
+
+        if (nombre.isBlank()) {
+            return new Preparacion(null, json(Map.of("error", "Falta el nombre del producto.")));
+        }
+        if (stock == null || stock < 0) {
+            return new Preparacion(null, json(Map.of("error", "El stock debe ser un entero mayor o igual a 0.")));
+        }
+        if (stock > STOCK_MAXIMO) {
+            return new Preparacion(null, json(Map.of("error", "El stock no puede superar " + STOCK_MAXIMO + ".")));
+        }
+
+        List<Producto> encontrados = resolverPorNombre(nombre);
+
+        if (encontrados.isEmpty()) {
+            return new Preparacion(null, json(Map.of(
+                    "error", "No existe ningún producto que coincida con «" + nombre + "».",
+                    "sugerencia", "Usa " + TOOL_BUSCAR + " para encontrar el nombre exacto.")));
+        }
+
+        if (encontrados.size() > 1) {
+            List<String> candidatos = new ArrayList<>();
+            for (Producto p : encontrados) {
+                if (candidatos.size() >= 5) {
+                    break;
+                }
+                candidatos.add(p.getNombre());
+            }
+            return new Preparacion(null, json(Map.of(
+                    "error", "Hay " + encontrados.size() + " productos que coinciden con «" + nombre + "».",
+                    "candidatos", candidatos,
+                    "sugerencia", "Pide al administrador que sea más específico (nombre completo) "
+                            + "en lugar de elegir uno tú.")));
+        }
+
+        Producto producto = encontrados.get(0);
+        int numeroVariantes = varianteProductoRepository.findByProductoId(producto.getId()).size();
+
+        // El id resuelto queda clavado en la acción aprobada.
+        Map<String, Object> aprobados = new LinkedHashMap<>();
+        aprobados.put("productoId", producto.getId());
+        aprobados.put("nombreProducto", producto.getNombre());
+        aprobados.put("nuevoStock", stock);
+
+        String descripcion = "actualizar el stock de las " + numeroVariantes + " variante(s) de «"
+                + producto.getNombre() + "» a " + stock + " unidades cada una";
+
+        return new Preparacion(new AccionPendiente(tool, descripcion, aprobados, true), null);
+    }
+
+    /**
+     * Busca productos por nombre y, si no hay coincidencias, reintenta sin la
+     * 's' final ("mochilas" → "mochila"). No adivina: sin coincidencias
+     * devuelve la lista vacía.
+     */
+    private List<Producto> resolverPorNombre(String nombre) {
+        String limpio = nombre == null ? "" : nombre.trim();
+        if (limpio.isBlank()) {
+            return List.of();
+        }
+
+        List<Producto> encontrados = productoRepository.findByNombreContainingIgnoreCase(limpio);
+        if (!encontrados.isEmpty()) {
+            return encontrados;
+        }
+
+        if (limpio.length() > 3 && limpio.toLowerCase(Locale.ROOT).endsWith("s")) {
+            encontrados = productoRepository.findByNombreContainingIgnoreCase(
+                    limpio.substring(0, limpio.length() - 1));
+        }
+        return encontrados;
+    }
+
+    /** ¿El nombre aprobado y el del producto hablan del mismo artículo? */
+    private static boolean seParecen(String nombreProducto, String nombreAprobado) {
+        String a = normalizar(nombreProducto);
+        String b = normalizar(nombreAprobado);
+        if (a.isEmpty() || b.isEmpty()) {
+            return false;
+        }
+        return a.contains(b) || b.contains(a);
+    }
+
+    private static String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    /** Resultado de preparar una acción: o la acción, o el motivo del fallo. */
+    private record Preparacion(AccionPendiente accion, String error) {
+    }
+
     // ============================================================
     // Despacho de herramientas
     // ============================================================
 
     private static boolean esEscritura(String tool) {
-        return TOOL_STOCK.equals(tool) || TOOL_PRECIO.equals(tool) || TOOL_DESCRIPCION.equals(tool);
+        return TOOL_STOCK.equals(tool)
+                || TOOL_STOCK_PRODUCTO.equals(tool)
+                || TOOL_PRECIO.equals(tool)
+                || TOOL_DESCRIPCION.equals(tool);
     }
 
     private String ejecutarLectura(String tool, JsonNode argumentos) {
@@ -474,6 +694,10 @@ public class AdminAsistenteService {
         return switch (tool) {
             case TOOL_STOCK -> actualizarStockVariante(
                     argumentos.path("sku").asText(""),
+                    argumentos.hasNonNull("nuevoStock") ? argumentos.path("nuevoStock").asInt() : null);
+            case TOOL_STOCK_PRODUCTO -> actualizarStockDeTodoElProducto(
+                    argumentos.hasNonNull("productoId") ? argumentos.path("productoId").asLong() : null,
+                    argumentos.path("nombreProducto").asText(""),
                     argumentos.hasNonNull("nuevoStock") ? argumentos.path("nuevoStock").asInt() : null);
             case TOOL_PRECIO -> actualizarPrecioVariante(
                     argumentos.path("sku").asText(""),
@@ -567,6 +791,9 @@ public class AdminAsistenteService {
         return switch (tool) {
             case TOOL_STOCK -> "cambiar el stock de la variante " + argumentos.path("sku").asText("(sin SKU)")
                     + " a " + argumentos.path("nuevoStock").asInt(0) + " unidades";
+            case TOOL_STOCK_PRODUCTO -> "actualizar el stock de todas las variantes de «"
+                    + argumentos.path("nombreProducto").asText("(sin nombre)")
+                    + "» a " + argumentos.path("nuevoStock").asInt(0) + " unidades";
             case TOOL_PRECIO -> "cambiar el precio de la variante " + argumentos.path("sku").asText("(sin SKU)")
                     + " a $" + pesos(argumentos.path("nuevoPrecio").asDouble(0));
             case TOOL_DESCRIPCION -> "cambiar la descripción del producto con id "
