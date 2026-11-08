@@ -724,7 +724,10 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     z-index: 2800;
     width: 380px;
     max-width: calc(100vw - 32px);
+    /* 100dvh = altura dinámica real (se adapta a la barra del navegador).
+       La primera línea es el respaldo para navegadores sin soporte dvh. */
     height: min(560px, calc(100vh - 120px));
+    height: min(560px, calc(100dvh - 120px));
     display: flex;
     flex-direction: column;
     background: #0a0f24;
@@ -738,12 +741,17 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 .flow-ai-panel[hidden] { display: none; }
 
 .flow-ai-head {
+    /* La cabecera nunca se va con el scroll de la conversación. */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex: none;
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 13px 14px;
     border-bottom: 1px solid var(--flow-border);
-    background: linear-gradient(180deg, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0) 100%);
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0) 100%), #0a0f24;
 }
 
 .flow-ai-head__mark {
@@ -796,7 +804,12 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 
 .flow-ai-body {
     flex: 1;
+    /* min-height:0 permite que el contenedor se encoja cuando aparece el
+       teclado; sin esto el body desborda y empuja la cabecera. */
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -949,11 +962,16 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 }
 
 .flow-ai-form {
+    /* La barra de escritura queda siempre pegada abajo, encima del teclado. */
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    flex: none;
     display: flex;
     gap: 8px;
     padding: 11px 12px;
     border-top: 1px solid var(--flow-border);
-    background: rgba(13, 20, 46, 0.92);
+    background: rgba(13, 20, 46, 0.98);
 }
 
 .flow-ai-input {
@@ -1050,7 +1068,12 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     to { opacity: 1; transform: none; }
 }
 
-@media (max-width: 640px) {
+/* ============================================================
+   CHAT EN MÓVIL: pantalla completa (estilo WhatsApp/Instagram)
+   El corte es 768px: por debajo, el chat deja de ser una ventana
+   flotante y ocupa toda la pantalla visible.
+   ============================================================ */
+@media (max-width: 767px) {
     .flow-ai-fab {
         right: 14px;
         bottom: 14px;
@@ -1065,10 +1088,19 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
         inset: 0;
         width: 100%;
         max-width: none;
-        height: 100%;
+        height: 100vh;          /* respaldo */
+        height: 100dvh;         /* altura real del viewport */
+        max-height: 100vh;
+        max-height: 100dvh;
         border: 0;
         border-radius: 0;
     }
+
+    /* iOS hace zoom automático al enfocar un input de menos de 16px,
+       y ese zoom es lo que "descoloca" el chat. */
+    .flow-ai-input { font-size: 16px; }
+
+    .flow-ai-body { padding: 14px; }
 
     .flow-ai-bubble { max-width: 88%; }
 }

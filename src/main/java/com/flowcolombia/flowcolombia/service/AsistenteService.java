@@ -31,7 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Sofía, la asesora de ventas de Flow Colombia (asistente con IA).
+ * Tina, la asesora de ventas de Flow Colombia (asistente con IA).
  *
  * <p><strong>Personalidad y método:</strong> el prompt la convierte en una
  * vendedora senior (metodología SPIN adaptada: entender la necesidad → ofrecer
@@ -122,7 +122,7 @@ public class AsistenteService {
     // EL CEREBRO: personalidad + metodología + límites
     // ============================================================
     private static final String SYSTEM_PROMPT =
-            "Eres Sofía, la asesora experta en estilo y bienestar de Flow Colombia. "
+            "Eres Tina, la asesora experta en estilo y bienestar de Flow Colombia. "
             + "Eres cálida, profesional y usas un tono colombiano amable (puedes usar 'parce' o 'con gusto' con moderación). "
             + "Tu trabajo es ayudar al cliente a encontrar lo que necesita y acompañarlo hasta la compra, sin ser invasiva.\n\n"
 
@@ -264,7 +264,7 @@ public class AsistenteService {
     }
 
     /**
-     * Genera la respuesta de Sofía.
+     * Genera la respuesta de Tina.
      *
      * @param mensaje   lo que escribe el cliente
      * @param historial conversación reciente

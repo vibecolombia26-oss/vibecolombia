@@ -8,7 +8,7 @@
     'use strict';
 
     var API_URL = '/api/asistente';
-    var GREETING = '¡Hola! Soy Sofía de Flow Colombia 🌸. ¿Buscas algo para ti, para tu casa o un regalo especial?';
+    var GREETING = '¡Hola! Soy Tina de Flow Colombia 🌸. ¿Buscas algo para ti, para tu casa o un regalo especial?';
     var QUICK_OPTIONS = [
         { label: 'Para mí', text: 'Busco algo para mí.' },
         { label: 'Para mi casa', text: 'Busco algo para mi casa.' },
@@ -31,7 +31,57 @@
     var lastFocus = null;
 
     function isMobile() {
-        return !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+        // Mismo corte que el CSS: por debajo de 768px el chat es pantalla completa.
+        return !!(window.matchMedia && window.matchMedia('(max-width: 767px)').matches);
+    }
+
+    /* ------------------------------------------------------------
+       TECLADO VIRTUAL (móvil)
+       ------------------------------------------------------------
+       En iOS y Android, al abrir el teclado, window.innerHeight no
+       cambia pero window.visualViewport sí: se encoge la parte
+       realmente visible. Sin esto, la barra de escritura queda detrás
+       del teclado y la conversación no se puede leer.
+       ------------------------------------------------------------ */
+    function ajustarAlturaTeclado() {
+        if (!panel) return;
+
+        // Escritorio o chat cerrado: se limpian las medidas en línea y
+        // manda el CSS. Nunca se toca nada si no es móvil.
+        if (!isMobile() || panel.hidden) {
+            panel.style.height = '';
+            panel.style.maxHeight = '';
+            panel.style.top = '';
+            panel.style.bottom = '';
+            return;
+        }
+
+        if (window.visualViewport) {
+            var alto = Math.round(window.visualViewport.height);
+            var desplazamiento = Math.round(window.visualViewport.offsetTop || 0);
+
+            panel.style.height = alto + 'px';
+            panel.style.maxHeight = alto + 'px';
+            panel.style.top = desplazamiento + 'px';
+            panel.style.bottom = 'auto';
+        } else {
+            // Navegador antiguo sin visualViewport: queda el CSS con 100dvh.
+            panel.style.height = '';
+            panel.style.maxHeight = '';
+            panel.style.top = '';
+            panel.style.bottom = '';
+        }
+
+        scrollToEnd();
+    }
+
+    /** Escucha los cambios del teclado. En escritorio no se engancha nada. */
+    function vigilarTeclado() {
+        if (!window.visualViewport) return;
+
+        window.visualViewport.addEventListener('resize', ajustarAlturaTeclado);
+        window.visualViewport.addEventListener('scroll', ajustarAlturaTeclado);
+        window.addEventListener('orientationchange', ajustarAlturaTeclado);
     }
 
     function formatPrice(value) {
@@ -55,13 +105,13 @@
         panel = document.createElement('section');
         panel.className = 'flow-ai-panel';
         panel.setAttribute('role', 'dialog');
-        panel.setAttribute('aria-label', 'Sofía, asesora de Flow Colombia');
+        panel.setAttribute('aria-label', 'Tina, asesora de Flow Colombia');
         panel.hidden = true;
         panel.innerHTML =
             '<header class="flow-ai-head">' +
             '  <span class="flow-ai-head__mark" aria-hidden="true">S</span>' +
             '  <div class="flow-ai-head__text">' +
-            '    <strong>Sofía · Flow Colombia</strong>' +
+            '    <strong>Tina · Flow Colombia</strong>' +
             '    <span class="flow-ai-head__status"><i aria-hidden="true"></i> Asesora de estilo</span>' +
             '  </div>' +
             '  <button type="button" class="flow-ai-close" aria-label="Cerrar asistente">✕</button>' +
@@ -73,7 +123,7 @@
             '         placeholder="Ej: busco algo para mi casa" autocomplete="off">' +
             '  <button type="submit" class="flow-ai-send" aria-label="Enviar mensaje">→</button>' +
             '</form>' +
-            '<p class="flow-ai-foot">Sofía responde con el catálogo real · envío gratis y pago contra entrega.</p>';
+            '<p class="flow-ai-foot">Tina responde con el catálogo real · envío gratis y pago contra entrega.</p>';
 
         document.body.appendChild(fab);
         document.body.appendChild(panel);
@@ -97,6 +147,9 @@
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape' && !panel.hidden) close();
         });
+
+        // Altura real del viewport (teclado virtual en móvil).
+        vigilarTeclado();
     }
 
     /* ------------------------------------------------------------
@@ -115,6 +168,9 @@
             started = true;
         }
 
+        // Se aplica antes de enfocar: el teclado puede abrirse de inmediato.
+        ajustarAlturaTeclado();
+
         setTimeout(function () { if (input) input.focus(); }, 60);
     }
 
@@ -123,6 +179,8 @@
         panel.hidden = true;
         fab.setAttribute('aria-expanded', 'false');
         document.body.classList.remove('flow-lock');
+        // Se limpian las medidas en línea para no arrastrarlas a la próxima apertura.
+        ajustarAlturaTeclado();
         if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
         else fab.focus();
     }
@@ -319,7 +377,13 @@
     function scrollToEnd() {
         if (!feed) return;
         window.requestAnimationFrame(function () {
-            feed.scrollTop = feed.scrollHeight;
+            var ultimo = feed.lastElementChild;
+            if (ultimo && typeof ultimo.scrollIntoView === 'function') {
+                // Desplazamiento suave hasta el último mensaje, dentro del chat.
+                ultimo.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } else {
+                feed.scrollTop = feed.scrollHeight;
+            }
         });
     }
 
@@ -347,7 +411,7 @@
         busy = value;
         if (input) input.disabled = value;
         if (sendBtn) sendBtn.disabled = value;
-        if (input) input.placeholder = value ? 'Sofía está escribiendo…' : 'Ej: busco algo para mi casa';
+        if (input) input.placeholder = value ? 'Tina está escribiendo…' : 'Ej: busco algo para mi casa';
     }
 
     function send(text) {
@@ -369,7 +433,7 @@
         fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            // El carrito viaja para que Sofía pueda ofrecer un complemento lógico.
+            // El carrito viaja para que Tina pueda ofrecer un complemento lógico.
             body: JSON.stringify({
                 mensaje: message,
                 historial: previous,

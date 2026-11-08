@@ -1194,7 +1194,7 @@
             </a>
 
             <!-- Asistente IA: abre la ventana flotante del panel -->
-            <button type="button" class="admin-nav__link" data-ad-ia-toggle
+            <button type="button" class="admin-nav__link" id="admin-ai-btn" data-ad-ia-toggle
                     style="width:100%; text-align:left; background:none; font-family:inherit; cursor:pointer;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <rect x="4" y="7.5" width="16" height="12" rx="3"></rect>
@@ -1297,7 +1297,7 @@
      "Aprobar y Ejecutar" (segundo request con confirmarAccion).
      ============================================================ -->
 <div th:fragment="asistenteAdmin">
-    <button type="button" class="ad-ia-fab" data-ad-ia-toggle
+    <button type="button" class="ad-ia-fab" id="admin-ai-fab" data-ad-ia-toggle
             aria-label="Abrir asistente de administración">🤖</button>
 
     <section class="ad-ia-panel" id="adIaPanel" role="dialog"
@@ -1320,9 +1320,14 @@
             <button type="submit" aria-label="Enviar mensaje">➤</button>
         </form>
     </section>
-</div>
 
-<script>
+    <!-- ============================================================
+         IMPORTANTE: este <script> va DENTRO del fragmento.
+         Thymeleaf solo inserta el subárbol del elemento marcado con
+         th:fragment: si el script queda fuera, el HTML del widget llega
+         a la página pero su JavaScript no, y el botón no hace nada.
+         ============================================================ -->
+    <script>
     // ============================================================
     // ASISTENTE IA DEL PANEL
     // ============================================================
@@ -1353,8 +1358,23 @@
 
         function alternar() { if (panel.hidden) abrir(); else cerrar(); }
 
-        document.querySelectorAll('[data-ad-ia-toggle]').forEach(function (boton) {
-            boton.addEventListener('click', alternar);
+        // ------------------------------------------------------------
+        // Enlace del botón.
+        // Se usa DELEGACIÓN sobre document a propósito: el botón del menú
+        // lateral vive en otro fragmento (sidebar) y así funciona siempre,
+        // sin depender del orden del DOM ni de que el elemento exista en el
+        // momento en que corre este script.
+        // ------------------------------------------------------------
+        document.addEventListener('click', function (evento) {
+            var disparador = evento.target && evento.target.closest
+                ? evento.target.closest('[data-ad-ia-toggle]')
+                : null;
+
+            if (!disparador) return;
+
+            evento.preventDefault();
+            console.log('Botón IA clickeado');
+            alternar();
         });
 
         panel.querySelector('[data-ad-ia-close]').addEventListener('click', cerrar);
@@ -1428,7 +1448,11 @@
 
             ocupadoUI(true);
 
-            window.adminFetch('/api/admin/asistente', {
+            // window.adminFetch añade el token CSRF (vive en el fragmento head).
+            // Si por lo que fuera no estuviera, se usa fetch normal.
+            var pedir = window.adminFetch || window.fetch;
+
+            pedir.call(window, '/api/admin/asistente', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
@@ -1487,7 +1511,8 @@
             enviar(entrada.value, null, null);
         });
     })();
-</script>
+    </script>
+</div>
 
 </body>
 </html>
