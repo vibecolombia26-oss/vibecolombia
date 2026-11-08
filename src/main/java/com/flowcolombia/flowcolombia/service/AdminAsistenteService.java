@@ -117,7 +117,15 @@ public class AdminAsistenteService {
             + "ninguno dilo y no inventes. El texto NO lo interpretas tú: no lo transcribas, no lo resumas, no calcules "
             + "variantes ni precios y no lo repitas en tu respuesta, porque el sistema ya lo leyó. Si el mensaje del "
             + "administrador acaba de traer ese texto pegado, llama a la herramienta con textoDropi vacío. "
-            + "La herramienta solo añade variantes a productos existentes: nunca crees productos nuevos.";
+            + "La herramienta solo añade variantes a productos existentes: nunca crees productos nuevos.\n\n"
+            + "Sobrescrituras (overrides) en la importación: si al pedir la importación el administrador te da un "
+            + "precio o un costo concreto para aplicar a TODO (por ejemplo 'vende a 99.999', 'precio 99.999', "
+            + "'ponle costo 60.000', 'costo 60.000 y precio 99.999'), DEBES extraer esos valores y pasarlos en "
+            + "precioOverride y costoOverride de " + TOOL_DROPI + ". No te niegues a hacerlo ni digas que la "
+            + "herramienta no lo permite. Convierte el número a pesos sin separadores (99.999 → 99999, "
+            + "60.000 → 60000). 'Costo' es lo que pagas al proveedor; 'precio' es lo que cobra el cliente: "
+            + "no los cruces. Si el administrador dice que use el costo o el precio del texto, o no menciona "
+            + "ningún valor, no envíes overrides. El stock siempre sale del texto: los overrides nunca lo tocan.";
 
     /**
      * Definiciones que se envían en {@code tools}. Es JSON Schema: así el
@@ -203,12 +211,14 @@ public class AdminAsistenteService {
                 "type": "function",
                 "function": {
                   "name": "importarVariantesDropi",
-                  "description": "Importa un inventario de Dropi (varias variantes con color, talla, stock, costo y precio sugerido) a un producto que YA existe. El texto lo procesa un parser determinista en Java, no tú. Crea las variantes que falten y actualiza stock, costo y precio de las que ya existen. Es una acción masiva: siempre requiere confirmación.",
+                  "description": "Importa un inventario de Dropi (varias variantes con color, talla, stock, costo y precio sugerido) a un producto que YA existe. El texto lo procesa un parser determinista en Java, no tú. Crea las variantes que falten y actualiza stock, costo y precio de las que ya existen. Es una acción masiva: siempre requiere confirmación. Acepta sobrescribir costo y/o precio para TODAS las variantes: úsalo cuando el administrador dé un valor único para todo.",
                   "parameters": {
                     "type": "object",
                     "properties": {
                       "productoId": { "type": "integer", "description": "Id del producto existente, obtenido con buscarProductosPorNombre" },
-                      "textoDropi": { "type": "string", "description": "Texto crudo de Dropi. Déjalo vacío si el administrador acaba de pegarlo en su último mensaje: el sistema recupera ese texto." }
+                      "textoDropi": { "type": "string", "description": "Texto crudo de Dropi. Déjalo vacío si el administrador acaba de pegarlo en su último mensaje: el sistema recupera ese texto." },
+                      "costoOverride": { "type": "number", "exclusiveMinimum": 0, "description": "Opcional. Si se proporciona, sobrescribe el costo del proveedor para todas las variantes (ignorando el texto). Es el costo de compra, no el precio de venta. Valor en pesos sin puntos de miles: escribe 60000, nunca 60.000." },
+                      "precioOverride": { "type": "number", "exclusiveMinimum": 0, "description": "Opcional. Si se proporciona, sobrescribe el precio de venta para todas las variantes (ignorando el texto). Valor en pesos sin puntos de miles: escribe 99999, nunca 99.999." }
                     },
                     "required": ["productoId"]
                   }
@@ -646,7 +656,21 @@ public class AdminAsistenteService {
      */
     @Transactional
     public String importarVariantesDropi(Long productoId, String textoDropi) {
-        return importarVariantesDropi(productoId, null, textoDropi);
+        return importarVariantesDropi(productoId, null, textoDropi, null, null);
+    }
+
+    /**
+     * Aplica un inventario de Dropi sobre un producto (upsert por Color+Talla).
+     *
+     * @param productoId     id ya resuelto en la propuesta
+     * @param nombreProducto nombre aprobado, para verificar que id y nombre
+     *                       cuadran (defensa ante un reenvío manipulado)
+     * @param textoDropi     texto del inventario; si llega vacío se usa el
+     *                       último que el parser aceptó
+     */
+    @Transactional
+    public String importarVariantesDropi(Long productoId, String nombreProducto, String textoDropi) {
+        return importarVariantesDropi(productoId, nombreProducto, textoDropi, null, null);
     }
 
     /**
@@ -667,16 +691,33 @@ public class AdminAsistenteService {
      *   <li>Si vuelve stock, una variante desactivada se reactiva.</li>
      * </ul>
      *
+     * <p><strong>Sobrescrituras:</strong> si llegan {@code costoOverride} o
+     * {@code precioOverride}, se aplican sobre <em>todas</em> las variantes
+     * leídas antes del upsert, así que ganan al texto tanto en las variantes
+     * nuevas como en las existentes. El stock nunca se sobrescribe: sigue
+     * saliendo del texto.</p>
+     *
      * @param productoId     id ya resuelto en la propuesta
      * @param nombreProducto nombre aprobado, para verificar que id y nombre
      *                       cuadran (defensa ante un reenvío manipulado)
      * @param textoDropi     texto del inventario; si llega vacío se usa el
      *                       último que el parser aceptó
+     * @param costoOverride  costo único para todas las variantes (opcional)
+     * @param precioOverride precio de venta único para todas las variantes (opcional)
      */
     @Transactional
-    public String importarVariantesDropi(Long productoId, String nombreProducto, String textoDropi) {
+    public String importarVariantesDropi(Long productoId, String nombreProducto, String textoDropi,
+                                         Double costoOverride, Double precioOverride) {
         if (productoId == null) {
             return json(Map.of("error", "Falta el id del producto donde importar."));
+        }
+
+        String errorOverride = validarOverride("costoOverride", costoOverride);
+        if (errorOverride == null) {
+            errorOverride = validarOverride("precioOverride", precioOverride);
+        }
+        if (errorOverride != null) {
+            return json(Map.of("error", errorOverride));
         }
 
         String texto = (textoDropi == null || textoDropi.isBlank()) ? textoDropiReciente() : textoDropi;
@@ -690,6 +731,10 @@ public class AdminAsistenteService {
                     "error", "No reconocí ninguna variante (Color + Talla) en ese texto.",
                     "sugerencia", "Debe incluir líneas como «Color: Negro», «Tallas: 38, 39» y «Stock: 10»."));
         }
+
+        // Los overrides se aplican al texto ya leído: a partir de aquí el resto
+        // del flujo no distingue si el valor vino del inventario o del chat.
+        detectadas = conOverrides(detectadas, costoOverride, precioOverride);
 
         Producto producto = productoRepository.findById(productoId).orElse(null);
         if (producto == null) {
@@ -767,6 +812,12 @@ public class AdminAsistenteService {
             mensaje.append(" (").append(sinCambios).append(" sin cambios)");
         }
         mensaje.append(". Las variantes detectadas: ").append(detectadas.size()).append('.');
+        if (costoOverride != null) {
+            mensaje.append(" Costo forzado a $").append(pesos(costoOverride)).append(" en todas.");
+        }
+        if (precioOverride != null) {
+            mensaje.append(" Precio forzado a $").append(pesos(precioOverride)).append(" en todas.");
+        }
 
         Map<String, Object> salida = new LinkedHashMap<>();
         salida.put("ok", true);
@@ -776,10 +827,92 @@ public class AdminAsistenteService {
         salida.put("creadas", nuevas.size());
         salida.put("actualizadas", actualizadas);
         salida.put("sinCambios", sinCambios);
+        if (costoOverride != null) {
+            salida.put("costoForzado", costoOverride);
+        }
+        if (precioOverride != null) {
+            salida.put("precioForzado", precioOverride);
+        }
         if (!avisos.isEmpty()) {
             salida.put("avisos", avisos.subList(0, Math.min(avisos.size(), 8)));
         }
         return json(salida);
+    }
+
+    // ============================================================
+    // SOBRESCRITURAS (overrides) DE LA IMPORTACIÓN
+    // ============================================================
+
+    /**
+     * Aplica un costo y/o un precio únicos a todas las variantes leídas.
+     *
+     * <p>Se hace sobre la lista ya parseada, antes del upsert, y devolviendo
+     * objetos nuevos: así el resto del flujo (tarjeta de confirmación, upsert,
+     * resumen) no necesita saber si el valor vino del texto de Dropi o del
+     * chat. Sin overrides devuelve <strong>la misma lista</strong>, de modo que
+     * el comportamiento anterior queda intacto.</p>
+     *
+     * <p>El stock se copia tal cual: las sobrescrituras nunca lo tocan.</p>
+     *
+     * @param variantes     variantes leídas del texto
+     * @param costo         costo forzado (o {@code null})
+     * @param precio        precio de venta forzado (o {@code null})
+     */
+    private static List<VarianteImportada> conOverrides(List<VarianteImportada> variantes,
+                                                        Double costo, Double precio) {
+        if (costo == null && precio == null) {
+            return variantes;
+        }
+        List<VarianteImportada> conForzados = new ArrayList<>(variantes.size());
+        for (VarianteImportada variante : variantes) {
+            conForzados.add(new VarianteImportada(
+                    variante.color(),
+                    variante.talla(),
+                    variante.stock(),
+                    costo != null ? costo : variante.costo(),
+                    precio != null ? precio : variante.precioVenta()));
+        }
+        return conForzados;
+    }
+
+    /**
+     * Valida un override antes de usarlo.
+     *
+     * @return el motivo del rechazo, o {@code null} si es válido (o no vino)
+     */
+    private static String validarOverride(String nombre, Double valor) {
+        if (valor == null) {
+            return null;
+        }
+        if (!Double.isFinite(valor) || valor <= 0) {
+            return "El valor de «" + nombre + "» debe ser un número mayor que 0.";
+        }
+        if (valor > PRECIO_MAXIMO) {
+            return "El valor de «" + nombre + "» es demasiado alto para ser real.";
+        }
+        return null;
+    }
+
+    /**
+     * Lee un número de los argumentos de una herramienta.
+     *
+     * <p>Acepta número JSON y también texto ({@code "99.999"}), porque el
+     * modelo a veces copia el valor tal como lo escribió el administrador. En
+     * el caso de texto se usa la misma regla de moneda que el parser de Dropi,
+     * así {@code "99.999"} se lee como 99999 y no como 99,999.</p>
+     */
+    private static Double leerNumero(JsonNode argumentos, String campo) {
+        JsonNode valor = argumentos.path(campo);
+        if (valor.isMissingNode() || valor.isNull()) {
+            return null;
+        }
+        if (valor.isNumber()) {
+            return valor.asDouble();
+        }
+        if (valor.isTextual()) {
+            return DropiParserUtil.numeroColombiano(valor.asText());
+        }
+        return null;
     }
 
     /**
@@ -919,6 +1052,18 @@ public class AdminAsistenteService {
                             + TOOL_DROPI + " con su id.")));
         }
 
+        // Sobrescrituras pedidas en el chat ("costo 60.000 y precio 99.999").
+        Double costoOverride = leerNumero(argumentos, "costoOverride");
+        Double precioOverride = leerNumero(argumentos, "precioOverride");
+
+        String errorOverride = validarOverride("costoOverride", costoOverride);
+        if (errorOverride == null) {
+            errorOverride = validarOverride("precioOverride", precioOverride);
+        }
+        if (errorOverride != null) {
+            return new Preparacion(null, json(Map.of("error", errorOverride)));
+        }
+
         String texto = null;
         List<VarianteImportada> detectadas = List.of();
 
@@ -944,6 +1089,10 @@ public class AdminAsistenteService {
                     "error", "No tengo ningún inventario de Dropi que importar.",
                     "sugerencia", "Pide al administrador que pegue el texto (Color, Tallas, Stock, Costo y Precio).")));
         }
+
+        // A partir de aquí las variantes ya llevan los valores forzados, así que
+        // la vista previa de la tarjeta enseña exactamente lo que se va a guardar.
+        detectadas = conOverrides(detectadas, costoOverride, precioOverride);
 
         Producto producto = productoRepository.findById(productoId).orElse(null);
         if (producto == null) {
@@ -991,12 +1140,33 @@ public class AdminAsistenteService {
         aprobados.put("nombreProducto", producto.getNombre());
         aprobados.put("textoDropi", texto == null ? "" : texto);
         aprobados.put("variantesDetectadas", detectadas.size());
+        // Las sobrescrituras viajan con la acción aprobada: al ejecutar se
+        // vuelven a validar y se aplican igual que aquí.
+        if (costoOverride != null) {
+            aprobados.put("costoOverride", costoOverride);
+        }
+        if (precioOverride != null) {
+            aprobados.put("precioOverride", precioOverride);
+        }
 
-        String descripcion = "importar " + detectadas.size() + " variante(s) de Dropi en «"
-                + producto.getNombre() + "» (" + nuevas + " nueva(s), " + cambios + " a actualizar)" + vista;
+        StringBuilder descripcion = new StringBuilder()
+                .append("importar ").append(detectadas.size()).append(" variante(s) de Dropi en «")
+                .append(producto.getNombre()).append("» (")
+                .append(nuevas).append(" nueva(s), ").append(cambios).append(" a actualizar)");
+
+        // Se avisa en la propia tarjeta de que el texto NO manda en esos campos.
+        if (costoOverride != null) {
+            descripcion.append(" · costo forzado a $").append(pesos(costoOverride)).append(" en todas");
+        }
+        if (precioOverride != null) {
+            descripcion.append(" · precio forzado a $").append(pesos(precioOverride)).append(" en todas");
+        }
+
+        descripcion.append(vista);
 
         // masiva = true → el chat pinta la tarjeta en ámbar y exige un clic.
-        return new Preparacion(new AccionPendiente(TOOL_DROPI, descripcion, aprobados, true), null);
+        return new Preparacion(
+                new AccionPendiente(TOOL_DROPI, descripcion.toString(), aprobados, true), null);
     }
 
     /**
@@ -1229,7 +1399,9 @@ public class AdminAsistenteService {
             case TOOL_DROPI -> importarVariantesDropi(
                     argumentos.hasNonNull("productoId") ? argumentos.path("productoId").asLong() : null,
                     argumentos.path("nombreProducto").asText(""),
-                    argumentos.path("textoDropi").asText(""));
+                    argumentos.path("textoDropi").asText(""),
+                    leerNumero(argumentos, "costoOverride"),
+                    leerNumero(argumentos, "precioOverride"));
             default -> json(Map.of("error", "Solo se pueden ejecutar acciones de escritura conocidas."));
         };
     }

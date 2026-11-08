@@ -220,6 +220,19 @@ class DropiParserUtilTest {
     }
 
     @Test
+    @DisplayName("Normaliza un override escrito a mano igual que los precios del texto")
+    void normalizaOverridesEscritosAMano() {
+        // El administrador escribe «99.999» en el chat; si el modelo lo reenvía
+        // como texto, debe leerse 99999 y no 99,999.
+        assertEquals(99999d, DropiParserUtil.numeroColombiano("99.999"));
+        assertEquals(60000d, DropiParserUtil.numeroColombiano("$ 60.000"));
+        assertEquals(99999d, DropiParserUtil.numeroColombiano("99999"));
+        assertEquals(89900.5d, DropiParserUtil.numeroColombiano("89.900,50"));
+        assertNull(DropiParserUtil.numeroColombiano("sin número"));
+        assertNull(DropiParserUtil.numeroColombiano(null));
+    }
+
+    @Test
     @DisplayName("Un texto vacío o inservible devuelve lista vacía sin lanzar")
     void textoInservible() {
         assertTrue(DropiParserUtil.parsear(null).isEmpty());

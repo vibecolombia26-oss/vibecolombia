@@ -183,6 +183,21 @@ public final class DropiParserUtil {
     }
 
     /**
+     * Convierte un valor de dinero escrito a mano («99.999», «$ 60.000»,
+     * «99999») al número que usan las herramientas.
+     *
+     * <p>Es exactamente la misma regla con la que se leen los precios del texto
+     * de Dropi, así que un override escrito por el administrador y un precio
+     * leído del texto nunca se interpretan distinto. También sirve cuando el
+     * modelo manda el override como texto en vez de como número.</p>
+     *
+     * @return el valor, o {@code null} si el texto no contiene cifras legibles
+     */
+    public static Double numeroColombiano(String texto) {
+        return numero(texto);
+    }
+
+    /**
      * Clave de identidad de una variante: «color|talla» normalizada.
      *
      * <p>La usan el parser (para no repetir variantes dentro del mismo texto) y
