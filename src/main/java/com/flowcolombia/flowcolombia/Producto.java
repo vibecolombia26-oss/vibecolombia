@@ -415,7 +415,18 @@ public class Producto {
      * @param orden  Orden de visualización (0 = primera).
      */
     public void addImagen(String url, Integer orden) {
-        ProductoImagen imagen = new ProductoImagen(this, url, orden);
+        addImagen(url, null, orden);
+    }
+
+    /**
+     * Agrega una imagen asociada a un color (galería por variante).
+     *
+     * @param url   URL de la imagen en Cloudinary.
+     * @param color color al que pertenece ({@code null} = galería general).
+     * @param orden orden de visualización (0 = primera).
+     */
+    public void addImagen(String url, String color, Integer orden) {
+        ProductoImagen imagen = new ProductoImagen(this, url, color, orden);
         this.imagenes.add(imagen);
     }
 

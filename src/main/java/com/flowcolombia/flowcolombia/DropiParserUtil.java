@@ -124,6 +124,21 @@ public final class DropiParserUtil {
     // ============================================================
 
     /**
+     * Resultado de leer un inventario.
+     *
+     * @param variantes    lo que se puede importar con seguridad
+     * @param descartadas  bloques ignorados por estar incompletos (sin talla,
+     *                     sin color o sin ningún dato), para poder avisar al
+     *                     administrador en lugar de crear filas basura
+     */
+    public record Resultado(List<VarianteImportada> variantes, int descartadas) {
+
+        public boolean hayDescartes() {
+            return descartadas > 0;
+        }
+    }
+
+    /**
      * Lee el texto crudo y devuelve las variantes detectadas.
      *
      * <p>Primero intenta la lectura de tabla (si hay encabezado) y, si no
@@ -134,8 +149,22 @@ public final class DropiParserUtil {
      * @return variantes en el orden en que aparecen, sin repetir Color+Talla
      */
     public static List<VarianteImportada> parsear(String textoCrudo) {
+        return parsearDetallado(textoCrudo).variantes();
+    }
+
+    /**
+     * Igual que {@link #parsear(String)} pero además informa de cuántos bloques
+     * se descartaron por estar rotos.
+     *
+     * <p><strong>Regla dura:</strong> si el inventario trae tallas (es decir,
+     * es un inventario de variantes por talla), ninguna variante puede salir
+     * sin talla. Un bloque al que le falta la talla se descarta y se cuenta:
+     * crear una fila «sin talla» dejaría un producto fantasma en la tienda y,
+     * peor, se llevaría el stock de una fila que sí existía.</p>
+     */
+    public static Resultado parsearDetallado(String textoCrudo) {
         if (textoCrudo == null || textoCrudo.isBlank()) {
-            return List.of();
+            return new Resultado(List.of(), 0);
         }
 
         String texto = textoCrudo.length() > MAX_TEXTO
@@ -159,7 +188,42 @@ public final class DropiParserUtil {
             }
         }
 
-        return new ArrayList<>(encontradas.values());
+        return depurar(encontradas);
+    }
+
+    /**
+     * Aplica la regla de oro y cuenta lo que se tira.
+     *
+     * <p>Si en el texto apareció al menos una talla, se eliminan las variantes
+     * sin talla (bloques partidos). Si no apareció ninguna talla, la variante
+     * sin talla es legítima: hay productos de color único.</p>
+     */
+    private static Resultado depurar(Map<String, VarianteImportada> encontradas) {
+        boolean hayTallas = false;
+        for (VarianteImportada variante : encontradas.values()) {
+            if (variante.talla() != null && !variante.talla().isBlank()) {
+                hayTallas = true;
+                break;
+            }
+        }
+
+        List<VarianteImportada> validas = new ArrayList<>(encontradas.size());
+        int descartadas = 0;
+        for (VarianteImportada variante : encontradas.values()) {
+            boolean sinTalla = variante.talla() == null || variante.talla().isBlank();
+            boolean sinColor = variante.color() == null || variante.color().isBlank();
+
+            if (hayTallas && sinTalla) {
+                descartadas++;   // bloque roto: el inventario es por talla
+                continue;
+            }
+            if (sinColor && sinTalla) {
+                descartadas++;   // no identifica nada
+                continue;
+            }
+            validas.add(variante);
+        }
+        return new Resultado(validas, descartadas);
     }
 
     /**
@@ -221,6 +285,12 @@ public final class DropiParserUtil {
     /**
      * Detecta una fila de encabezado con al menos tres columnas conocidas y
      * lee las filas siguientes por posición de columna.
+     *
+     * <p>Un encabezado es <strong>solo texto</strong>. Si la línea trae cifras
+     * («Talla: 40 Color: Blanco/beige Existencia: 4» separado por espacios),
+     * es una fila de datos del formato multilínea, no un encabezado: tratarla
+     * como cabecera haría que las líneas siguientes se leyeran por posición de
+     * columna y salieran variantes sin talla y sin precios.</p>
      */
     private static void parsearTabla(String texto, Map<String, VarianteImportada> salida) {
         String[] lineas = texto.split("\\R", -1);
@@ -229,6 +299,9 @@ public final class DropiParserUtil {
             String[] cabecera = dividirCeldas(lineas[i]);
             if (cabecera.length < 3) {
                 continue;
+            }
+            if (tieneCifras(lineas[i])) {
+                continue;   // es una fila con datos, no un encabezado
             }
 
             int iColor = -1;
@@ -303,6 +376,10 @@ public final class DropiParserUtil {
 
         for (String linea : lineas) {
             if (linea == null || linea.isBlank()) {
+                // Línea en blanco = frontera de bloque. Se cierra lo que hubiera
+                // para que la talla del bloque siguiente no se pegue al anterior.
+                cerrar(actual, salida, true);
+                actual = new Borrador();
                 continue;
             }
 
@@ -317,6 +394,15 @@ public final class DropiParserUtil {
 
             if (posiciones.isEmpty()) {
                 continue;   // línea sin etiquetas: ruido, se ignora
+            }
+
+            // Un ID/SKU/Referencia al principio de la línea marca el inicio de
+            // un bloque nuevo (el ID de Dropi en su propia línea, o una fila
+            // «SKU: 111 Talla: 40 Color: …»). Se cierra el bloque anterior para
+            // no mezclar filas; el identificador se ignora después.
+            if (esEtiquetaIdentificador(etiquetas.get(0))) {
+                cerrar(actual, salida, true);
+                actual = new Borrador();
             }
 
             for (int i = 0; i < posiciones.size(); i++) {
@@ -470,14 +556,29 @@ public final class DropiParserUtil {
     // ============================================================
 
     /** ¿Esta fila es otra vez el encabezado de la tabla? */
-    private static boolean esCabecera(String[] celdas) {
-        int conocidas = 0;
+    private static boolean esCabecera(String[] celdas) {        int conocidas = 0;
         for (String celda : celdas) {
             if (!"OTRO".equals(tipoEtiqueta(celda))) {
                 conocidas++;
             }
         }
         return conocidas >= 3;
+    }
+
+    /**
+     * ¿La línea trae alguna cifra? Un encabezado de tabla no las lleva; una
+     * fila de datos (talla, existencia, precios) sí.
+     */
+    private static boolean tieneCifras(String linea) {
+        if (linea == null) {
+            return false;
+        }
+        for (int i = 0; i < linea.length(); i++) {
+            if (Character.isDigit(linea.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -679,6 +780,15 @@ public final class DropiParserUtil {
     // ============================================================
     // ETIQUETAS
     // ============================================================
+
+    /** ¿La etiqueta es un identificador de Dropi (ID, SKU, referencia)? */
+    private static boolean esEtiquetaIdentificador(String etiqueta) {
+        if (etiqueta == null) {
+            return false;
+        }
+        String limpia = sinAcentos(etiqueta).toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
+        return limpia.startsWith("id") || limpia.startsWith("sku") || limpia.startsWith("referencia");
+    }
 
     /**
      * Clasifica una etiqueta (o el título de una columna) en un tipo conocido.

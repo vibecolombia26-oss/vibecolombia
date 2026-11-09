@@ -11,7 +11,9 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -50,6 +52,11 @@ class ProductoDetallePlantillaTest {
 
     /** Renderiza la ficha y devuelve el HTML final. */
     private String renderizar(boolean esCalzado, int totalResenas) {
+        return renderizar(esCalzado, totalResenas, List.of());
+    }
+
+    /** Renderiza la ficha con las imágenes indicadas (url + color). */
+    private String renderizar(boolean esCalzado, int totalResenas, List<Map<String, Object>> imagenes) {
         Producto producto = new Producto();
         producto.setId(7L);
         producto.setNombre("Mochila Táctica");
@@ -67,7 +74,7 @@ class ProductoDetallePlantillaTest {
         Map<String, Object> modelo = new HashMap<>();
         modelo.put("producto", producto);
         modelo.put("variantes", List.of());
-        modelo.put("imagenesProducto", List.of());
+        modelo.put("imagenesProducto", imagenes);
         modelo.put("imagenesLegacy", List.of());
         modelo.put("imagenPrincipal", "https://example.com/foto.jpg");
         modelo.put("esCalzado", esCalzado);
@@ -163,6 +170,37 @@ class ProductoDetallePlantillaTest {
         // Los beneficios y la garantía no dependen de las reseñas
         assertTrue(html.contains("Lo que ganas con este producto"));
         assertTrue(html.contains("Garantía Flow"));
+    }
+
+    @Test
+    @DisplayName("La galería recibe el color de cada imagen y filtra al elegir color")
+    void galeriaPorColor() {
+        List<Map<String, Object>> imagenes = new ArrayList<>();
+        imagenes.add(imagen("https://cdn/general.jpg", "", 0));
+        imagenes.add(imagen("https://cdn/negra.jpg", "Negro", 1));
+        imagenes.add(imagen("https://cdn/blanca.jpg", "Blanco/beige", 2));
+
+        String html = renderizar(false, 3, imagenes);
+
+        // El DTO viaja al JS con el color de cada foto. (El serializador puede
+        // escapar la barra de «Blanco/beige», así que se comprueba el prefijo.)
+        assertTrue(html.contains("\"color\":\"Negro\""), "falta el color en el DTO de imágenes");
+        assertTrue(html.contains("\"color\":\"Blanco"), "falta el color compuesto");
+        assertTrue(html.contains("/cdn/blanca.jpg"), "falta la URL de la imagen");
+
+        // El filtrado y el fundido están cableados.
+        assertTrue(html.contains("function imagenesParaColor"), "falta el filtro por color");
+        assertTrue(html.contains("aplicarColorGaleria(color)"), "seleccionarColor no filtra la galería");
+        assertTrue(html.contains("is-fading"), "falta la transición suave");
+        assertTrue(html.contains("function pintarMiniaturas"), "las miniaturas no se repintan");
+    }
+
+    private static Map<String, Object> imagen(String url, String color, int orden) {
+        Map<String, Object> dto = new LinkedHashMap<>();
+        dto.put("url", url);
+        dto.put("color", color);
+        dto.put("orden", orden);
+        return dto;
     }
 
     @Test

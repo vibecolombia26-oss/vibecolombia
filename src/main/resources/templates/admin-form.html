@@ -86,18 +86,43 @@
                     </div>
                 </section>
 
-                <!-- ============ IMÁGENES ============ -->
+                <!-- ============ IMÁGENES (URL + color por foto) ============ -->
                 <section class="form-section">
                     <h3 class="form-section__title">Imágenes (URLs de Cloudinary)</h3>
 
-                    <div class="form-group full">
-                        <label for="imagenesUrls">URLs de imágenes (una por línea)</label>
-                        <textarea id="imagenesUrls" name="imagenesUrls" rows="6"
-                                  placeholder="https://res.cloudinary.com/.../imagen-1.jpg&#10;https://res.cloudinary.com/.../imagen-2.jpg"
-                                  oninput="previewImagenes()"
-                                  th:text="${imagenesTexto}"></textarea>
-                        <small class="form-hint">Pega una URL por línea; la primera será la imagen principal. No se suben archivos.</small>
+                    <p class="form-hint" style="margin: -4px 0 10px;">
+                        La primera imagen es la principal. El <strong>color es opcional</strong>:
+                        si lo rellenas, esa foto solo se muestra cuando el cliente elige ese
+                        color en la ficha; si lo dejas vacío, entra en la
+                        <strong>galería general</strong> (la que se ve por defecto).
+                    </p>
+
+                    <div id="imagenesLista" class="imagenes-lista">
+                        <div class="imagen-fila" th:each="img : ${producto.imagenes}">
+                            <input type="text" name="imagenUrl" class="imagen-url"
+                                   th:value="${img.url}"
+                                   placeholder="https://res.cloudinary.com/..."
+                                   oninput="previewImagenes()">
+                            <input type="text" name="imagenColor" class="imagen-color"
+                                   list="coloresProducto"
+                                   th:value="${img.color}"
+                                   placeholder="Color (opcional)">
+                            <button type="button" class="btn-quitar-imagen"
+                                    onclick="quitarImagen(this)" aria-label="Quitar imagen">✕</button>
+                        </div>
                     </div>
+
+                    <button type="button" class="btn-agregar-imagen" onclick="agregarImagen()">
+                        ＋ Añadir imagen
+                    </button>
+
+                    <!-- Sugerencias de color: los colores que ya tienen las variantes,
+                         para que el nombre coincida exactamente y la galería filtre. -->
+                    <datalist id="coloresProducto">
+                        <option th:each="v : ${producto.variantes}"
+                                th:if="${v.color != null and !#strings.isEmpty(v.color)}"
+                                th:value="${v.color}"></option>
+                    </datalist>
 
                     <div id="previewContainer" class="imagen-preview"></div>
                 </section>
@@ -381,6 +406,79 @@
         background: #0b1226;
     }
 
+    /* ---- Editor de imágenes: [URL] [Color] [✕] ---- */
+    .imagenes-lista { display: grid; gap: 8px; }
+
+    .imagen-fila {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(120px, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .imagen-fila input {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: 9px;
+        border: 1px solid var(--ad-border-strong);
+        background: rgba(255, 255, 255, 0.04);
+        color: #fff;
+        font: 400 0.86rem/1.3 var(--ad-font);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .imagen-fila input::placeholder { color: var(--ad-muted-2); }
+
+    .imagen-fila input:focus {
+        border-color: rgba(37, 99, 235, 0.7);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* El color asignado se distingue de la URL: mismo campo, otro acento. */
+    .imagen-fila .imagen-color { border-color: rgba(252, 209, 22, 0.28); }
+    .imagen-fila .imagen-color:focus { border-color: rgba(252, 209, 22, 0.65); box-shadow: 0 0 0 3px rgba(252, 209, 22, 0.12); }
+
+    .btn-quitar-imagen {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        border: 1px solid var(--ad-border-strong);
+        background: transparent;
+        color: #c7d2fe;
+        cursor: pointer;
+        transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-quitar-imagen:hover {
+        border-color: rgba(248, 113, 113, 0.6);
+        color: #fca5a5;
+        background: rgba(248, 113, 113, 0.08);
+    }
+
+    .btn-agregar-imagen {
+        margin-top: 10px;
+        padding: 9px 14px;
+        border-radius: 9px;
+        border: 1px dashed var(--ad-border-strong);
+        background: transparent;
+        color: #c7d2fe;
+        font: 600 0.8rem/1 var(--ad-font);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-agregar-imagen:hover {
+        border-color: rgba(37, 99, 235, 0.6);
+        background: var(--ad-accent-soft);
+    }
+
+    @media (max-width: 640px) {
+        .imagen-fila { grid-template-columns: 1fr auto; }
+        .imagen-fila .imagen-color { grid-column: 1 / 2; }
+    }
+
     .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
     @media (min-width: 760px) { .specs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -600,20 +698,51 @@
 <!-- ============================================================ -->
 <script th:inline="javascript">
     /**
-     * Devuelve las URLs escritas en el textarea (una por línea),
-     * ignorando líneas vacías y espacios sobrantes.
+     * Devuelve las URLs escritas en el editor de imágenes (una fila por foto),
+     * ignorando las filas vacías y los espacios sobrantes.
      */
     function urlsDeImagenes() {
-        const textarea = document.getElementById('imagenesUrls');
-        if (!textarea) return [];
-        return textarea.value
-            .split(/\r?\n/)
-            .map(url => url.trim())
-            .filter(url => url.length > 0);
+        return filasImagenes()
+            .map(function (fila) {
+                const input = fila.querySelector('.imagen-url');
+                return input ? input.value.trim() : '';
+            })
+            .filter(function (url) { return url.length > 0; });
+    }
+
+    /** Filas del editor de imágenes, en orden. */
+    function filasImagenes() {
+        const lista = document.getElementById('imagenesLista');
+        return lista ? Array.prototype.slice.call(lista.querySelectorAll('.imagen-fila')) : [];
+    }
+
+    /** Añade una fila vacía [URL][Color] al editor. */
+    function agregarImagen() {
+        const lista = document.getElementById('imagenesLista');
+        if (!lista) return;
+
+        const fila = document.createElement('div');
+        fila.className = 'imagen-fila';
+        fila.innerHTML =
+            '<input type="text" name="imagenUrl" class="imagen-url"' +
+            ' placeholder="https://res.cloudinary.com/..." oninput="previewImagenes()">' +
+            '<input type="text" name="imagenColor" class="imagen-color" list="coloresProducto"' +
+            ' placeholder="Color (opcional)">' +
+            '<button type="button" class="btn-quitar-imagen" onclick="quitarImagen(this)"' +
+            ' aria-label="Quitar imagen">✕</button>';
+
+        lista.appendChild(fila);
+    }
+
+    /** Quita la fila del editor. */
+    function quitarImagen(btn) {
+        const fila = btn && btn.closest ? btn.closest('.imagen-fila') : null;
+        if (fila) fila.remove();
+        previewImagenes();
     }
 
     /**
-     * Previsualiza (solo las URLs de texto) las imágenes pegadas.
+     * Previsualiza (solo las URLs de texto) las imágenes del editor.
      */
     function previewImagenes() {
         const container = document.getElementById('previewContainer');
@@ -632,6 +761,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Un producto nuevo no tiene imágenes: se ofrecen dos filas vacías
+        // para que el editor nunca arranque «en blanco».
+        if (!filasImagenes().length) {
+            agregarImagen();
+            agregarImagen();
+        }
         previewImagenes();
     });
 
@@ -776,6 +911,13 @@
         campo.addEventListener('input', function () { formDirty = true; });
         campo.addEventListener('change', function () { formDirty = true; });
     });
+    // Delegación: cubre también las filas de imagen y de variante que se
+    // añaden con JavaScript después de cargar la página.
+    const formProducto = document.getElementById('productoForm');
+    if (formProducto) {
+        formProducto.addEventListener('input', function () { formDirty = true; });
+        formProducto.addEventListener('change', function () { formDirty = true; });
+    }
     window.addEventListener('beforeunload', function (event) {
         if (!formDirty) return;
         event.preventDefault();

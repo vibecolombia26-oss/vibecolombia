@@ -119,10 +119,12 @@ public class ProductoController {
 
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto,
-                                  // Formato nuevo: una única textarea con una URL por línea.
-                                  // Son cadenas de texto: este endpoint NO recibe MultipartFile,
-                                  // así que el formulario viaja como x-www-form-urlencoded y
-                                  // nunca se dispara el límite de subida.
+                                  // Formato NUEVO: filas del editor de imágenes.
+                                  // Dos listas paralelas: URL y color opcional.
+                                  @RequestParam(required = false) List<String> imagenUrl,
+                                  @RequestParam(required = false) List<String> imagenColor,
+                                  // Formato anterior: una única textarea con una URL por línea
+                                  // (se mantiene para no romper formularios antiguos).
                                   @RequestParam(required = false) String imagenesUrls,
                                   // Formato antiguo (compatibilidad): un campo por imagen.
                                   @RequestParam(required = false) String imagen1File,
@@ -143,14 +145,33 @@ public class ProductoController {
                                   RedirectAttributes redirect) {
 
         // ============================================================
-        // 1. IMÁGENES (URLs de texto pegadas desde Cloudinary)
+        // 1. IMÁGENES (URL + color opcional por fila)
         // ------------------------------------------------------------
         // Las imágenes ya están alojadas en Cloudinary: aquí solo se
-        // guardan cadenas de texto (imagen1..imagen6 legacy). No hay
-        // ficheros ni multipart en ningún punto del flujo.
+        // guardan cadenas de texto. No hay ficheros ni multipart.
+        //
+        // `imagenesEditor` es la lista que se pasa al servicio:
+        //   - null  → no se tocó el editor (se conservan los colores actuales)
+        //   - lista → el editor manda (una fila por imagen, en orden)
         // ============================================================
-        if (imagenesUrls != null) {
-            // Formato nuevo: textarea "imagenesUrls" (una URL por línea)
+        List<ProductoService.ImagenFormulario> imagenesEditor = null;
+
+        if (imagenUrl != null && !imagenUrl.isEmpty()) {
+            // Formato nuevo: se recorren las dos listas por índice para que el
+            // color no se desalinee cuando alguna fila viene vacía.
+            imagenesEditor = new ArrayList<>();
+            for (int i = 0; i < imagenUrl.size(); i++) {
+                String url = imagenUrl.get(i) == null ? "" : imagenUrl.get(i).trim();
+                if (url.isEmpty()) {
+                    continue;   // fila vacía: no es un error, se ignora
+                }
+                String color = (imagenColor != null && i < imagenColor.size()) ? imagenColor.get(i) : null;
+                imagenesEditor.add(new ProductoService.ImagenFormulario(url, color));
+            }
+            aplicarImagenesLegacy(producto, imagenesEditor);
+
+        } else if (imagenesUrls != null) {
+            // Formato nuevo anterior: textarea "imagenesUrls" (una URL por línea)
             List<String> urls = new ArrayList<>();
             for (String linea : imagenesUrls.split("\\R")) {
                 String url = (linea == null) ? "" : linea.trim();
@@ -186,7 +207,7 @@ public class ProductoController {
         }
 
         // ============================================================
-        // 2. GUARDAR PRODUCTO Y VARIANTES
+        // 2. GUARDAR PRODUCTO, IMÁGENES Y VARIANTES
         // ============================================================
         try {
             productoService.guardarProductoConVariantes(
@@ -199,7 +220,8 @@ public class ProductoController {
                     varianteStock,
                     variantePeso,
                     varianteActivo,
-                    varianteId
+                    varianteId,
+                    imagenesEditor
             );
             redirect.addFlashAttribute("mensaje", "✅ Producto guardado correctamente!");
         } catch (IllegalArgumentException e) {
@@ -219,6 +241,29 @@ public class ProductoController {
         }
 
         return "redirect:/admin/panel";
+    }
+
+    /**
+     * Copia las primeras 6 URL del editor a los campos legacy
+     * {@code imagen1..imagen6}.
+     *
+     * <p>Siguen existiendo porque los usan la portada, el carrito y el chat de
+     * la IA ({@code producto.getImagen1()}) como imagen de la tarjeta. La
+     * fuente completa (con colores) es {@code producto_imagen}.</p>
+     */
+    private void aplicarImagenesLegacy(Producto producto, List<ProductoService.ImagenFormulario> filas) {
+        String[] urls = new String[6];
+        if (filas != null) {
+            for (int i = 0; i < Math.min(6, filas.size()); i++) {
+                urls[i] = filas.get(i).url();
+            }
+        }
+        producto.setImagen1(urls[0]);
+        producto.setImagen2(urls[1]);
+        producto.setImagen3(urls[2]);
+        producto.setImagen4(urls[3]);
+        producto.setImagen5(urls[4]);
+        producto.setImagen6(urls[5]);
     }
 
     // POST (no GET): un borrado por enlace es vulnerable a CSRF y a que el

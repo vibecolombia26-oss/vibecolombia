@@ -219,6 +219,118 @@ class DropiParserUtilTest {
         assertEquals(75000d, precioDe("Precio sugerido: 75.000"));
     }
 
+    // ============================================================
+    // FORMATO MULTILÍNEA (un dato por línea) Y BLOQUES ROTOS
+    // ============================================================
+
+    @Test
+    @DisplayName("Lee el formato multilínea: ID en una línea y Talla/Color/Existencia/precios en las siguientes")
+    void leeFormatoMultilineaConIdEnSuPropiaLinea() {
+        String texto = """
+                123456789
+                Talla: 40
+                Color: Blanco/beige
+                Existencia: 4
+                Precio del proveedor: $ 45.000
+                Precio sugerido: $ 75.000
+                123456790
+                Talla: 41
+                Color: Negro/rojo
+                Existencia: 2
+                Precio del proveedor: $ 46.000
+                Precio sugerido: $ 79.900
+                """;
+
+        DropiParserUtil.Resultado resultado = DropiParserUtil.parsearDetallado(texto);
+
+        assertEquals(2, resultado.variantes().size(), "dos bloques → dos variantes");
+        assertEquals(0, resultado.descartadas());
+
+        Map<String, VarianteImportada> indice = porClave(resultado.variantes());
+
+        VarianteImportada primera = indice.get("blanco/beige|40");
+        assertNotNull(primera, "falta Blanco/beige 40: " + indice.keySet());
+        assertEquals(4, primera.stock());
+        assertEquals(45000d, primera.costo());
+        assertEquals(75000d, primera.precioVenta());
+
+        VarianteImportada segunda = indice.get("negro/rojo|41");
+        assertNotNull(segunda, "falta Negro/rojo 41: " + indice.keySet());
+        assertEquals(2, segunda.stock());
+        assertEquals(46000d, segunda.costo());
+        assertEquals(79900d, segunda.precioVenta());
+    }
+
+    @Test
+    @DisplayName("Un bloque sin talla se descarta y se cuenta: nunca crea una variante sin talla")
+    void bloqueSinTallaSeDescarta() {
+        String texto = """
+                ID: 111
+                Color: Azul
+                Existencia: 5
+
+                ID: 222
+                Talla: 42
+                Color: Gris
+                Existencia: 1
+                Precio sugerido: $ 60.000
+                """;
+
+        DropiParserUtil.Resultado resultado = DropiParserUtil.parsearDetallado(texto);
+
+        assertEquals(1, resultado.variantes().size(), "solo el bloque completo es válido");
+        assertEquals(1, resultado.descartadas(), "el bloque sin talla se ignora y se cuenta");
+
+        VarianteImportada valida = resultado.variantes().get(0);
+        assertEquals("Gris", valida.color());
+        assertEquals("42", valida.talla());
+        assertEquals(1, valida.stock());
+
+        for (VarianteImportada variante : resultado.variantes()) {
+            assertNotNull(variante.talla(), "ninguna variante puede salir sin talla");
+            assertTrue(!variante.talla().isBlank());
+        }
+    }
+
+    @Test
+    @DisplayName("Una fila con cifras no se confunde con el encabezado de una tabla")
+    void filaConCifrasNoEsEncabezado() {
+        // Varios espacios: el lector de tablas lo vería como 4 columnas, pero
+        // tiene cifras → es una fila de datos del formato multilínea.
+        String texto = "Talla: 40   Color: Blanco/beige   Existencia: 4   Precio sugerido: $ 75.000";
+
+        List<VarianteImportada> variantes = DropiParserUtil.parsear(texto);
+        assertEquals(1, variantes.size());
+
+        VarianteImportada variante = variantes.get(0);
+        assertEquals("40", variante.talla());
+        assertEquals("Blanco/beige", variante.color());
+        assertEquals(4, variante.stock());
+        assertEquals(75000d, variante.precioVenta());
+    }
+
+    @Test
+    @DisplayName("Un inventario de solo colores (sin tallas) sí puede no tener talla")
+    void inventarioSinTallasEsValido() {
+        String texto = """
+                Color: Negro
+                Existencia: 3
+                Precio sugerido: $ 50.000
+
+                Color: Blanco
+                Existencia: 2
+                Precio sugerido: $ 50.000
+                """;
+
+        DropiParserUtil.Resultado resultado = DropiParserUtil.parsearDetallado(texto);
+
+        assertEquals(2, resultado.variantes().size());
+        assertEquals(0, resultado.descartadas(), "sin tallas en el texto no hay nada roto");
+        for (VarianteImportada variante : resultado.variantes()) {
+            assertNotNull(variante.color());
+        }
+    }
+
     @Test
     @DisplayName("Un valor roto no arrastra al resto del inventario")
     void toleraValoresRotos() {

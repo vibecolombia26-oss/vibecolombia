@@ -128,6 +128,11 @@ public class AdminAsistenteService {
             + "105999 y null en el costo. Si no sabes cuántas variantes tiene o cómo se llama exactamente el producto, "
             + "usa " + TOOL_DETALLE + " (o " + TOOL_BUSCAR + ") y luego dilo con el número real: por ejemplo «veo que "
             + "tiene 24 variantes (Negro, Blanco, …): voy a actualizar todas».\n\n"
+            + "Cambios parciales de precio o costo: los dos campos son independientes. Si el administrador pide "
+            + "cambiar SOLO el costo («pon el costo en 63.000», «sube el costo», «deja el precio como está»), llama a "
+            + TOOL_PRECIO_MASIVO + " con el nombre del producto, nuevoCosto y SIN nuevoPrecio (null): el backend valida "
+            + "el costo contra el precio que ya tiene cada variante y no toca el precio de venta. No te niegues ni "
+            + "inventes un precio nuevo; tampoco exijas que el administrador te lo dé.\n\n"
             + "Reglas: usa " + TOOL_BUSCAR + " o " + TOOL_DETALLE + " antes de modificar algo si no conoces el nombre "
             + "exacto. En 'nombreProducto' pasa SOLO el nombre del producto, sin frases como 'todas las tallas de'. "
             + "Si la herramienta responde que hay varios productos con ese nombre, pide al administrador que sea más "
@@ -236,15 +241,15 @@ public class AdminAsistenteService {
                 "type": "function",
                 "function": {
                   "name": "actualizarPrecioMasivo",
-                  "description": "Pone el MISMO precio de venta (y opcionalmente el mismo costo de proveedor) a TODAS las variantes de un producto, y actualiza también el precio base del producto para que la ficha pública quede consistente. Es la herramienta para 'pon el precio a 105.999 a todas', 'todas las variantes a 99.999', 'cambia el costo de todo el producto'. NO pidas SKUs: el backend obtiene todas las variantes y las actualiza de una vez. Es una acción masiva: siempre requiere confirmación.",
+                  "description": "Pone el MISMO precio de venta y/o el MISMO costo de proveedor a TODAS las variantes de un producto. Los dos campos son independientes: puedes cambiar solo el precio, solo el costo, o los dos. Si cambias el precio también se actualiza el precio base del producto (la ficha pública). Es la herramienta para 'pon el precio a 105.999 a todas', 'pon el costo en 63.000 y deja el precio como está', 'todas las variantes a 99.999'. NO pidas SKUs: el backend obtiene todas las variantes y las actualiza de una vez. Es una acción masiva: siempre requiere confirmación.",
                   "parameters": {
                     "type": "object",
                     "properties": {
                       "nombreProducto": { "type": "string", "description": "Nombre del producto (solo el nombre, sin frases como 'todas las variantes de')" },
-                      "nuevoPrecio": { "type": "number", "exclusiveMinimum": 0, "description": "Precio de venta para todas las variantes, en pesos sin separadores (105999, no 105.999)" },
-                      "nuevoCosto": { "type": "number", "exclusiveMinimum": 0, "description": "Opcional. Costo del proveedor para todas las variantes, en pesos sin separadores. Si no se indica o se envía null, el costo actual de cada variante no se toca. Debe ser menor que nuevoPrecio." }
+                      "nuevoPrecio": { "type": "number", "exclusiveMinimum": 0, "description": "Precio de venta para todas las variantes, en pesos sin separadores (105999, no 105.999). Si solo se cambia el costo, OMÍTELO o envía null: el precio actual no se toca." },
+                      "nuevoCosto": { "type": "number", "exclusiveMinimum": 0, "description": "Opcional. Costo del proveedor para todas las variantes, en pesos sin separadores. Debe ser menor que el precio (el nuevo o, si no se envía precio, el que ya tiene cada variante en la base)." }
                     },
-                    "required": ["nombreProducto", "nuevoPrecio"]
+                    "required": ["nombreProducto"]
                   }
                 }
               },
@@ -456,6 +461,11 @@ public class AdminAsistenteService {
                                 ? "Voy a " + accion.descripcion() + " ¿Lo apruebas?"
                                 : contenido.trim() + "\n\nAcción propuesta: " + accion.descripcion();
 
+                        // Se recuerda en el servidor: si el administrador
+                        // responde «sí» y el navegador no reenvía la acción,
+                        // esta es la que se ejecuta (sin volver a preguntar).
+                        recordarAccion(accion);
+
                         return new Respuesta(aviso, true, accion);
                     }
 
@@ -479,11 +489,20 @@ public class AdminAsistenteService {
     /**
      * Aplica una acción aprobada. Vuelve a validar TODO: nunca se confía en
      * los argumentos que llegan del navegador.
+     *
+     * <p>Si la petición no trae la acción (un «sí» escrito a mano, un cliente
+     * que perdió el estado), se usa la <strong>última acción propuesta</strong>
+     * que guardó el servidor. Así el administrador no repite el contexto ni el
+     * modelo tiene que adivinarlo.</p>
      */
     @Transactional
     public Resultado ejecutar(AccionPendiente accion) {
         if (accion == null || accion.tool() == null || accion.tool().isBlank()) {
-            return new Resultado(false, "No hay ninguna acción pendiente que ejecutar.");
+            accion = accionPendienteRecordada();
+        }
+        if (accion == null || accion.tool() == null || accion.tool().isBlank()) {
+            return new Resultado(false, "No hay ninguna acción pendiente que ejecutar. "
+                    + "Dime qué quieres cambiar y te propongo el cambio primero.");
         }
 
         JsonNode argumentos = objectMapper.valueToTree(
@@ -496,11 +515,60 @@ public class AdminAsistenteService {
             if (resultado.has("error")) {
                 return new Resultado(false, "No se pudo ejecutar: " + resultado.path("error").asText());
             }
+            // Ejecutada: la acción pendiente ya no sirve para un «sí» posterior.
+            olvidarAccion();
             return new Resultado(true, resultado.path("mensaje").asText("Listo, cambio aplicado."));
         } catch (Exception e) {
             log.warn("Asistente admin: no se pudo ejecutar {}: {}", accion.tool(), e.getMessage());
             return new Resultado(false, "No se pudo ejecutar la acción: " + e.getMessage());
         }
+    }
+
+    // ============================================================
+    // MEMORIA DE LA ACCIÓN PENDIENTE (anti-amnesia)
+    // ============================================================
+
+    /**
+     * Última acción que el asistente propuso y el administrador todavía no
+     * aprobó.
+     *
+     * <p>El navegador normalmente la reenvía, pero cuando el administrador
+     * escribe «sí» a mano la petición puede llegar sin ella. Guardarla en el
+     * servidor evita el bucle de «¿de qué producto me hablas?» y hace que la
+     * confirmación ejecute exactamente lo que se propuso, sin consultar al
+     * modelo. Caduca sola para no ejecutar algo de hace media hora.</p>
+     */
+    private volatile AccionPendiente ultimaAccionPropuesta;
+    private volatile Instant ultimaAccionEn;
+
+    /** Cuánto sigue siendo válida una propuesta sin aprobar. */
+    private static final Duration VIGENCIA_ACCION = Duration.ofMinutes(15);
+
+    private void recordarAccion(AccionPendiente accion) {
+        if (accion == null) {
+            return;
+        }
+        this.ultimaAccionPropuesta = accion;
+        this.ultimaAccionEn = Instant.now();
+    }
+
+    /** @return la acción pendiente vigente, o {@code null} si no hay o caducó */
+    public AccionPendiente accionPendienteRecordada() {
+        AccionPendiente accion = ultimaAccionPropuesta;
+        Instant cuando = ultimaAccionEn;
+        if (accion == null || cuando == null) {
+            return null;
+        }
+        if (cuando.plus(VIGENCIA_ACCION).isBefore(Instant.now())) {
+            olvidarAccion();
+            return null;
+        }
+        return accion;
+    }
+
+    private void olvidarAccion() {
+        this.ultimaAccionPropuesta = null;
+        this.ultimaAccionEn = null;
     }
 
     // ============================================================
@@ -697,41 +765,48 @@ public class AdminAsistenteService {
     }
 
     /**
-     * Pone el MISMO precio (y opcionalmente el mismo costo) a todas las
-     * variantes de un producto y sincroniza el precio base.
+     * Pone el MISMO precio y/o el MISMO costo a todas las variantes.
      *
-     * <p><strong>Por qué se toca también {@code Producto.precio}:</strong> la
+     * <p><strong>Los dos campos son independientes:</strong> se puede cambiar
+     * solo el precio, solo el costo o ambos. Antes el precio era obligatorio y
+     * una frase tan normal como «pon el costo en 63.000 y deja el precio como
+     * está» se bloqueaba en la validación; ahora, si no llega precio, se valida
+     * el costo contra el <strong>precio que ya tiene cada variante en la
+     * base</strong> (costo &lt; precio actual) y no se toca ningún precio.</p>
+     *
+     * <p><strong>Por qué se sincroniza {@code Producto.precio}:</strong> la
      * ficha pública, el JSON-LD de SEO y el precio que muestra la portada salen
      * de {@code producto.precio}, no de las variantes. Si el asistente solo
      * cambiara las variantes, el catálogo quedaría mintiendo: el cliente vería
-     * el precio viejo en Google hasta entrar al detalle. Por eso el precio base
-     * se actualiza en la misma transacción.</p>
-     *
-     * <p>El costo es opcional: si llega {@code null}, el costo de cada variante
-     * se queda como está (una importación de precios no tiene por qué borrar la
-     * información de margen).</p>
+     * el precio viejo en Google hasta entrar al detalle. Solo se toca cuando se
+     * está cambiando el precio.</p>
      *
      * @param productoId     id ya resuelto en la propuesta
      * @param nombreProducto nombre aprobado, para verificar que id y nombre cuadran
-     * @param nuevoPrecio    precio de venta para todas las variantes (obligatorio)
-     * @param nuevoCosto     costo de proveedor para todas las variantes (opcional)
+     * @param nuevoPrecio    precio de venta para todas las variantes (o {@code null} para no tocarlo)
+     * @param nuevoCosto     costo de proveedor para todas las variantes (o {@code null} para no tocarlo)
      */
     @Transactional
     public String actualizarPrecioMasivo(Long productoId, String nombreProducto,
                                          Double nuevoPrecio, Double nuevoCosto) {
-        if (nuevoPrecio == null || !Double.isFinite(nuevoPrecio) || nuevoPrecio <= 0) {
-            return json(Map.of("error", "El precio debe ser un número mayor que 0."));
+        if (nuevoPrecio == null && nuevoCosto == null) {
+            return json(Map.of("error", "Indica un precio nuevo, un costo nuevo, o los dos."));
         }
-        if (nuevoPrecio > PRECIO_MAXIMO) {
-            return json(Map.of("error", "Ese precio es demasiado alto para ser real."));
+        if (nuevoPrecio != null) {
+            if (!Double.isFinite(nuevoPrecio) || nuevoPrecio <= 0) {
+                return json(Map.of("error", "El precio debe ser un número mayor que 0."));
+            }
+            if (nuevoPrecio > PRECIO_MAXIMO) {
+                return json(Map.of("error", "Ese precio es demasiado alto para ser real."));
+            }
         }
-        if (nuevoCosto != null && (!Double.isFinite(nuevoCosto) || nuevoCosto <= 0)) {
-            return json(Map.of("error", "El costo debe ser un número mayor que 0."));
-        }
-        if (nuevoCosto != null && nuevoCosto >= nuevoPrecio) {
-            return json(Map.of("error", "El costo (" + pesos(nuevoCosto)
-                    + ") no puede ser igual o mayor al precio de venta (" + pesos(nuevoPrecio)
-                    + "): el margen sería nulo o negativo."));
+        if (nuevoCosto != null) {
+            if (!Double.isFinite(nuevoCosto) || nuevoCosto <= 0) {
+                return json(Map.of("error", "El costo debe ser un número mayor que 0."));
+            }
+            if (nuevoCosto > PRECIO_MAXIMO) {
+                return json(Map.of("error", "Ese costo es demasiado alto para ser real."));
+            }
         }
 
         Resolucion resolucion = resolverParaEjecutar(productoId, nombreProducto);
@@ -746,38 +821,93 @@ public class AdminAsistenteService {
                     + "» no tiene variantes que actualizar."));
         }
 
+        // ------------------------------------------------------------
+        // Validación costo/precio SIN obligar a mandar el precio:
+        //  - con precio nuevo: el costo tiene que quedar por debajo;
+        //  - solo costo: se compara con el precio ACTUAL de cada variante en
+        //    la base de datos (que es lo que pidió el administrador: «deja el
+        //    precio como está»).
+        // ------------------------------------------------------------
+        if (nuevoCosto != null) {
+            if (nuevoPrecio != null) {
+                if (nuevoCosto >= nuevoPrecio) {
+                    return json(Map.of("error", "El costo (" + pesos(nuevoCosto)
+                            + ") no puede ser igual o mayor al precio de venta (" + pesos(nuevoPrecio)
+                            + "): el margen sería nulo o negativo."));
+                }
+            } else {
+                for (VarianteProducto variante : variantes) {
+                    Double precioActual = variante.getPrecio() != null
+                            ? variante.getPrecio()
+                            : producto.getPrecio();
+                    if (precioActual != null && nuevoCosto >= precioActual) {
+                        return json(Map.of(
+                                "error", "El costo (" + pesos(nuevoCosto) + ") no puede ser igual o mayor al "
+                                        + "precio actual de «" + variante.getSku() + "» ("
+                                        + pesos(precioActual) + "): el margen sería nulo o negativo.",
+                                "sugerencia", "Indica también un precio de venta nuevo, o baja el costo."));
+                    }
+                }
+            }
+        }
+
+        int cambiadas = 0;
         for (VarianteProducto variante : variantes) {
-            variante.setPrecio(nuevoPrecio);
-            if (nuevoCosto != null) {
+            boolean cambio = false;
+            if (nuevoPrecio != null && !nuevoPrecio.equals(variante.getPrecio())) {
+                variante.setPrecio(nuevoPrecio);
+                cambio = true;
+            }
+            if (nuevoCosto != null && !nuevoCosto.equals(variante.getCosto())) {
                 variante.setCosto(nuevoCosto);
+                cambio = true;
+            }
+            if (cambio) {
+                cambiadas++;
             }
         }
         varianteProductoRepository.saveAll(variantes);
 
         // El precio base del producto: es el que pinta la ficha pública.
-        producto.setPrecio(nuevoPrecio);
-        productoRepository.save(producto);
-
-        StringBuilder mensaje = new StringBuilder()
-                .append("El precio de las ").append(variantes.size())
-                .append(" variante(s) de «").append(producto.getNombre())
-                .append("» quedó en $").append(pesos(nuevoPrecio)).append('.');
-        if (nuevoCosto != null) {
-            mensaje.append(" El costo quedó en $").append(pesos(nuevoCosto)).append('.');
+        boolean precioBaseCambiado = false;
+        if (nuevoPrecio != null) {
+            producto.setPrecio(nuevoPrecio);
+            productoRepository.save(producto);
+            precioBaseCambiado = true;
         }
-        mensaje.append(" El precio base del producto también se actualizó: la ficha pública ya muestra $")
-                .append(pesos(nuevoPrecio)).append('.');
+
+        StringBuilder mensaje = new StringBuilder();
+        if (nuevoPrecio != null) {
+            mensaje.append("El precio de las ").append(variantes.size())
+                    .append(" variante(s) de «").append(producto.getNombre())
+                    .append("» quedó en $").append(pesos(nuevoPrecio)).append('.');
+        }
+        if (nuevoCosto != null) {
+            mensaje.append(" El costo de las ").append(variantes.size())
+                    .append(" variante(s) de «").append(producto.getNombre())
+                    .append("» quedó en $").append(pesos(nuevoCosto)).append('.');
+            if (nuevoPrecio == null) {
+                mensaje.append(" El precio de venta no se tocó: se mantiene el que ya tenía cada variante.");
+            }
+        }
+        if (precioBaseCambiado) {
+            mensaje.append(" El precio base del producto también se actualizó: la ficha pública ya muestra $")
+                    .append(pesos(nuevoPrecio)).append('.');
+        }
 
         Map<String, Object> salida = new LinkedHashMap<>();
         salida.put("ok", true);
         salida.put("mensaje", mensaje.toString());
         salida.put("producto", producto.getNombre());
-        salida.put("variantesActualizadas", variantes.size());
-        salida.put("nuevoPrecio", nuevoPrecio);
-        salida.put("precioBaseActualizado", true);
+        salida.put("variantesActualizadas", cambiadas);
+        salida.put("totalVariantes", variantes.size());
+        if (nuevoPrecio != null) {
+            salida.put("nuevoPrecio", nuevoPrecio);
+        }
         if (nuevoCosto != null) {
             salida.put("nuevoCosto", nuevoCosto);
         }
+        salida.put("precioBaseActualizado", precioBaseCambiado);
         return json(salida);
     }
 
@@ -972,7 +1102,9 @@ public class AdminAsistenteService {
             return json(Map.of("error", "No recibí el texto de Dropi. Pega el inventario en el chat."));
         }
 
-        List<VarianteImportada> detectadas = DropiParserUtil.parsear(texto);
+        DropiParserUtil.Resultado lectura = DropiParserUtil.parsearDetallado(texto);
+        List<VarianteImportada> detectadas = lectura.variantes();
+        int descartadas = lectura.descartadas();
         if (detectadas.isEmpty()) {
             return json(Map.of(
                     "error", "No reconocí ninguna variante (Color + Talla) en ese texto.",
@@ -1094,6 +1226,10 @@ public class AdminAsistenteService {
             mensaje.append(" (").append(sinCambios).append(" sin cambios)");
         }
         mensaje.append(". Las variantes detectadas: ").append(detectadas.size()).append('.');
+        if (descartadas > 0) {
+            mensaje.append(" Se ignoraron ").append(descartadas)
+                    .append(" fila(s) incompleta(s) del texto (sin talla o sin color).");
+        }
         if (recoloreadas > 0) {
             mensaje.append(" Se renombraron ").append(recoloreadas).append(" color(es): ")
                     .append(String.join(", ", resumenLista(cambiosColor, 4))).append('.');
@@ -1118,6 +1254,9 @@ public class AdminAsistenteService {
         salida.put("actualizadas", actualizadas);
         salida.put("sinCambios", sinCambios);
         salida.put("coloresRenombrados", recoloreadas);
+        if (descartadas > 0) {
+            salida.put("filasIgnoradas", descartadas);
+        }
         if (!cambiosColor.isEmpty()) {
             salida.put("cambiosColor", resumenLista(cambiosColor, 8));
         }
@@ -1544,22 +1683,26 @@ public class AdminAsistenteService {
 
         String texto = null;
         List<VarianteImportada> detectadas = List.of();
+        int descartadas = 0;
 
         if (DropiParserUtil.pareceInventario(textoMensaje)) {
             texto = textoMensaje;
-            detectadas = DropiParserUtil.parsear(texto);
         } else {
             String delModelo = argumentos.path("textoDropi").asText("");
             if (DropiParserUtil.pareceInventario(delModelo)) {
                 texto = delModelo;
-                detectadas = DropiParserUtil.parsear(texto);
             } else {
                 String reciente = textoDropiReciente();
                 if (reciente != null && DropiParserUtil.pareceInventario(reciente)) {
                     texto = reciente;
-                    detectadas = DropiParserUtil.parsear(texto);
                 }
             }
+        }
+
+        if (texto != null) {
+            DropiParserUtil.Resultado lectura = DropiParserUtil.parsearDetallado(texto);
+            detectadas = lectura.variantes();
+            descartadas = lectura.descartadas();
         }
 
         if (detectadas.isEmpty()) {
@@ -1658,6 +1801,13 @@ public class AdminAsistenteService {
                     .append(String.join(", ", resumenLista(cambiosColor, 4))).append(')');
         }
         descripcion.append(" · se actualizarán stock y precios y el precio base del producto");
+
+        // Bloques rotos: se avisa en la propia tarjeta en lugar de crear filas
+        // fantasma sin talla.
+        if (descartadas > 0) {
+            descripcion.append(" · ").append(descartadas)
+                    .append(" fila(s) ilegible(s) del texto se ignorarán (sin talla o sin color)");
+        }
 
         descripcion.append(vista);
 
@@ -1829,16 +1979,25 @@ public class AdminAsistenteService {
         if (nombre.isBlank()) {
             return new Preparacion(null, json(Map.of("error", "Falta el nombre del producto.")));
         }
-        if (precio == null || !Double.isFinite(precio) || precio <= 0) {
-            return new Preparacion(null, json(Map.of("error", "El precio debe ser un número mayor que 0.")));
+        // Cambios parciales permitidos: precio solo, costo solo, o los dos.
+        if (precio == null && costo == null) {
+            return new Preparacion(null, json(Map.of(
+                    "error", "Indica un precio nuevo, un costo nuevo, o los dos.",
+                    "sugerencia", "Si el administrador solo quiere cambiar el costo, envía nuevoCosto y deja "
+                            + "nuevoPrecio vacío: el backend valida contra el precio actual.")));
         }
-        if (precio > PRECIO_MAXIMO) {
-            return new Preparacion(null, json(Map.of("error", "Ese precio es demasiado alto para ser real.")));
+        if (precio != null) {
+            if (!Double.isFinite(precio) || precio <= 0) {
+                return new Preparacion(null, json(Map.of("error", "El precio debe ser un número mayor que 0.")));
+            }
+            if (precio > PRECIO_MAXIMO) {
+                return new Preparacion(null, json(Map.of("error", "Ese precio es demasiado alto para ser real.")));
+            }
         }
-        if (costo != null && (!Double.isFinite(costo) || costo <= 0)) {
+        if (costo != null && (!Double.isFinite(costo) || costo <= 0 || costo > PRECIO_MAXIMO)) {
             return new Preparacion(null, json(Map.of("error", "El costo debe ser un número mayor que 0.")));
         }
-        if (costo != null && costo >= precio) {
+        if (costo != null && precio != null && costo >= precio) {
             return new Preparacion(null, json(Map.of(
                     "error", "El costo (" + pesos(costo) + ") no puede ser igual o mayor al precio ("
                             + pesos(precio) + ").",
@@ -1863,24 +2022,47 @@ public class AdminAsistenteService {
                     "error", "El producto «" + producto.getNombre() + "» no tiene variantes que actualizar.")));
         }
 
+        // Solo costo: se valida contra el precio que ya tiene cada variante.
+        if (costo != null && precio == null) {
+            for (VarianteProducto variante : variantes) {
+                Double precioActual = variante.getPrecio() != null ? variante.getPrecio() : producto.getPrecio();
+                if (precioActual != null && costo >= precioActual) {
+                    return new Preparacion(null, json(Map.of(
+                            "error", "El costo (" + pesos(costo) + ") no puede ser igual o mayor al precio "
+                                    + "actual de «" + variante.getSku() + "» (" + pesos(precioActual) + ").",
+                            "sugerencia", "Indica también un precio nuevo más alto, o baja el costo.")));
+                }
+            }
+        }
+
         Map<String, Object> aprobados = new LinkedHashMap<>();
         aprobados.put("productoId", producto.getId());
         aprobados.put("nombreProducto", producto.getNombre());
-        aprobados.put("nuevoPrecio", precio);
+        if (precio != null) {
+            aprobados.put("nuevoPrecio", precio);
+        }
         if (costo != null) {
             aprobados.put("nuevoCosto", costo);
         }
 
-        StringBuilder descripcion = new StringBuilder()
-                .append("poner el precio de las ").append(variantes.size())
-                .append(" variante(s) de «").append(producto.getNombre()).append("»")
-                .append(resumenColores(variantes))
-                .append(" en $").append(pesos(precio));
-        if (costo != null) {
-            descripcion.append(" y el costo en $").append(pesos(costo));
+        StringBuilder descripcion = new StringBuilder();
+        if (precio != null) {
+            descripcion.append("poner el precio de las ").append(variantes.size())
+                    .append(" variante(s) de «").append(producto.getNombre()).append("»")
+                    .append(resumenColores(variantes))
+                    .append(" en $").append(pesos(precio));
+            if (costo != null) {
+                descripcion.append(" y el costo en $").append(pesos(costo));
+            }
+            descripcion.append(". También se actualizará el precio base del producto (hoy $")
+                    .append(pesos(producto.getPrecio() == null ? 0d : producto.getPrecio())).append(')');
+        } else {
+            descripcion.append("poner el costo de las ").append(variantes.size())
+                    .append(" variante(s) de «").append(producto.getNombre()).append("»")
+                    .append(resumenColores(variantes))
+                    .append(" en $").append(pesos(costo))
+                    .append(". El precio de venta NO se toca: cada variante conserva el suyo");
         }
-        descripcion.append(". También se actualizará el precio base del producto (hoy $")
-                .append(pesos(producto.getPrecio() == null ? 0d : producto.getPrecio())).append(")");
 
         return new Preparacion(
                 new AccionPendiente(TOOL_PRECIO_MASIVO, descripcion.toString(), aprobados, true), null);

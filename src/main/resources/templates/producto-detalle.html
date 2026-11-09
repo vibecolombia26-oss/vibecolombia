@@ -162,6 +162,17 @@
             height: 100%;
             object-fit: cover;
             cursor: zoom-in;
+            /* Fundido al cambiar de imagen (galería por color o flechas). */
+            transition: opacity 0.18s ease;
+        }
+
+        /* Mientras se intercambia el src la imagen se apaga: sin este paso el
+           salto entre fotos se ve como un parpadeo. */
+        .pdp__stage img.is-fading { opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pdp__stage img { transition: none; }
+            .pdp__stage img.is-fading { opacity: 1; }
         }
 
         .pdp__stage-placeholder {
@@ -1530,38 +1541,167 @@
     const REQUIERE_CONFIRMACION_TALLA = /*[[${esCalzado}]]*/ false;
 
     // ============================================================
-    // GALERÍA + THUMBNAILS + LIGHTBOX
+    // GALERÍA POR VARIANTE (imágenes con color) + THUMBNAILS + LIGHTBOX
+    // ------------------------------------------------------------
+    // Cada imagen puede venir asociada a un color. Al elegir un color:
+    //   1. se muestran las fotos de ESE color;
+    //   2. si no hay ninguna, se muestra la galería general (color vacío);
+    //   3. si tampoco hay generales, se muestran todas.
+    // El cambio se hace con un fundido corto, sin parpadeo.
     // ============================================================
-    const thumbs = Array.from(document.querySelectorAll('#galeriaThumbs .pdp__thumb'));
+    const imagenesProductoDTO = /*[[${imagenesProducto}]]*/ [];
+    const imagenesLegacyDTO = /*[[${imagenesLegacy}]]*/ [];
+    const imagenFallback = /*[[${imagenPrincipal}]]*/ '';
+
+    const thumbsWrap = document.getElementById('galeriaThumbs');
     const imagenPrincipalEl = document.getElementById('galeriaPrincipal');
 
+    /** Lista completa [{url, color}] (color '' = general), en orden. */
+    function construirGaleriaCompleta() {
+        const lista = [];
+
+        if (Array.isArray(imagenesProductoDTO)) {
+            imagenesProductoDTO.forEach(function (img) {
+                const url = (img && img.url) ? String(img.url).trim() : '';
+                if (!url) return;
+                const color = (img.color == null) ? '' : String(img.color).trim();
+                lista.push({ url: url, color: color });
+            });
+        }
+
+        // Retrocompatibilidad: productos que aún no tienen filas en producto_imagen
+        if (!lista.length && Array.isArray(imagenesLegacyDTO)) {
+            imagenesLegacyDTO.forEach(function (url) {
+                if (url) lista.push({ url: String(url).trim(), color: '' });
+            });
+        }
+
+        if (!lista.length && imagenFallback) {
+            lista.push({ url: String(imagenFallback), color: '' });
+        }
+        return lista;
+    }
+
+    const galeriaCompleta = construirGaleriaCompleta();
+    let galeriaActiva = galeriaCompleta.slice();
+    let tokenFade = 0;
+
+    /** Pinta las miniaturas de la lista indicada. */
+    function pintarMiniaturas(lista) {
+        if (!thumbsWrap) return;
+        thumbsWrap.innerHTML = '';
+
+        lista.forEach(function (item, index) {
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'pdp__thumb' + (index === 0 ? ' is-active' : '');
+            boton.setAttribute('data-src', item.url);
+            boton.setAttribute('data-index', String(index));
+            boton.setAttribute('aria-label', 'Ver imagen ' + (index + 1));
+
+            const img = document.createElement('img');
+            img.src = item.url;
+            img.alt = '';
+            img.loading = 'lazy';
+            img.decoding = 'async';
+
+            boton.appendChild(img);
+            boton.addEventListener('click', function () { irAImagen(index); });
+            thumbsWrap.appendChild(boton);
+        });
+    }
+
     function imagenesGaleria() {
-        return thumbs.map(function (t) { return t.getAttribute('data-src'); }).filter(Boolean);
+        return galeriaActiva.map(function (item) { return item.url; });
+    }
+
+    /** Cambia la imagen grande con un fundido (evita el parpadeo). */
+    function cambiarImagenPrincipal(url) {
+        if (!imagenPrincipalEl || !url) return;
+        if (imagenPrincipalEl.getAttribute('src') === url) return;
+
+        const miToken = ++tokenFade;
+        imagenPrincipalEl.classList.add('is-fading');
+
+        window.setTimeout(function () {
+            // Si mientras tanto se eligió otra imagen, esta se descarta.
+            if (miToken !== tokenFade) return;
+            imagenPrincipalEl.src = url;
+            imagenPrincipalEl.classList.remove('is-fading');
+        }, 150);
     }
 
     function irAImagen(index) {
-        if (!thumbs.length) return;
-        indiceGaleria = ((index % thumbs.length) + thumbs.length) % thumbs.length;
-        const thumb = thumbs[indiceGaleria];
-        const src = thumb.getAttribute('data-src');
-        if (src && imagenPrincipalEl) imagenPrincipalEl.src = src;
-        thumbs.forEach(function (t, i) {
-            t.classList.toggle('is-active', i === indiceGaleria);
-        });
+        if (!galeriaActiva.length) return;
+
+        indiceGaleria = ((index % galeriaActiva.length) + galeriaActiva.length) % galeriaActiva.length;
+        cambiarImagenPrincipal(galeriaActiva[indiceGaleria].url);
+
+        const botones = thumbsWrap ? thumbsWrap.querySelectorAll('.pdp__thumb') : [];
+        for (let i = 0; i < botones.length; i++) {
+            botones[i].classList.toggle('is-active', i === indiceGaleria);
+        }
         actualizarNavGaleria();
     }
 
     function actualizarNavGaleria() {
         const prev = document.getElementById('galeriaPrev');
         const next = document.getElementById('galeriaNext');
-        const hayVarias = thumbs.length > 1;
+        const hayVarias = galeriaActiva.length > 1;
         if (prev) prev.hidden = !hayVarias;
         if (next) next.hidden = !hayVarias;
     }
 
-    thumbs.forEach(function (thumb, index) {
-        thumb.addEventListener('click', function () { irAImagen(index); });
-    });
+    /** Normaliza un color para comparar («Blanco/Beige» → «blanco/beige»). */
+    function claveColor(color) {
+        return String(color == null ? '' : color)
+            .trim().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ');
+    }
+
+    /**
+     * Imágenes que corresponden al color elegido.
+     * Si el color no tiene fotos propias, devuelve la galería general.
+     */
+    function imagenesParaColor(color) {
+        const clave = claveColor(color);
+        if (!clave) return galeriaCompleta.slice();   // sin color: galería completa
+
+        const exactas = galeriaCompleta.filter(function (item) {
+            return item.color && claveColor(item.color) === clave;
+        });
+        if (exactas.length) return exactas;
+
+        // «Blanco» casa con «Blanco/beige» (color compuesto y viceversa)
+        const parecidas = galeriaCompleta.filter(function (item) {
+            const c = claveColor(item.color);
+            if (!c) return false;
+            return c.indexOf(clave) !== -1 || clave.indexOf(c) !== -1;
+        });
+        if (parecidas.length) return parecidas;
+
+        // Sin fotos de ese color: la galería general (color vacío)
+        const generales = galeriaCompleta.filter(function (item) { return !item.color; });
+        return generales.length ? generales : galeriaCompleta.slice();
+    }
+
+    /** Aplica el filtro por color y repinta la galería con fundido. */
+    function aplicarColorGaleria(color) {
+        const nuevas = imagenesParaColor(color);
+        const mismas = nuevas.length === galeriaActiva.length
+            && nuevas.every(function (item, i) { return item.url === galeriaActiva[i].url; });
+        if (mismas) return;
+
+        galeriaActiva = nuevas;
+        pintarMiniaturas(galeriaActiva);
+        irAImagen(0);
+    }
+
+    // Se pintan las miniaturas desde los datos (no desde el HTML) para poder
+    // repintarlas al cambiar de color.
+    pintarMiniaturas(galeriaActiva);
+    actualizarNavGaleria();
 
     const prevBtn = document.getElementById('galeriaPrev');
     const nextBtn = document.getElementById('galeriaNext');
@@ -1778,6 +1918,11 @@
         });
         const label = document.getElementById('colorSeleccionadoTexto');
         if (label) label.textContent = color;
+
+        // Galería dinámica: al elegir color se muestran sus fotos (o la
+        // galería general si ese color no tiene imágenes propias).
+        aplicarColorGaleria(color);
+
         actualizarVariante();
     }
 

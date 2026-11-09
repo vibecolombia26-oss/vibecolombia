@@ -315,6 +315,10 @@ public class ProductoService {
                 }
                 Map<String, Object> dto = new LinkedHashMap<>();
                 dto.put("url", imagen.getUrl());
+                // Color de la imagen para la galería por variante.
+                // "" = general (la foto se muestra cuando el color elegido no
+                // tiene imágenes propias). El JS solo distingue vacío/no vacío.
+                dto.put("color", imagen.getColor() == null ? "" : imagen.getColor());
                 dto.put("orden", imagen.getOrden() != null ? imagen.getOrden() : 0);
                 imagenesDTO.add(dto);
             }
@@ -420,6 +424,20 @@ public class ProductoService {
     // ============================================================
     // GUARDAR PRODUCTO CON VARIANTES (TRANSACCIONAL)
     // ============================================================
+
+    /**
+     * Una fila del editor de imágenes del panel: URL + color opcional.
+     *
+     * @param url   URL de Cloudinary (obligatoria)
+     * @param color color al que pertenece la foto, o {@code null}/vacío para la
+     *              galería general
+     */
+    public record ImagenFormulario(String url, String color) {
+    }
+
+    /** Tope de imágenes por producto (protege el formulario y la ficha). */
+    private static final int MAX_IMAGENES = 12;
+
     @Transactional
     public Producto guardarProductoConVariantes(Producto productoForm,
                                                 List<String> varianteSku,
@@ -431,6 +449,31 @@ public class ProductoService {
                                                 List<Double> variantePeso,
                                                 List<Boolean> varianteActivo,
                                                 List<Long> varianteId) {
+        return guardarProductoConVariantes(productoForm, varianteSku, varianteColor, varianteTalla,
+                variantePrecio, varianteCosto, varianteStock, variantePeso, varianteActivo,
+                varianteId, null);
+    }
+
+    /**
+     * Guarda el producto, sus imágenes (con color) y sus variantes en una sola
+     * transacción.
+     *
+     * @param imagenes filas del editor de imágenes; {@code null} significa
+     *                 «no se tocó el editor» y se conservan los colores que ya
+     *                 tuvieran las imágenes existentes
+     */
+    @Transactional
+    public Producto guardarProductoConVariantes(Producto productoForm,
+                                                List<String> varianteSku,
+                                                List<String> varianteColor,
+                                                List<String> varianteTalla,
+                                                List<Double> variantePrecio,
+                                                List<Double> varianteCosto,
+                                                List<Integer> varianteStock,
+                                                List<Double> variantePeso,
+                                                List<Boolean> varianteActivo,
+                                                List<Long> varianteId,
+                                                List<ImagenFormulario> imagenes) {
 
         // 1. Obtener la entidad gestionada (producto real)
         Producto productoGuardado;
@@ -467,11 +510,10 @@ public class ProductoService {
         // vez y NO se recalcula al renombrar, para no romper URLs ya indexadas.
         productoGuardado.setSlug(asegurarSlug(productoGuardado, productoForm.getSlug()));
 
-        // 2. Sincronizar la colección normalizada de imágenes (ProductoImagen)
-        //    con los campos legacy imagen1..imagen6, que es lo que edita el
-        //    administrador. Se hace en esta misma transacción para que el
-        //    borrado de las filas antiguas y el alta de las nuevas sean atómicos.
-        sincronizarImagenes(productoGuardado);
+        // 2. Sincronizar las imágenes (URL + color) en esta misma transacción:
+        //    el borrado de las filas antiguas y el alta de las nuevas son
+        //    atómicos.
+        sincronizarImagenes(productoGuardado, imagenes);
 
         // 3. Variantes: se leen por índice, sin exigir que todas las listas
         //    midan exactamente lo mismo. Antes cualquier descuadre (una fila
@@ -635,46 +677,99 @@ public class ProductoService {
      *
      * @param producto producto gestionado con los campos legacy ya copiados
      */
-    private void sincronizarImagenes(Producto producto) {
+    /**
+     * Alinea la colección {@code producto.imagenes} con lo que envió el
+     * administrador: URL + color opcional de cada foto.
+     *
+     * <p><strong>Dos caminos:</strong></p>
+     * <ol>
+     *   <li>Si llega la lista del editor ({@code imagenes}), manda ella: cada
+     *       fila se convierte en una {@link ProductoImagen} con su color
+     *       ({@code null} cuando el campo viene vacío = galería general).</li>
+     *   <li>Si llega {@code null} (formularios antiguos, migración de arranque),
+     *       se usan los campos legacy {@code imagen1..6} y se
+     *       <strong>conservan los colores</strong> que ya tuvieran esas URLs,
+     *       para no borrarlos al guardar solo el stock.</li>
+     * </ol>
+     *
+     * <p>El orden de las filas fija {@code orden} (0 = imagen principal).</p>
+     *
+     * @param producto producto gestionado
+     * @param imagenes filas del editor, o {@code null} para usar los campos legacy
+     */
+    private void sincronizarImagenes(Producto producto, List<ImagenFormulario> imagenes) {
         if (producto == null) {
             return;
         }
 
-        // 1. URLs deseadas, en orden, tal y como las dejó el administrador
-        //    (las líneas vacías del textarea no llegan aquí).
-        List<String> deseadas = new ArrayList<>();
-        String[] legacy = {
-                producto.getImagen1(), producto.getImagen2(), producto.getImagen3(),
-                producto.getImagen4(), producto.getImagen5(), producto.getImagen6()
-        };
-        for (String url : legacy) {
-            if (url != null && !url.isBlank()) {
-                deseadas.add(url.trim());
-            }
-        }
-
-        // 2. URLs actuales de la colección normalizada (ordenadas por "orden")
+        // 1. Colores actuales por URL: sirven para conservarlos cuando el
+        //    llamador no manda la lista del editor.
+        Map<String, String> coloresPorUrl = new LinkedHashMap<>();
         List<String> actuales = new ArrayList<>();
         if (producto.getImagenes() != null) {
             for (ProductoImagen imagen : producto.getImagenes()) {
-                if (imagen != null && imagen.getUrl() != null) {
-                    actuales.add(imagen.getUrl().trim());
+                if (imagen == null || imagen.getUrl() == null || imagen.getUrl().isBlank()) {
+                    continue;
                 }
+                String url = imagen.getUrl().trim();
+                actuales.add(url);
+                coloresPorUrl.putIfAbsent(url, imagen.getColor());
             }
         }
 
-        if (deseadas.equals(actuales)) {
-            return; // ya está sincronizada
+        // 2. Pares deseados (url, color), en orden.
+        List<String> urlsDeseadas = new ArrayList<>();
+        List<String> coloresDeseados = new ArrayList<>();
+
+        if (imagenes != null) {
+            for (ImagenFormulario fila : imagenes) {
+                if (fila == null || fila.url() == null || fila.url().isBlank()) {
+                    continue;   // fila vacía: se ignora (no es un error)
+                }
+                if (urlsDeseadas.size() >= MAX_IMAGENES) {
+                    break;
+                }
+                urlsDeseadas.add(fila.url().trim());
+                coloresDeseados.add(ProductoImagen.normalizarColor(fila.color()));
+            }
+        } else {
+            String[] legacy = {
+                    producto.getImagen1(), producto.getImagen2(), producto.getImagen3(),
+                    producto.getImagen4(), producto.getImagen5(), producto.getImagen6()
+            };
+            for (String url : legacy) {
+                if (url == null || url.isBlank()) {
+                    continue;
+                }
+                String limpia = url.trim();
+                urlsDeseadas.add(limpia);
+                coloresDeseados.add(coloresPorUrl.get(limpia));
+            }
         }
 
-        // 3. Limpiar las anteriores. Con orphanRemoval = true, Hibernate
-        //    borra las filas de producto_imagen que ya no están en la lista.
+        // 3. ¿Ya está exactamente así? Entonces no se toca nada (no se borran y
+        //    reinsertan filas en cada guardado).
+        boolean iguales = urlsDeseadas.equals(actuales);
+        if (iguales && imagenes != null) {
+            for (int i = 0; i < coloresDeseados.size(); i++) {
+                String actual = i < actuales.size() ? coloresPorUrl.get(actuales.get(i)) : null;
+                if (!Objects.equals(ProductoImagen.normalizarColor(actual), coloresDeseados.get(i))) {
+                    iguales = false;
+                    break;
+                }
+            }
+        }
+        if (iguales) {
+            return;
+        }
+
+        // 4. Limpiar las anteriores. Con orphanRemoval = true, Hibernate borra
+        //    las filas de producto_imagen que ya no están en la lista.
         producto.getImagenes().clear();
 
-        // 4. Recrear una ProductoImagen por URL, con su orden (0 = principal)
-        int orden = 0;
-        for (String url : deseadas) {
-            producto.addImagen(url, orden++);
+        // 5. Recrear una ProductoImagen por fila, con su color y su orden.
+        for (int i = 0; i < urlsDeseadas.size(); i++) {
+            producto.addImagen(urlsDeseadas.get(i), coloresDeseados.get(i), i);
         }
     }
 

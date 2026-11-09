@@ -62,11 +62,10 @@ public class AdminAsistenteController {
         // 1. El administrador aprobó una acción propuesta
         // ------------------------------------------------------------
         if (peticion.confirmarAccion()) {
-            if (peticion.accionPendiente() == null) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "No hay ninguna acción pendiente que confirmar."));
-            }
-
+            // Si el navegador no reenvía la acción (un «sí» escrito a mano, una
+            // pestaña recargada), el servicio usa la última que propuso él
+            // mismo. En este camino NUNCA se llama al modelo: se ejecuta la
+            // acción cacheada tal cual se aprobó.
             AdminAsistenteService.Resultado resultado =
                     adminAsistenteService.ejecutar(peticion.accionPendiente());
 

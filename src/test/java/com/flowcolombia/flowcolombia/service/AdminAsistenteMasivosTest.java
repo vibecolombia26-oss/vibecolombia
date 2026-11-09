@@ -280,6 +280,110 @@ class AdminAsistenteMasivosTest {
     }
 
     // ============================================================
+    // CAMBIOS PARCIALES: SOLO COSTO
+    // ============================================================
+
+    @Test
+    @DisplayName("Cambiar SOLO el costo: el precio de venta y el precio base no se tocan")
+    void costoSoloNoTocaElPrecio() {
+        // «pon el costo en 63.000 y deja el precio como está»
+        String salida = servicio.actualizarPrecioMasivo(PRODUCTO_ID, NOMBRE, null, 63000d);
+
+        assertTrue(salida.contains("\"ok\":true"), salida);
+        assertEquals(3, variantesGuardadas.size());
+        for (VarianteProducto variante : variantes) {
+            assertEquals(63000d, variante.getCosto());
+            assertEquals(PRECIO_BASE, variante.getPrecio(), "el precio de la variante no se toca");
+        }
+        assertEquals(PRECIO_BASE, producto.getPrecio(), "el precio base del producto no se toca");
+        assertTrue(productosGuardados.isEmpty(), "no debe guardar el producto si el precio no cambia");
+        assertTrue(salida.contains("\"precioBaseActualizado\":false"), salida);
+    }
+
+    @Test
+    @DisplayName("Costo solo: se valida contra el precio ACTUAL de la base (costo < precio)")
+    void costoSoloSeValidaContraElPrecioActual() {
+        // PRECIO_BASE es el precio actual: un costo igual no deja margen.
+        String salida = servicio.actualizarPrecioMasivo(PRODUCTO_ID, NOMBRE, null, PRECIO_BASE);
+
+        assertTrue(salida.contains("error"), salida);
+        assertTrue(salida.contains("precio actual"), "el mensaje debe hablar del precio actual: " + salida);
+        assertTrue(variantesGuardadas.isEmpty());
+        for (VarianteProducto variante : variantes) {
+            assertEquals(COSTO_INICIAL, variante.getCosto());
+        }
+    }
+
+    @Test
+    @DisplayName("Sin precio ni costo no hay nada que hacer")
+    void sinPrecioNiCostoEsError() {
+        String salida = servicio.actualizarPrecioMasivo(PRODUCTO_ID, NOMBRE, null, null);
+
+        assertTrue(salida.contains("error"), salida);
+        assertTrue(variantesGuardadas.isEmpty());
+    }
+
+    // ============================================================
+    // ACCIÓN PENDIENTE EN MEMORIA (anti-amnesia)
+    // ============================================================
+
+    @Test
+    @DisplayName("Un «sí» sin acción reenviada ejecuta la última acción propuesta")
+    void ejecutaLaAccionRecordada() throws Exception {
+        recordar(propuestaStock(9));
+
+        // El navegador no reenvía nada: solo «confirmarAccion: true».
+        AdminAsistenteService.Resultado resultado = servicio.ejecutar(null);
+
+        assertTrue(resultado.ok(), resultado.mensaje());
+        for (VarianteProducto variante : variantes) {
+            assertEquals(9, variante.getStock());
+        }
+
+        // Consumida: un segundo «sí» ya no tiene acción pendiente.
+        AdminAsistenteService.Resultado segunda = servicio.ejecutar(null);
+        assertFalse(segunda.ok(), "la acción pendiente debe consumirse al ejecutarse");
+    }
+
+    @Test
+    @DisplayName("Una acción pendiente caducada no se ejecuta")
+    void accionCaducadaNoSeEjecuta() throws Exception {
+        recordar(propuestaStock(9));
+
+        // Se envejece la marca: 20 minutos (la vigencia es de 15).
+        Field cuando = AdminAsistenteService.class.getDeclaredField("ultimaAccionEn");
+        cuando.setAccessible(true);
+        cuando.set(servicio, java.time.Instant.now().minusSeconds(20 * 60));
+
+        AdminAsistenteService.Resultado resultado = servicio.ejecutar(null);
+
+        assertFalse(resultado.ok(), "una propuesta de hace 20 minutos no puede ejecutarse sola");
+        assertTrue(variantesGuardadas.isEmpty());
+    }
+
+    private static AdminAsistenteService.AccionPendiente propuestaStock(int stock) {
+        return new AdminAsistenteService.AccionPendiente(
+                AdminAsistenteService.TOOL_STOCK_MASIVO,
+                "poner el stock de las 3 variante(s) de «Mochila Táctica» en " + stock + " unidades cada una",
+                new HashMap<>(Map.of(
+                        "productoId", PRODUCTO_ID,
+                        "nombreProducto", NOMBRE,
+                        "nuevoStock", stock)),
+                true);
+    }
+
+    /** Simula que el asistente acaba de proponer una acción. */
+    private void recordar(AdminAsistenteService.AccionPendiente accion) throws Exception {
+        Field campo = AdminAsistenteService.class.getDeclaredField("ultimaAccionPropuesta");
+        campo.setAccessible(true);
+        campo.set(servicio, accion);
+
+        Field cuando = AdminAsistenteService.class.getDeclaredField("ultimaAccionEn");
+        cuando.setAccessible(true);
+        cuando.set(servicio, java.time.Instant.now());
+    }
+
+    // ============================================================
     // CONTRATO: TRANSACCIONES Y "NUNCA PIDAS SKUs"
     // ============================================================
 

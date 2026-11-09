@@ -1413,6 +1413,47 @@
         var historial = [];
         var ocupado = false;
         var iniciado = false;
+        /* Última acción propuesta y todavía sin aprobar. Mientras exista, un
+           «sí» o un «confirmo» la ejecuta directamente (sin llamar al modelo). */
+        var accionPendiente = null;
+
+        // ------------------------------------------------------------
+        // ¿El mensaje es una confirmación? («sí», «confirmo», «dale»,
+        // «ok, aplícalo»…). Se normaliza sin tildes y sin signos.
+        // ------------------------------------------------------------
+        var PALABRAS_CONFIRMACION = [
+            'si', 'confirmo', 'confirmado', 'dale', 'ok', 'okay', 'va', 'listo',
+            'aprueba', 'apruebo', 'adelante', 'hazlo', 'aplicalo', 'aplicar',
+            'correcto', 'exacto', 'yes', 'procede', 'ejecuta', 'ejecutalo'
+        ];
+
+        function normalizarTexto(texto) {
+            return String(texto == null ? '' : texto)
+                .toLowerCase()
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function esConfirmacion(texto) {
+            var limpio = normalizarTexto(texto);
+            if (!limpio) return false;
+            if (PALABRAS_CONFIRMACION.indexOf(limpio) !== -1) return true;
+
+            // «sí, confirmo» / «dale, aplícalo»: frases muy cortas con una
+            // palabra fuerte dentro. Nunca se aplica a frases largas.
+            var partes = limpio.split(' ');
+            if (partes.length > 3) return false;
+            for (var i = 0; i < partes.length; i++) {
+                if (PALABRAS_CONFIRMACION.indexOf(partes[i]) !== -1) return true;
+            }
+            return false;
+        }
 
         function abrir() {
             panel.hidden = false;
@@ -1508,7 +1549,7 @@
             if (typeof formulario.requestSubmit === 'function') {
                 formulario.requestSubmit();
             } else {
-                enviar(entrada.value, null, null);
+                procesarEnvio();
             }
         });
 
@@ -1577,13 +1618,15 @@
             entrada.placeholder = valor ? 'Pensando…' : PLACEHOLDER;
         }
 
-        function enviar(texto, accion, botonAprobar) {
+        function enviar(texto, accion, botonAprobar, eco) {
             if (ocupado) return;
 
             var mensaje = (texto || '').trim();
             if (!mensaje) return;
 
-            if (!accion) {
+            // `eco` = confirmación escrita a mano: se muestra la burbuja del
+            // usuario aunque la petición lleve la acción aprobada.
+            if (!accion || eco) {
                 burbuja('user', mensaje);
                 entrada.value = '';
                 ajustarAltoEntrada();
@@ -1629,10 +1672,15 @@
                     }
 
                     if (datos.requiereConfirmacion && datos.accion) {
+                        // Se guarda para que el siguiente «sí» ejecute ESTA
+                        // acción, sin volver a preguntarle al modelo.
+                        accionPendiente = datos.accion;
                         tarjetaAprobacion(datos.accion);
                     }
 
                     if (datos.ejecutada) {
+                        accionPendiente = null;
+                        marcarTarjetasAplicadas();
                         burbuja('bot', 'Cambio aplicado. Usa «Refrescar» arriba para verlo en el panel.');
                     }
                 })
@@ -1649,9 +1697,37 @@
                 });
         }
 
+        /* Tras ejecutar, las tarjetas pendientes ya no sirven: se apagan para
+           que no se pueda volver a aplicar el mismo cambio por accidente. */
+        function marcarTarjetasAplicadas() {
+            var botones = cuerpo.querySelectorAll('.ad-ia-approve');
+            for (var i = 0; i < botones.length; i++) {
+                botones[i].disabled = true;
+                botones[i].textContent = 'Aplicado ✓';
+            }
+        }
+
+        /* Un único punto de entrada para el formulario y para el Enter. */
+        function procesarEnvio() {
+            if (ocupado) return;
+
+            var texto = entrada.value;
+
+            // ANTI-AMNESIA: si hay una propuesta pendiente y el administrador
+            // escribe una confirmación, se ejecuta ESA acción tal cual. No se
+            // consulta al modelo, así no puede perder el contexto del producto
+            // ni entrar en el bucle de «¿de qué producto me hablas?».
+            if (accionPendiente && esConfirmacion(texto)) {
+                enviar(texto, accionPendiente, null, true);
+                return;
+            }
+
+            enviar(texto, null, null);
+        }
+
         formulario.addEventListener('submit', function (evento) {
             evento.preventDefault();
-            enviar(entrada.value, null, null);
+            procesarEnvio();
         });
     })();
     </script>

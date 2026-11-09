@@ -1,6 +1,7 @@
 package com.flowcolombia.flowcolombia.service;
 
 import com.flowcolombia.flowcolombia.Producto;
+import com.flowcolombia.flowcolombia.ProductoImagen;
 import com.flowcolombia.flowcolombia.ProductoImagenRepository;
 import com.flowcolombia.flowcolombia.ProductoRepository;
 import com.flowcolombia.flowcolombia.VarianteProducto;
@@ -19,7 +20,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -273,6 +276,91 @@ class ProductoServiceVariantesTest {
         assertTrue(ResenaService.class.getMethod("eliminarPorProducto", Long.class)
                         .isAnnotationPresent(Transactional.class),
                 "ResenaService.eliminarPorProducto usa una consulta derivada y sin transacción falla");
+    }
+
+    // ============================================================
+    // GALERÍA POR VARIANTE: imágenes con color
+    // ============================================================
+
+    @Test
+    @DisplayName("Guarda las imágenes con su color y deja null cuando el color está vacío")
+    void guardaImagenesConColor() {
+        Producto nuevo = new Producto();
+        nuevo.setNombre("Tenis Diesel");
+        nuevo.setSku("TENIS");
+        nuevo.setPrecio(100000d);
+        nuevo.setSlug("tenis-diesel");
+
+        servicio.guardarProductoConVariantes(
+                nuevo,
+                List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of(), List.of(), List.of(), List.of(),
+                List.of(
+                        new ProductoService.ImagenFormulario("https://cdn/negra.jpg", "Negro"),
+                        new ProductoService.ImagenFormulario("https://cdn/general.jpg", "   "),
+                        new ProductoService.ImagenFormulario("https://cdn/compuesta.jpg", "Blanco / beige"),
+                        new ProductoService.ImagenFormulario("   ", "Rojo")   // fila vacía: se ignora
+                ));
+
+        List<ProductoImagen> imagenes = nuevo.getImagenes();
+        assertEquals(3, imagenes.size(), "la fila sin URL no debe crear imagen");
+        assertEquals("https://cdn/negra.jpg", imagenes.get(0).getUrl());
+        assertEquals("Negro", imagenes.get(0).getColor());
+        assertEquals(0, imagenes.get(0).getOrden());
+
+        assertEquals("https://cdn/general.jpg", imagenes.get(1).getUrl());
+        assertNull(imagenes.get(1).getColor(), "un color vacío se guarda como null (galería general)");
+        assertEquals(1, imagenes.get(1).getOrden());
+
+        assertEquals("https://cdn/compuesta.jpg", imagenes.get(2).getUrl());
+        assertEquals("Blanco/beige", imagenes.get(2).getColor(), "los espacios alrededor de la barra se limpian");
+    }
+
+    @Test
+    @DisplayName("Al cambiar el color de una imagen existente se reemplaza, no se duplica")
+    void cambiaElColorDeUnaImagen() {
+        producto.addImagen("https://cdn/negra.jpg", "Negro", 0);
+
+        servicio.guardarProductoConVariantes(
+                producto,
+                List.of(SKU_EXISTENTE), List.of("Negro"), List.of("M"),
+                List.of(89900d), List.of(45000d), List.of(5),
+                List.of(0.5d), List.of(true), List.of(VARIANTE_ID),
+                List.of(new ProductoService.ImagenFormulario("https://cdn/negra.jpg", "Negro/azabache")));
+
+        assertEquals(1, producto.getImagenes().size(), "misma URL: una sola fila");
+        assertEquals("Negro/azabache", producto.getImagenes().get(0).getColor());
+    }
+
+    @Test
+    @DisplayName("Sin lista de imágenes se conservan los colores que ya tenían las URLs")
+    void sinListaConservaLosColores() {
+        producto.addImagen("https://cdn/negra.jpg", "Negro", 0);
+        producto.addImagen("https://cdn/general.jpg", null, 1);
+        // Los campos legacy son los que usa el camino antiguo.
+        producto.setImagen1("https://cdn/negra.jpg");
+        producto.setImagen2("https://cdn/general.jpg");
+
+        servicio.guardarProductoConVariantes(
+                producto,
+                List.of(SKU_EXISTENTE), List.of("Negro"), List.of("M"),
+                List.of(89900d), List.of(45000d), List.of(5),
+                List.of(0.5d), List.of(true), List.of(VARIANTE_ID));
+
+        assertEquals(2, producto.getImagenes().size());
+        assertEquals("Negro", producto.getImagenes().get(0).getColor(), "el color no se debe perder al guardar stock");
+        assertNull(producto.getImagenes().get(1).getColor());
+    }
+
+    @Test
+    @DisplayName("El formulario del panel envía URL y color por fila")
+    void elFormularioEnviaUrlYColor() throws Exception {
+        String html = leerPlantilla("admin-form.html");
+
+        assertTrue(html.contains("name=\"imagenUrl\""), "falta el input de URL por fila");
+        assertTrue(html.contains("name=\"imagenColor\""), "falta el input de color por fila");
+        assertTrue(html.contains("id=\"imagenesLista\""), "falta el contenedor del editor de imágenes");
+        assertFalse(html.contains("name=\"imagenesUrls\""), "el textarea viejo ya no debe estar en el formulario");
     }
 
     // ============================================================
