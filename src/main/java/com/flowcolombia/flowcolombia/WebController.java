@@ -177,6 +177,11 @@ public class WebController {
             model.addAttribute("imagenesLegacy", vista.imagenesLegacy());
             model.addAttribute("imagenPrincipal", vista.imagenPrincipal());
 
+            // CRO: calzado (guía de tallas + confirmación) vs. resto
+            // (beneficios + sello de garantía). Se decide en el DTO para no
+            // meter lógica de negocio en la plantilla.
+            model.addAttribute("esCalzado", vista.esCalzado());
+
             // ============================================================
             // SEO: URL canónica, meta descripción y datos estructurados.
             // Todo se calcula con lo que ya está en memoria (los DTO de la

@@ -12,7 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,14 +72,119 @@ public class ProductoService {
      * plantilla nunca toca una colección Lazy ni serializa entidades con
      * relaciones bidireccionales (Producto -> VarianteProducto -> Producto),
      * que era lo que rompía el JavaScript con Thymeleaf.
+     *
+     * @param esCalzado decide qué experiencia de ficha se pinta: guía de
+     *                  tallas + confirmación (calzado) o beneficios + sellos
+     *                  de garantía (el resto). Ver {@link #esCalzado}.
      */
     public record DetalleProductoVista(
             Producto producto,
             List<Map<String, Object>> variantes,
             List<Map<String, Object>> imagenes,
             List<String> imagenesLegacy,
-            String imagenPrincipal
+            String imagenPrincipal,
+            boolean esCalzado
     ) {
+    }
+
+    // ============================================================
+    // CRO: ¿es calzado?
+    // ============================================================
+
+    /**
+     * Palabras de categoría que identifican calzado. Se comparan sin tildes y
+     * en minúsculas, así «Calzado», «CALZADO DEPORTIVO» y «Calzadó» caen en el
+     * mismo sitio.
+     */
+    private static final List<String> PALABRAS_CALZADO = List.of(
+            "calzado", "zapato", "zapatilla", "tenis", "sneaker",
+            "bota", "sandalia", "mocasin", "chancla", "alpargata");
+
+    /** Primera talla de dos cifras del texto ({@code "40"}, {@code "38.5"} → 38). */
+    private static final Pattern TALLA_NUMERICA = Pattern.compile("(\\d{2})");
+
+    /** Rango de numeración de calzado: infantil (15-33) y adulto (34-48). */
+    private static final int TALLA_MIN = 15;
+    private static final int TALLA_MAX = 48;
+
+    /**
+     * ¿La ficha debe usar la experiencia de calzado?
+     *
+     * <p>Se decide sin tocar la base de datos ni añadir campos: con lo que ya
+     * viene en la vista.</p>
+     *
+     * <ol>
+     *   <li><strong>Debe tener tallas.</strong> Sin tallas no hay guía que
+     *       consultar ni confirmación que firmar; si no, el botón de compra
+     *       quedaría bloqueado sin motivo.</li>
+     *   <li><strong>Categoría de calzado</strong> («Calzado», «Zapatos»,
+     *       «Tenis», «Botas»…).</li>
+     *   <li>O, como respaldo, <strong>tallas numéricas de calzado</strong>
+     *       (15-48): un producto con tallas «38, 39, 40» es calzado aunque su
+     *       categoría esté mal escrita. La ropa con S/M/L o con tallas 2, 4, 6
+     *       no entra aquí.</li>
+     * </ol>
+     *
+     * @param categoria categoría del producto (puede ser null)
+     * @param variantes DTO planos de variantes de la vista
+     * @return {@code true} si la ficha debe mostrar la guía de tallas
+     */
+    public static boolean esCalzado(String categoria, List<Map<String, Object>> variantes) {
+        boolean tieneTallas = false;
+        boolean tallaDeCalzado = false;
+
+        if (variantes != null) {
+            for (Map<String, Object> variante : variantes) {
+                if (variante == null) {
+                    continue;
+                }
+                Object talla = variante.get("talla");
+                if (talla == null || String.valueOf(talla).isBlank()) {
+                    continue;
+                }
+                tieneTallas = true;
+                if (numeroDeCalzado(String.valueOf(talla)) != null) {
+                    tallaDeCalzado = true;
+                }
+            }
+        }
+
+        if (!tieneTallas) {
+            return false;
+        }
+        return esCategoriaDeCalzado(categoria) || tallaDeCalzado;
+    }
+
+    /** ¿La categoría habla de calzado? (sin tildes, minúsculas) */
+    static boolean esCategoriaDeCalzado(String categoria) {
+        if (categoria == null || categoria.isBlank()) {
+            return false;
+        }
+        String limpia = Normalizer.normalize(categoria, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT);
+        for (String palabra : PALABRAS_CALZADO) {
+            if (limpia.contains(palabra)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Número de talla de calzado contenido en el texto, o {@code null}.
+     * «40», «40.5» y «Talla 40» devuelven 40; «M» o «2» devuelven null.
+     */
+    static Integer numeroDeCalzado(String talla) {
+        if (talla == null) {
+            return null;
+        }
+        Matcher matcher = TALLA_NUMERICA.matcher(talla);
+        if (!matcher.find()) {
+            return null;
+        }
+        int numero = Integer.parseInt(matcher.group(1));
+        return (numero >= TALLA_MIN && numero <= TALLA_MAX) ? numero : null;
     }
 
     /**
@@ -238,7 +346,15 @@ public class ProductoService {
             imagenPrincipal = IMAGEN_FALLBACK;
         }
 
-        return new DetalleProductoVista(producto, variantesDTO, imagenesDTO, imagenesLegacy, imagenPrincipal);
+        // ------------------------------------------------------------
+        // CRO: ¿esta ficha se pinta como calzado?
+        // Se calcula aquí, con los DTO ya armados, para que la plantilla
+        // reciba un booleano y no tenga que razonar sobre categorías.
+        // ------------------------------------------------------------
+        boolean calzado = esCalzado(producto.getCategoria(), variantesDTO);
+
+        return new DetalleProductoVista(producto, variantesDTO, imagenesDTO, imagenesLegacy,
+                imagenPrincipal, calzado);
     }
 
     public Producto obtenerPorSku(String sku) {
