@@ -134,6 +134,66 @@
     }
 
     /* ------------------------------------------------------------
+       Google Analytics 4 (opcional)
+       ------------------------------------------------------------
+       Misma filosofía que el píxel de Meta: la analítica jamás puede
+       romper la tienda. Si GA4 no cargó —bloqueador de anuncios, CSP,
+       red o consentimiento— `window.gtag` no existe y el evento
+       simplemente no se envía.
+
+       Por contrato todo va dentro de try/catch: un fallo al medir no
+       puede tumbar un "añadir al carrito".
+       ------------------------------------------------------------ */
+    /**
+     * Envía un evento a GA4 si la librería está disponible.
+     *
+     * @param {string} eventName nombre del evento (view_item, add_to_cart…)
+     * @param {object} params    parámetros del evento, en el esquema de GA4
+     * @returns {boolean} true si el evento se pudo enviar
+     */
+    function trackGA4Event(eventName, params) {
+        try {
+            if (!eventName) return false;
+            if (typeof window.gtag !== 'function') return false;
+            window.gtag('event', String(eventName), params || {});
+            return true;
+        } catch (e) {
+            console.warn('GA4: no se pudo registrar ' + eventName, e);
+            return false;
+        }
+    }
+
+    /**
+     * Convierte una línea del carrito al formato `items[]` de GA4.
+     *
+     * `item_id` usa el SKU (es el dato que cruza con el catálogo de
+     * Merchant Center) y cae al productoId y al nombre si faltara, para
+     * que el evento nunca viaje sin identificador.
+     */
+    function ga4Item(item) {
+        item = normalize(item);
+
+        var id = item.sku;
+        if (!id) {
+            id = (item.productoId !== null && item.productoId !== undefined)
+                ? String(item.productoId)
+                : item.nombre;
+        }
+
+        var datos = {
+            item_id: id,
+            item_name: item.nombre,
+            price: item.precio,
+            quantity: item.cantidad
+        };
+
+        var variante = [item.color, item.talla].filter(Boolean).join(' · ');
+        if (variante) datos.item_variant = variante;
+
+        return datos;
+    }
+
+    /* ------------------------------------------------------------
        Operaciones
        ------------------------------------------------------------ */
     /* Ventana anti-doble-disparo. El mismo artículo dos veces en menos de
@@ -188,6 +248,15 @@
             value: (Number(nuevo.precio) || 0) * (Number(nuevo.cantidad) || 1),
             currency: 'COP',
             num_items: Number(nuevo.cantidad) || 1
+        });
+
+        // GA4: add_to_cart. Va en su propia llamada (y con sus propios
+        // try/catch) a propósito: si Meta falla, GA4 sigue midiendo; y si
+        // GA4 no cargó, el píxel ya registró el evento.
+        trackGA4Event('add_to_cart', {
+            currency: 'COP',
+            value: (Number(nuevo.precio) || 0) * (Number(nuevo.cantidad) || 1),
+            items: [ga4Item(nuevo)]
         });
 
         if (options.toast !== false) {
@@ -657,7 +726,9 @@
         closeDrawer: closeDrawer,
         goToCart: goToCart,
         toast: toast,
-        trackMeta: trackMeta
+        trackMeta: trackMeta,
+        trackGA4Event: trackGA4Event,
+        ga4Item: ga4Item
     };
 
     if (document.readyState === 'loading') {

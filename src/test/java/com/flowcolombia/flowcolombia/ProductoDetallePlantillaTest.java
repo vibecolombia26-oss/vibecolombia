@@ -129,6 +129,23 @@ class ProductoDetallePlantillaTest {
         assertTrue(html.contains("REQUIERE_CONFIRMACION_TALLA = false"),
                 "esta ficha no debe pedir confirmación de talla");
 
+        // La capa de experiencia (barra de progreso + View Transitions) tiene
+        // que viajar en todas las páginas públicas.
+        assertTrue(html.contains("/js/flow-ui.js?v=1"), "falta flow-ui.js en la ficha");
+        assertTrue(html.contains("/js/flow-assistant.js?v=5"), "falta el asistente (esfera de Tina)");
+
+        // Google Analytics 4: script global (public-meta) + evento de ficha.
+        assertTrue(html.contains("googletagmanager.com/gtag/js?id=G-5PT3YEX4G7"),
+                "falta el script global de GA4 en la ficha");
+        assertTrue(html.contains("trackGA4Event('view_item'"),
+                "la ficha de producto no dispara view_item");
+        assertTrue(html.contains("/js/flow-cart.js?v=4"),
+                "la ficha carga una versión vieja de flow-cart.js (sin GA4)");
+
+        // El píxel de Meta sigue vivo: GA4 se suma, no reemplaza.
+        assertTrue(html.contains("fbq('init'"), "desapareció el píxel de Meta");
+        assertTrue(html.contains("trackMeta('ViewContent'"), "desapareció el ViewContent de Meta");
+
         assertFalse(html.contains("Encuentra tu talla perfecta"));
         assertFalse(html.contains("id=\"confirmacionTalla\""));
     }

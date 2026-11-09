@@ -173,16 +173,34 @@ public class SecurityConfig {
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31_536_000))
                         // CSP: las plantillas usan estilos y manejadores inline,
-                        // y el Píxel de Meta necesita cargar su script desde
+                        // el Píxel de Meta necesita cargar su script desde
                         // connect.facebook.net y enviar los eventos a
-                        // facebook.com. Sin estas dos excepciones el píxel
-                        // queda bloqueado en silencio (solo se ve en consola).
+                        // facebook.com, y Google Analytics 4 carga gtag.js
+                        // desde googletagmanager.com y manda los eventos a
+                        // google-analytics.com. Sin estas excepciones el píxel
+                        // y/o GA4 quedan bloqueados en silencio (solo se ve en
+                        // la consola del navegador).
+                        //
+                        // Los comodines *.google-analytics.com y
+                        // *.analytics.google.com están porque GA4 usa
+                        // subdominios regionales (region1.google-analytics.com)
+                        // para /g/collect: con solo el dominio base, las
+                        // visitas de algunas regiones no se registran.
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "default-src 'self'; "
                                         + "img-src 'self' data: https:; "
                                         + "style-src 'self' 'unsafe-inline'; "
-                                        + "script-src 'self' 'unsafe-inline' https://connect.facebook.net; "
-                                        + "connect-src 'self' https://www.facebook.com https://connect.facebook.net; "
+                                        + "script-src 'self' 'unsafe-inline' "
+                                        + "  https://connect.facebook.net "
+                                        + "  https://www.googletagmanager.com; "
+                                        + "connect-src 'self' "
+                                        + "  https://www.facebook.com "
+                                        + "  https://connect.facebook.net "
+                                        + "  https://www.google-analytics.com "
+                                        + "  https://*.google-analytics.com "
+                                        + "  https://analytics.google.com "
+                                        + "  https://*.analytics.google.com "
+                                        + "  https://stats.g.doubleclick.net; "
                                         + "font-src 'self' data:; "
                                         + "object-src 'none'; "
                                         + "base-uri 'self'; "

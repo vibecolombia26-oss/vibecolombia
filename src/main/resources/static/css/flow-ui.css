@@ -754,6 +754,18 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
 /* ============================================================
    ASISTENTE DE COMPRAS (IA)
    ============================================================ */
+/* ============================================================
+   ESFERA DE TINA (asistente IA) · la luz es el botón
+   ------------------------------------------------------------
+   Cero imágenes: tres capas apiladas dentro del mismo <button>
+   que ya crea flow-assistant.js (su HTML no se toca).
+
+     1. ARO TRICOLOR   → el fondo del propio botón (conic-gradient)
+     2. HALO EXTERIOR  → ::before, radial-gradient + filter: blur()
+     3. ESFERA         → ::after, radial-gradient + luces interiores
+
+   El "F" y el punto de estado flotan por encima con z-index.
+   ============================================================ */
 .flow-ai-fab {
     position: fixed;
     right: 20px;
@@ -761,30 +773,86 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
     z-index: 960;
     width: 56px;
     height: 56px;
+    padding: 0;
+    border: 0;
     border-radius: 50%;
-    border: 1px solid rgba(96, 165, 250, 0.55);
-    background: linear-gradient(145deg, #2563eb 0%, #3b82f6 55%, #60a5fa 100%);
     color: #fff;
     cursor: pointer;
     display: grid;
     place-items: center;
     font: 800 1.3rem/1 var(--flow-font);
-    box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 0.95);
-    animation: flowAiPulse 3.4s ease-in-out infinite;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, bottom 0.25s ease;
+    /* 1. ARO TRICOLOR: la esfera se dibuja a inset:2px, así que del fondo
+       del botón solo asoma el filo de 2px. Acento de bandera donde toca:
+       un detalle fino, nunca un bloque de color. */
+    background: conic-gradient(from 205deg,
+            var(--flow-flag-yellow) 0deg,
+            var(--flow-accent) 150deg,
+            var(--flow-flag-red) 285deg,
+            var(--flow-flag-yellow) 360deg);
+    /* Contexto de apilado propio para que los pseudos no se escapen */
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.25s ease, bottom 0.25s ease;
+}
+
+/* 2. HALO: la luz que se escapa de la esfera. El blur real va aquí. */
+.flow-ai-fab::before {
+    content: "";
+    position: absolute;
+    inset: -17px;
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%,
+            rgba(96, 165, 250, 0.62) 0%,
+            rgba(99, 102, 241, 0.4) 34%,
+            rgba(139, 92, 246, 0.26) 56%,
+            rgba(139, 92, 246, 0) 72%);
+    filter: blur(9px);
+    animation: flowSphereHalo 5.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* 3. ESFERA: el núcleo de energía, con la luz entrando por arriba a la izquierda. */
+.flow-ai-fab::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    z-index: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 33% 27%,
+            #e0efff 0%,
+            #60a5fa 20%,
+            #3b82f6 42%,
+            #1d4ed8 70%,
+            #312e81 100%);
+    box-shadow:
+        inset 0 -9px 18px rgba(12, 8, 48, 0.6),
+        inset 0 7px 14px rgba(255, 255, 255, 0.32),
+        0 14px 30px -12px rgba(37, 99, 235, 0.95);
+    animation: flowSphereCore 5.6s ease-in-out infinite;
+    pointer-events: none;
+    transition: background 0.4s ease;
+}
+
+/* El "F" (primer span del botón) vive sobre la luz, no dentro de ella */
+.flow-ai-fab > span:first-child {
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 10px rgba(224, 239, 255, 0.95),
+                 0 0 24px rgba(96, 165, 250, 0.75);
 }
 
 .flow-ai-fab:hover { transform: translateY(-2px) scale(1.03); }
 
 /* La barra flotante del carrito ocupa la franja inferior: el botón del
-   asistente sube por encima con la altura real que inyecta flow-cart.js.
-   (En móvil el ajuste se refina más abajo, dentro del media query.) */
-body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h, 0px) + 18px); }
+   asistente sube por encima con la altura real que inyecta flow-cart.js. */
+body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h, 0px) + 14px); }
 
 .flow-ai-fab__dot {
     position: absolute;
     top: 5px;
     right: 5px;
+    z-index: 2;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -792,11 +860,65 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h, 0px) + 18px); }
     border: 2px solid #050914;
 }
 
-body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
+/* ---- Estado 1: chat abierto → la esfera se enciende en violeta ---- */
+.flow-ai-fab[aria-expanded="true"]::before {
+    animation-duration: 2.4s;
+    background: radial-gradient(circle at 50% 50%,
+            rgba(196, 181, 253, 0.62) 0%,
+            rgba(139, 92, 246, 0.46) 38%,
+            rgba(139, 92, 246, 0) 72%);
+}
 
-@keyframes flowAiPulse {
-    0%, 100% { box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 0.9), 0 0 0 0 rgba(37, 99, 235, 0.35); }
-    50% { box-shadow: 0 16px 34px -14px rgba(37, 99, 235, 1), 0 0 0 11px rgba(37, 99, 235, 0); }
+.flow-ai-fab[aria-expanded="true"]::after {
+    animation-duration: 2.4s;
+}
+
+/* ---- Estado 2: Tina escribe → pulso rápido y núcleo blanco-violeta ----
+   `:has()` permite reaccionar al DOM del chat SIN tocar su lógica: la
+   burbuja .flow-ai-typing la pinta flow-assistant.js y aquí solo se mira. */
+body:has(.flow-ai-typing) .flow-ai-fab { transform: scale(1.05); }
+
+body:has(.flow-ai-typing) .flow-ai-fab::before {
+    animation-duration: 0.9s;
+    inset: -22px;
+    background: radial-gradient(circle at 50% 50%,
+            rgba(233, 213, 255, 0.8) 0%,
+            rgba(167, 139, 250, 0.5) 40%,
+            rgba(139, 92, 246, 0) 74%);
+}
+
+body:has(.flow-ai-typing) .flow-ai-fab::after {
+    animation-duration: 0.9s;
+    background: radial-gradient(circle at 34% 28%,
+            #f5f3ff 0%,
+            #c4b5fd 20%,
+            #8b5cf6 48%,
+            #4c1d95 80%,
+            #2e1065 100%);
+}
+
+/* Respiración: escala y opacidad del halo suben y bajan a la vez. Es lo que
+   hace que la esfera parezca "viva" y no un adorno quieto. */
+@keyframes flowSphereHalo {
+    0%, 100% { transform: scale(0.9); opacity: 0.55; }
+    50%      { transform: scale(1.08); opacity: 0.95; }
+}
+
+/* Pulso del núcleo: la luz interior late desfasada del halo (mismo periodo,
+   distinta fase) para que el movimiento no se lea mecánico. */
+@keyframes flowSphereCore {
+    0%, 100% {
+        box-shadow:
+            inset 0 -9px 18px rgba(12, 8, 48, 0.6),
+            inset 0 7px 14px rgba(255, 255, 255, 0.3),
+            0 14px 30px -12px rgba(37, 99, 235, 0.9);
+    }
+    50% {
+        box-shadow:
+            inset 0 -9px 18px rgba(12, 8, 48, 0.5),
+            inset 0 8px 16px rgba(255, 255, 255, 0.46),
+            0 20px 42px -14px rgba(99, 102, 241, 1);
+    }
 }
 
 .flow-ai-panel {
@@ -1190,7 +1312,14 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .flow-ai-fab { animation: none; }
+    /* La esfera se queda quieta pero igual de brillante: quien tiene
+       vértigo no pierde el halo, solo el movimiento. */
+    .flow-ai-fab,
+    .flow-ai-fab::before,
+    .flow-ai-fab::after { animation: none; }
+    .flow-ai-fab::before { opacity: 0.9; transform: none; }
+    .flow-ai-fab:hover,
+    body:has(.flow-ai-typing) .flow-ai-fab { transform: none; }
     .flow-ai-panel { animation-duration: 0.001ms !important; }
 }
 
@@ -1460,4 +1589,52 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h) + 14px); }
     .flow-btn--primary::after { animation: none !important; }
     .flow-btn--primary:hover { transform: none; }
     .flow-ai-typing i { animation-duration: 2.4s; }
+}
+
+/* ============================================================
+   CAPA DE EXPERIENCIA · VIEW TRANSITIONS (sitio multipágina)
+   ------------------------------------------------------------
+   La tienda es multipágina (Thymeleaf), así que la transición
+   correcta es la "cross-document": el navegador toma una foto de
+   la página que se va, navega y funde esa foto con la nueva. Se
+   activa con esta única declaración; no hay que interceptar
+   clics ni reescribir la navegación (Chrome 126+, Safari 18.2+).
+
+   Donde no se soporte, el navegador descarta la regla sin error
+   y la navegación ocurre exactamente igual que antes: ese es el
+   respaldo, no hay nada que desactivar.
+   ============================================================ */
+@view-transition {
+    navigation: auto;
+}
+
+/* 220/260 ms: por debajo de 200 ms se percibe como un parpadeo y por
+   encima de 400 la web empieza a sentirse lenta. */
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: flowVtOut 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    ::view-transition-new(root) {
+        animation: flowVtIn 260ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+}
+
+@keyframes flowVtOut {
+    from { opacity: 1; transform: none; }
+    to   { opacity: 0; transform: scale(0.995); }
+}
+
+@keyframes flowVtIn {
+    from { opacity: 0; transform: scale(1.005); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* Respaldo para navegadores sin View Transitions: un fundido de salida de
+   180 ms que flow-ui.js aplica SOLO cuando document.startViewTransition no
+   existe (junto a la transición nativa se verían dos fundidos superpuestos).
+   Sin JavaScript, esta clase nunca aparece. */
+html.flow-leaving body {
+    opacity: 0.35;
+    transition: opacity 180ms ease-out;
 }

@@ -22,7 +22,7 @@
     <meta property="og:url" th:content="${urlCanonica}">
     <meta property="og:image" th:if="${imagenPrincipal != null}" th:content="${imagenPrincipal}">
 
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=7)}" href="/css/flow-ui.css">
     <style>
         :root {
             --pdp-max: 1180px;
@@ -1505,7 +1505,7 @@
     <button type="button" class="flow-lightbox__nav flow-lightbox__nav--next" id="lightboxNext" aria-label="Imagen siguiente">›</button>
 </div>
 
-<script th:src="@{/js/flow-cart.js(v=3)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=4)}" src="/js/flow-cart.js"></script>
 <script th:src="@{/js/flow-assistant.js(v=5)}" src="/js/flow-assistant.js"></script>
 <script th:inline="javascript">
     // ============================================================
@@ -2034,8 +2034,28 @@
                 currency: 'COP'
             });
         }
+
+        // ============================================================
+        // GA4: view_item
+        // Mismo producto y precio que el píxel, pero en el esquema de GA4.
+        // Se envía aunque el producto no tenga SKU (el id hace de item_id).
+        // trackGA4Event ya comprueba window.gtag y no lanza si no existe.
+        // ============================================================
+        FlowCart.trackGA4Event('view_item', {
+            currency: 'COP',
+            value: Number(precioPixel) || 0,
+            items: [{
+                item_id: String(skuPixel || productoId || ''),
+                item_name: /*[[${producto.nombre}]]*/ '',
+                item_category: /*[[${producto.categoria}]]*/ '',
+                price: Number(precioPixel) || 0,
+                quantity: 1
+            }]
+        });
     });
 </script>
 
+<!-- Capa de experiencia compartida: barra de progreso + View Transitions -->
+<script th:src="@{/js/flow-ui.js(v=1)}" src="/js/flow-ui.js"></script>
 </body>
 </html>

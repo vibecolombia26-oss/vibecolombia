@@ -11,7 +11,7 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
 
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=6)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=7)}" href="/css/flow-ui.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -649,7 +649,7 @@
 <!-- ==================== FOOTER COMPARTIDO ==================== -->
 <div th:replace="~{fragments/public-footer :: publicFooter}"></div>
 
-<script th:src="@{/js/flow-cart.js(v=3)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=4)}" src="/js/flow-cart.js"></script>
 <script>
     // ============================================================
     // DEPARTAMENTOS Y CIUDADES DE COLOMBIA
@@ -1025,6 +1025,15 @@
                 currency: 'COP',
                 num_items: items.reduce(function (acc, item) { return acc + (Number(item.cantidad) || 1); }, 0)
             });
+
+            // GA4: begin_checkout. Se mide en el mismo punto y con el mismo
+            // "una vez por visita", pero en su propia llamada: cada plataforma
+            // es independiente y ninguna puede tumbar a la otra.
+            FlowCart.trackGA4Event('begin_checkout', {
+                currency: 'COP',
+                value: FlowCart.subtotal(items),
+                items: items.map(FlowCart.ga4Item)
+            });
         }
 
         vistaCarrito.hidden = true;
@@ -1146,13 +1155,15 @@
     }
 
     /**
-     * Pinta la confirmación y dispara el Purchase del navegador.
+     * Pinta la confirmación y dispara los eventos de compra.
      *
      * @param codigo      código del pedido (lo devuelve el backend)
      * @param datosCompra contenido y valor capturados ANTES de vaciar el
      *                    carrito; se usan para el evento del píxel
+     * @param datosGA4    misma compra en el esquema de GA4 (items[] incluidos),
+     *                    también capturada antes de vaciar el carrito
      */
-    function mostrarConfirmacion(codigo, datosCompra) {
+    function mostrarConfirmacion(codigo, datosCompra, datosGA4) {
         vistaCarrito.hidden = true;
         vistaCheckout.hidden = true;
         vistaConfirmacion.hidden = false;
@@ -1164,6 +1175,18 @@
         // MISMO event_id. Meta los une y cuenta la venta UNA sola vez.
         // ============================================================
         FlowCart.trackMeta('Purchase', datosCompra || {}, codigo);
+
+        // ============================================================
+        // GA4: purchase
+        // transaction_id = código del pedido (FLOW-XXXX). GA4 deduplica por
+        // ese id exactamente igual que el píxel con su eventID, así que
+        // recargar la confirmación no infla las ventas.
+        // ============================================================
+        FlowCart.trackGA4Event('purchase', datosGA4 || {
+            transaction_id: codigo,
+            currency: 'COP',
+            value: Number(datosCompra && datosCompra.value) || 0
+        });
 
         // El pedido ya está en el backend: aquí (y solo aquí) se descarta el
         // borrador del checkout.
@@ -1264,8 +1287,17 @@
                         }, 0)
                     };
 
+                    // GA4 necesita además el transaction_id y los items[]
+                    // completos; se arma aquí, con el carrito todavía lleno.
+                    const datosGA4 = {
+                        transaction_id: data.codigo,
+                        currency: 'COP',
+                        value: FlowCart.subtotal(itemsComprados),
+                        items: itemsComprados.map(FlowCart.ga4Item)
+                    };
+
                     FlowCart.clear();
-                    mostrarConfirmacion(data.codigo, datosPixel);
+                    mostrarConfirmacion(data.codigo, datosPixel, datosGA4);
                 } else {
                     throw new Error('Respuesta inválida del servidor');
                 }
@@ -1401,5 +1433,7 @@
         }
     });
 </script>
+<!-- Capa de experiencia compartida: barra de progreso + View Transitions -->
+<script th:src="@{/js/flow-ui.js(v=1)}" src="/js/flow-ui.js"></script>
 </body>
 </html>

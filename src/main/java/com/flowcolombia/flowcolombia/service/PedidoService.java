@@ -3,6 +3,7 @@ package com.flowcolombia.flowcolombia.service;
 import com.flowcolombia.flowcolombia.Pedido;
 import com.flowcolombia.flowcolombia.PedidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,7 +32,19 @@ public class PedidoService {
         return pedidoRepository.save(pedido);
     }
 
+    /**
+     * Elimina un pedido.
+     *
+     * <p>Mismo motivo que en el resto de borrados: {@code deleteById} abre su
+     * propia transacción, pero cualquier lógica añadida alrededor (limpiar
+     * líneas, mover el stock de vuelta) necesita estar dentro de una, y es
+     * mejor tenerla declarada aquí que descubrirlo en producción.</p>
+     */
+    @Transactional
     public void eliminar(Long id) {
+        if (id == null) {
+            return;
+        }
         pedidoRepository.deleteById(id);
     }
 

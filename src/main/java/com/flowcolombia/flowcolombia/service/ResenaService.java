@@ -3,6 +3,7 @@ package com.flowcolombia.flowcolombia.service;
 import com.flowcolombia.flowcolombia.Resena;
 import com.flowcolombia.flowcolombia.ResenaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -54,11 +55,29 @@ public class ResenaService {
         return resenaRepository.save(resena);
     }
 
+    /**
+     * Borra una reseña.
+     *
+     * <p>Con {@code @Transactional} declarado: {@code deleteById} ya abre la
+     * suya, pero {@link #eliminarPorProducto(Long)} usa una consulta derivada
+     * ({@code deleteByProductoId}) que <strong>no</strong> la abre, y sin
+     * transacción activa Hibernate responde
+     * «No EntityManager with actual transaction available».</p>
+     */
+    @Transactional
     public void eliminar(Long id) {
+        if (id == null) {
+            return;
+        }
         resenaRepository.deleteById(id);
     }
 
+    /** Borra todas las reseñas de un producto (consulta derivada: exige transacción). */
+    @Transactional
     public void eliminarPorProducto(Long productoId) {
+        if (productoId == null) {
+            return;
+        }
         resenaRepository.deleteByProductoId(productoId);
     }
 }

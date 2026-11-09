@@ -375,9 +375,34 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
+    /**
+     * Elimina un producto junto con sus filas hijas (imágenes, variantes y
+     * reseñas).
+     *
+     * <p><strong>El {@code @Transactional} es obligatorio, no decorativo:</strong>
+     * los {@code deleteByProductoId} derivados de Spring Data no abren
+     * transacción propia. Sin una activa, Hibernate lanza
+     * {@code "No EntityManager with actual transaction available for current
+     * thread - cannot reliably process 'remove' call"} justo al intentar
+     * borrar las imágenes. Con la anotación, los tres borrados (y el
+     * {@code CascadeType.ALL} que arrastra las reseñas) ocurren en la misma
+     * transacción: o se va todo, o no se va nada.</p>
+     *
+     * @param id producto a eliminar; si es {@code null} no se hace nada
+     */
+    @Transactional
     public void eliminar(Long id) {
+        if (id == null) {
+            return;
+        }
+
+        // Hijos explícitos primero. Las colecciones de Producto ya son
+        // cascade = CascadeType.ALL, así que esto no es estrictamente
+        // necesario, pero deja la intención escrita y evita depender de que
+        // Hibernate inicialice las colecciones en mitad del remove.
         productoImagenRepository.deleteByProductoId(id);
         varianteProductoRepository.deleteByProductoId(id);
+
         productoRepository.deleteById(id);
     }
 
@@ -448,38 +473,29 @@ public class ProductoService {
         //    borrado de las filas antiguas y el alta de las nuevas sean atómicos.
         sincronizarImagenes(productoGuardado);
 
-        // 3. Validar longitud de listas
+        // 3. Variantes: se leen por índice, sin exigir que todas las listas
+        //    midan exactamente lo mismo. Antes cualquier descuadre (una fila
+        //    sin costo, por ejemplo) abortaba con «datos desalineados», un
+        //    mensaje que no le dice nada al administrador. Ahora cada fila se
+        //    valida por separado y el error nombra la variante y el campo.
         int size = (varianteSku != null) ? varianteSku.size() : 0;
 
-        if (varianteId != null && varianteId.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (varianteColor != null && varianteColor.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (varianteTalla != null && varianteTalla.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (variantePrecio != null && variantePrecio.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (varianteCosto != null && varianteCosto.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (varianteStock != null && varianteStock.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (variantePeso != null && variantePeso.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-        if (varianteActivo != null && varianteActivo.size() != size) {
-            throw new IllegalArgumentException("Los datos de variantes enviados por el formulario están incompletos o desalineados.");
-        }
-
-        // 4. Obtener mapa de variantes actuales
+        // 4. Variantes actuales del producto, indexadas por id y por SKU.
+        //    El índice por SKU es la red de seguridad del Bug 2: si una fila
+        //    llega sin id (el formulario no lo envió o se perdió de camino),
+        //    se reconoce la variante que YA existe en lugar de tratarla como
+        //    nueva y chocar contra su propio SKU («el SKU ya está en uso»).
         List<VarianteProducto> variantesActuales = new ArrayList<>(productoGuardado.getVariantes());
-        Map<Long, VarianteProducto> mapaPorId = variantesActuales.stream()
-                .collect(Collectors.toMap(VarianteProducto::getId, v -> v, (a, b) -> a));
+        Map<Long, VarianteProducto> mapaPorId = new HashMap<>();
+        Map<String, VarianteProducto> mapaPorSku = new HashMap<>();
+        for (VarianteProducto variante : variantesActuales) {
+            if (variante.getId() != null) {
+                mapaPorId.putIfAbsent(variante.getId(), variante);
+            }
+            if (variante.getSku() != null && !variante.getSku().isBlank()) {
+                mapaPorSku.putIfAbsent(normalizarSku(variante.getSku()), variante);
+            }
+        }
 
         // 5. Procesar filas (validación de SKU duplicado en formulario)
         Set<String> skusEnFormulario = new HashSet<>();
@@ -490,7 +506,7 @@ public class ProductoService {
             String sku = (i < varianteSku.size()) ? varianteSku.get(i) : null;
             if (sku == null || sku.trim().isEmpty()) continue;
 
-            String skuNormalizado = sku.trim().toUpperCase();
+            String skuNormalizado = normalizarSku(sku);
             if (skusEnFormulario.contains(skuNormalizado)) {
                 throw new IllegalArgumentException("SKU duplicado en el formulario: " + sku);
             }
@@ -523,13 +539,25 @@ public class ProductoService {
                     ? varianteActivo.get(i)
                     : true;
 
-            // CASO 1: VARIANTE EXISTENTE (con ID)
-            if (id != null) {
-                VarianteProducto varianteExistente = mapaPorId.get(id);
-                if (varianteExistente == null) {
-                    throw new IllegalArgumentException("La variante con ID " + id + " no pertenece a este producto.");
-                }
+            // ------------------------------------------------------------------
+            // ¿Esta fila actualiza una variante que ya existe o crea una nueva?
+            //   1. por id, si el formulario lo envió y pertenece a este producto;
+            //   2. si no, por SKU dentro de ESTE producto (recupera las filas
+            //      que llegaron sin id y evita el falso «SKU ya en uso»).
+            // ------------------------------------------------------------------
+            VarianteProducto varianteExistente = null;
 
+            if (id != null) {
+                varianteExistente = mapaPorId.get(id);
+                if (varianteExistente == null) {
+                    throw new IllegalArgumentException(
+                            "La variante con ID " + id + " no pertenece a este producto.");
+                }
+            } else {
+                varianteExistente = mapaPorSku.get(skuNormalizado);
+            }
+
+            if (varianteExistente != null) {
                 varianteExistente.setSku(sku.trim());
                 varianteExistente.setColor(color.trim());
                 varianteExistente.setTalla(talla.trim());
@@ -540,10 +568,13 @@ public class ProductoService {
                 varianteExistente.setActivo(activo);
 
                 validarVariante(varianteExistente);
-                idsMantenidos.add(id);
-            }
-            // CASO 2: VARIANTE NUEVA (sin ID)
-            else {
+
+                // Se marca como mantenida aunque haya llegado sin id: así el
+                // paso 6 no la borra por «no estar en el formulario».
+                if (varianteExistente.getId() != null) {
+                    idsMantenidos.add(varianteExistente.getId());
+                }
+            } else {
                 VarianteProducto nueva = new VarianteProducto();
                 nueva.setProducto(productoGuardado);
                 nueva.setSku(sku.trim());
@@ -650,7 +681,40 @@ public class ProductoService {
     // ============================================================
     // VALIDACIÓN DE VARIANTE
     // ============================================================
-    private void validarVariante(VarianteProducto variante) {        List<String> errores = new ArrayList<>();
+
+    /** SKU comparable: mayúsculas y sin espacios sobrantes. */
+    private static String normalizarSku(String sku) {
+        return sku == null ? "" : sku.trim().toUpperCase(Locale.ROOT);
+    }
+
+    /** Identificación legible de la variante, para que el error apunte a la fila. */
+    private static String identificarVariante(VarianteProducto variante) {
+        StringBuilder texto = new StringBuilder(variante.getSku() == null ? "(sin SKU)" : variante.getSku());
+        if (variante.getColor() != null && !variante.getColor().isBlank()) {
+            texto.append(" · ").append(variante.getColor());
+        }
+        if (variante.getTalla() != null && !variante.getTalla().isBlank()) {
+            texto.append(" · talla ").append(variante.getTalla());
+        }
+        return texto.toString();
+    }
+
+    /**
+     * Valida una variante antes de guardarla.
+     *
+     * <p><strong>Unicidad del SKU:</strong> si la variante ya existe (tiene id)
+     * se compara con {@code existsBySkuAndIdNot}, que excluye la propia fila.
+     * Ese detalle es el que evitaba el falso positivo al editar: con
+     * {@code existsBySku} la variante se encontraba a sí misma y el guardado
+     * se caía con «el SKU ya está en uso» sin que nadie lo hubiera duplicado.</p>
+     *
+     * <p>Para una variante nueva, {@code existsBySku} sí es lo correcto: el
+     * llamador ya la descartó como existente por id <em>y</em> por SKU dentro
+     * del producto, así que si el SKU aparece es porque pertenece a otro
+     * producto.</p>
+     */
+    private void validarVariante(VarianteProducto variante) {
+        List<String> errores = new ArrayList<>();
 
         if (variante.getSku() == null || variante.getSku().trim().isEmpty()) {
             errores.add("El SKU de la variante es obligatorio.");
@@ -658,14 +722,12 @@ public class ProductoService {
             String sku = variante.getSku().trim();
             variante.setSku(sku);
 
-            if (variante.getId() == null) {
-                if (varianteProductoRepository.existsBySku(sku)) {
-                    errores.add("El SKU '" + sku + "' ya está en uso por otra variante.");
-                }
-            } else {
-                if (varianteProductoRepository.existsBySkuAndIdNot(sku, variante.getId())) {
-                    errores.add("El SKU '" + sku + "' ya está en uso por otra variante.");
-                }
+            boolean skuOcupado = (variante.getId() == null)
+                    ? varianteProductoRepository.existsBySku(sku)
+                    : varianteProductoRepository.existsBySkuAndIdNot(sku, variante.getId());
+
+            if (skuOcupado) {
+                errores.add("El SKU '" + sku + "' ya está en uso por otra variante.");
             }
         }
 
@@ -679,7 +741,7 @@ public class ProductoService {
 
         // Sin costo de proveedor no hay margen ni ganancia real: es obligatorio.
         if (variante.getCosto() == null || variante.getCosto() <= 0) {
-            errores.add("El costo del proveedor es obligatorio y debe ser mayor a 0.");
+            errores.add("Falta el costo del proveedor (debe ser mayor a 0).");
         } else if (variante.getPrecio() != null && variante.getCosto() >= variante.getPrecio()) {
             errores.add("El costo del proveedor (" + Math.round(variante.getCosto())
                     + ") no puede ser igual o mayor al precio de venta ("
@@ -691,7 +753,8 @@ public class ProductoService {
         }
 
         if (!errores.isEmpty()) {
-            throw new IllegalArgumentException("Errores en la variante " + variante.getSku() + ": " + String.join("; ", errores));
+            throw new IllegalArgumentException("Errores en la variante " + identificarVariante(variante)
+                    + ": " + String.join("; ", errores));
         }
     }
 

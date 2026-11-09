@@ -64,6 +64,37 @@
              alt=""
              src="https://www.facebook.com/tr?id=28602483122785418&amp;ev=PageView&amp;noscript=1" />
     </noscript>
+
+    <!-- ============================================================
+         GOOGLE ANALYTICS 4 (gtag.js)
+         ------------------------------------------------------------
+         Convive con el píxel de Meta de arriba: son dos plataformas
+         independientes y cada una mide lo suyo. Este bloque solo
+         carga la librería y arranca la sesión; los eventos de
+         e-commerce (view_item, add_to_cart, begin_checkout y
+         purchase) se envían desde flow-cart.js y las plantillas a
+         través de FlowCart.trackGA4Event().
+
+         El ID de medición es público (viaja en el HTML), igual que
+         el del píxel. No confundirlo con una clave de API: aquí no
+         hay ningún secreto.
+
+         CSP: SecurityConfig permite googletagmanager.com en
+         script-src y google-analytics.com en connect-src. Sin eso el
+         navegador bloquearía la carga en silencio (solo se ve en la
+         consola).
+         ============================================================ -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5PT3YEX4G7"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() { window.dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+        // send_page_view activo (por defecto): GA4 mide la visita y nosotros
+        // añadimos encima los eventos de e-commerce.
+        gtag('config', 'G-5PT3YEX4G7');
+    </script>
 </th:block>
 
 </body>

@@ -650,8 +650,13 @@
             return;
         }
 
+        // Duplicados dentro del formulario. Se salta el propio campo de alta:
+        // #nuevoSku también lleva la clase .sku-input, así que sin este salto
+        // el input se comparaba CONSIGO MISMO y el botón + respondía siempre
+        // «El SKU ya existe», hiciera lo que hiciera el administrador.
         const skus = document.querySelectorAll('.sku-input');
         for (let input of skus) {
+            if (input.id === 'nuevoSku') continue;
             if (input.value.trim().toUpperCase() === sku.toUpperCase()) {
                 mostrarToast('El SKU ya existe. Debe ser único.', 'error');
                 return;
