@@ -134,13 +134,16 @@ public class AdminAsistenteService {
             + "específico en lugar de elegir uno tú. No inventes productos, SKU, precios ni cantidades de variantes: si "
             + "la búsqueda no devuelve nada, dilo. Nunca propongas precios negativos o cero, y el costo debe ser menor "
             + "que el precio. Propón una sola acción por mensaje. Responde en español.\n\n"
-            + "Importación de Dropi: si el administrador dice 'importa este inventario', 'actualiza con este texto de Dropi' "
-            + "o pega un texto con Color, Tallas, Stock, Costo y Precio, primero identifica el producto con " + TOOL_BUSCAR
-            + " y pasa su id a " + TOOL_DROPI + ". Si hay varios productos parecidos pide el nombre completo; si no hay "
-            + "ninguno dilo y no inventes. El texto NO lo interpretas tú: no lo transcribas, no lo resumas, no calcules "
-            + "variantes ni precios y no lo repitas en tu respuesta, porque el sistema ya lo leyó. Si el mensaje del "
-            + "administrador acaba de traer ese texto pegado, llama a la herramienta con textoDropi vacío. "
-            + "La herramienta solo añade variantes a productos existentes: nunca crees productos nuevos.\n\n"
+            + "Importación de Dropi: cuando el administrador pegue un texto de Dropi, NO intentes procesarlo tú. "
+            + "Solo pásale el texto completo a " + TOOL_DROPI + ". El backend (Java) se encarga de extraer colores "
+            + "compuestos («Blanco/beige» es UN color, no dos), tallas, existencias, costos y precios sugeridos con "
+            + "exactitud, e ignora los SKU/ID de Dropi porque el SKU propio se genera a partir de color y talla. "
+            + "Tú no cuentes filas, no calcules precios, no separes colores y no resumas el inventario: eso ya está "
+            + "hecho. Antes de importar identifica el producto con " + TOOL_BUSCAR + " y pasa su id; si hay varios "
+            + "productos parecidos pide el nombre completo y si no hay ninguno dilo, pero no inventes. Si el mensaje "
+            + "del administrador acaba de traer ese texto pegado, llama a la herramienta con textoDropi vacío. "
+            + "La herramienta solo añade o actualiza variantes de productos existentes: nunca crea productos nuevos. "
+            + "El resumen que leas (variantes, colores y cambios) es el que devuelve el backend: úsalo tal cual.\n\n"
             + "Sobrescrituras (overrides) en la importación: si al pedir la importación el administrador te da un "
             + "precio o un costo concreto para aplicar a TODO (por ejemplo 'vende a 99.999', 'precio 99.999', "
             + "'ponle costo 60.000', 'costo 60.000 y precio 99.999'), DEBES extraer esos valores y pasarlos en "
@@ -991,34 +994,52 @@ public class AdminAsistenteService {
 
         // Una consulta trae todas las variantes actuales del producto.
         List<VarianteProducto> actuales = varianteProductoRepository.findByProductoId(producto.getId());
-        Map<String, VarianteProducto> porClave = new LinkedHashMap<>();
         Set<String> skusOcupados = new LinkedHashSet<>();
         for (VarianteProducto variante : actuales) {
-            porClave.putIfAbsent(DropiParserUtil.clave(variante.getColor(), variante.getTalla()), variante);
             if (variante.getSku() != null && !variante.getSku().isBlank()) {
                 skusOcupados.add(variante.getSku());
             }
         }
 
+        // Emparejamiento inteligente: primero Color+Talla exactos y, si no
+        // aparece, la variante que ya existe con esa talla y el color
+        // compatible («Blanco» ← «Blanco/beige»). Así el color se RENOMBRA en
+        // vez de crear un duplicado.
+        List<Asignacion> plan = planificar(actuales, detectadas);
+
         int actualizadas = 0;
         int sinCambios = 0;
+        int recoloreadas = 0;
+        List<String> cambiosColor = new ArrayList<>();
         List<String> avisos = new ArrayList<>();
         List<VarianteImportada> porCrear = new ArrayList<>();
         List<String> candidatosSku = new ArrayList<>();
 
-        for (VarianteImportada detectada : detectadas) {
-            VarianteProducto existente = porClave.get(detectada.clave());
+        for (Asignacion asignacion : plan) {
+            VarianteImportada detectada = asignacion.importada();
+            VarianteProducto existente = asignacion.existente();
+
             if (existente == null) {
                 porCrear.add(detectada);
                 candidatosSku.add(skuBase(producto, detectada));
                 continue;
             }
+
             // Las variantes ya cargadas están gestionadas por la transacción:
             // el UPDATE sale solo al confirmar (dirty checking), sin save().
-            if (aplicar(existente, detectada, avisos)) {
+            // El color anterior se guarda ANTES de aplicar, porque aplicar()
+            // ya lo sobrescribe con el del texto.
+            String colorAnterior = existente.getColor();
+            boolean cambio = aplicar(existente, detectada, avisos);
+            if (cambio) {
                 actualizadas++;
             } else {
                 sinCambios++;
+            }
+            if (asignacion.cambioColor()) {
+                recoloreadas++;
+                cambiosColor.add((colorAnterior == null ? "—" : colorAnterior)
+                        + " → " + detectada.color());
             }
         }
 
@@ -1048,6 +1069,23 @@ public class AdminAsistenteService {
             varianteProductoRepository.saveAll(nuevas);
         }
 
+        // ------------------------------------------------------------
+        // PRECIO BASE DEL PRODUCTO
+        // La ficha pública, la portada y el JSON-LD leen producto.precio,
+        // no las variantes. Si no se sincroniza, la tienda sigue anunciando
+        // el precio viejo aunque todas las variantes estén actualizadas.
+        // Se toma el precio de venta MÁS REPETIDO (la moda); en empate gana
+        // el primero que aparece en el texto.
+        // ------------------------------------------------------------
+        Double precioBase = precioMasComun(detectadas);
+        boolean precioBaseCambiado = false;
+        if (precioBase != null && precioBase > 0
+                && (producto.getPrecio() == null || !precioBase.equals(producto.getPrecio()))) {
+            producto.setPrecio(precioBase);
+            productoRepository.save(producto);
+            precioBaseCambiado = true;
+        }
+
         StringBuilder mensaje = new StringBuilder()
                 .append("Importación aplicada en «").append(producto.getNombre()).append("»: ")
                 .append(nuevas.size()).append(" variante(s) nueva(s) y ")
@@ -1056,6 +1094,14 @@ public class AdminAsistenteService {
             mensaje.append(" (").append(sinCambios).append(" sin cambios)");
         }
         mensaje.append(". Las variantes detectadas: ").append(detectadas.size()).append('.');
+        if (recoloreadas > 0) {
+            mensaje.append(" Se renombraron ").append(recoloreadas).append(" color(es): ")
+                    .append(String.join(", ", resumenLista(cambiosColor, 4))).append('.');
+        }
+        if (precioBaseCambiado) {
+            mensaje.append(" El precio base del producto quedó en $").append(pesos(precioBase))
+                    .append(" (la ficha pública ya lo muestra así).");
+        }
         if (costoOverride != null) {
             mensaje.append(" Costo forzado a $").append(pesos(costoOverride)).append(" en todas.");
         }
@@ -1071,6 +1117,14 @@ public class AdminAsistenteService {
         salida.put("creadas", nuevas.size());
         salida.put("actualizadas", actualizadas);
         salida.put("sinCambios", sinCambios);
+        salida.put("coloresRenombrados", recoloreadas);
+        if (!cambiosColor.isEmpty()) {
+            salida.put("cambiosColor", resumenLista(cambiosColor, 8));
+        }
+        salida.put("precioBaseActualizado", precioBaseCambiado);
+        if (precioBase != null) {
+            salida.put("precioBase", precioBase);
+        }
         if (costoOverride != null) {
             salida.put("costoForzado", costoOverride);
         }
@@ -1081,6 +1135,172 @@ public class AdminAsistenteService {
             salida.put("avisos", avisos.subList(0, Math.min(avisos.size(), 8)));
         }
         return json(salida);
+    }
+
+    // ============================================================
+    // UPSERT INTELIGENTE DE LA IMPORTACIÓN
+    // ============================================================
+
+    /** Qué se va a hacer con una fila del texto de Dropi. */
+    private record Asignacion(VarianteImportada importada, VarianteProducto existente, boolean cambioColor) {
+    }
+
+    /**
+     * Empareja cada fila del texto con la variante que ya existe (o ninguna).
+     *
+     * <p>Orden de decisión, de más seguro a más permisivo:</p>
+     * <ol>
+     *   <li><strong>Color + talla exactos</strong> → se actualiza esa variante.</li>
+     *   <li><strong>Misma talla y color compatible</strong>: la base dice
+     *       «Blanco» y Dropi dice «Blanco/beige». Es la misma fila con el
+     *       nombre del color enriquecido, así que se adopta y se renombra.</li>
+     *   <li><strong>Misma talla con una sola variante libre</strong>: cuando el
+     *       color no se parece en nada («Blanco» → «Marfil») pero esa talla
+     *       solo tiene una variante en la base, se entiende que es la misma y
+     *       se renombra en lugar de duplicarla. Con dos o más candidatos NO se
+     *       adivina: se crea la variante nueva, que es lo seguro.</li>
+     * </ol>
+     *
+     * <p>Cada variante se usa una sola vez por importación: si el texto repite
+     * una talla con dos colores distintos, no se roban la misma fila entre
+     * ellos.</p>
+     */
+    private static List<Asignacion> planificar(List<VarianteProducto> actuales,
+                                                List<VarianteImportada> detectadas) {
+        Map<String, VarianteProducto> porClave = new LinkedHashMap<>();
+        Map<String, List<VarianteProducto>> porTalla = new LinkedHashMap<>();
+
+        if (actuales != null) {
+            for (VarianteProducto variante : actuales) {
+                if (variante == null) {
+                    continue;
+                }
+                porClave.putIfAbsent(DropiParserUtil.clave(variante.getColor(), variante.getTalla()), variante);
+                porTalla.computeIfAbsent(normalizar(variante.getTalla()), k -> new ArrayList<>()).add(variante);
+            }
+        }
+
+        Set<Long> usados = new HashSet<>();
+        List<Asignacion> plan = new ArrayList<>();
+
+        for (VarianteImportada importada : detectadas) {
+            VarianteProducto existente = porClave.get(importada.clave());
+            if (existente != null && existente.getId() != null && usados.contains(existente.getId())) {
+                existente = null;
+            }
+
+            if (existente == null) {
+                List<VarianteProducto> mismaTalla =
+                        porTalla.getOrDefault(normalizar(importada.talla()), List.of());
+
+                // 2) misma talla + color compatible
+                for (VarianteProducto candidata : mismaTalla) {
+                    if (candidata.getId() != null && usados.contains(candidata.getId())) {
+                        continue;
+                    }
+                    if (coloresCompatibles(candidata.getColor(), importada.color())) {
+                        existente = candidata;
+                        break;
+                    }
+                }
+
+                // 3) misma talla con una única variante libre
+                if (existente == null) {
+                    VarianteProducto unica = null;
+                    int libres = 0;
+                    for (VarianteProducto candidata : mismaTalla) {
+                        if (candidata.getId() != null && usados.contains(candidata.getId())) {
+                            continue;
+                        }
+                        libres++;
+                        unica = candidata;
+                    }
+                    if (libres == 1) {
+                        existente = unica;
+                    }
+                }
+            }
+
+            if (existente != null && existente.getId() != null) {
+                usados.add(existente.getId());
+            }
+
+            boolean cambioColor = existente != null
+                    && !normalizar(existente.getColor()).equals(normalizar(importada.color()));
+
+            plan.add(new Asignacion(importada, existente, cambioColor));
+        }
+
+        return plan;
+    }
+
+    /**
+     * ¿Dos nombres de color hablan del mismo color?
+     *
+     * <p>«Blanco» y «Blanco/beige» sí: el de la base es uno de los tonos del
+     * nombre compuesto de Dropi. «Blanco» y «Negro» no. Se compara por tonos
+     * separados por {@code / + , & -} y, como último recurso, por contención.</p>
+     */
+    static boolean coloresCompatibles(String actual, String nuevo) {
+        String a = normalizar(actual);
+        String b = normalizar(nuevo);
+        if (a.isEmpty() || b.isEmpty()) {
+            return false;
+        }
+        if (a.equals(b)) {
+            return true;
+        }
+
+        for (String tono : b.split("[/+,&-]")) {
+            if (!tono.isBlank() && tono.equals(a)) {
+                return true;
+            }
+        }
+        for (String tono : a.split("[/+,&-]")) {
+            if (!tono.isBlank() && tono.equals(b)) {
+                return true;
+            }
+        }
+        return a.contains(b) || b.contains(a);
+    }
+
+    /**
+     * Precio de venta más repetido entre las variantes del texto (la moda).
+     * En empate gana el primero que aparece, que es el orden en que el
+     * administrador lo ve en el inventario.
+     */
+    private static Double precioMasComun(List<VarianteImportada> variantes) {
+        Map<Double, Integer> conteo = new LinkedHashMap<>();
+        for (VarianteImportada variante : variantes) {
+            Double precio = variante == null ? null : variante.precioVenta();
+            if (precio == null || precio <= 0) {
+                continue;
+            }
+            conteo.merge(precio, 1, Integer::sum);
+        }
+
+        Double mejor = null;
+        int maximo = 0;
+        for (Map.Entry<Double, Integer> entrada : conteo.entrySet()) {
+            if (entrada.getValue() > maximo) {
+                maximo = entrada.getValue();
+                mejor = entrada.getKey();
+            }
+        }
+        return mejor;
+    }
+
+    /** Los primeros {@code maximo} elementos, con "…" si hay más. */
+    private static List<String> resumenLista(List<String> valores, int maximo) {
+        if (valores == null || valores.isEmpty()) {
+            return List.of();
+        }
+        if (valores.size() <= maximo) {
+            return new ArrayList<>(valores);
+        }
+        List<String> recortada = new ArrayList<>(valores.subList(0, maximo));
+        recortada.add("… y " + (valores.size() - maximo) + " más");
+        return recortada;
     }
 
     // ============================================================
@@ -1162,10 +1382,24 @@ public class AdminAsistenteService {
     /**
      * Vuelca una variante leída sobre la fila existente.
      *
+     * <p>También sincroniza el <strong>color</strong>: si la base tenía
+     * «Blanco» y el texto trae «Blanco/beige», la variante se renombra. Es la
+     * pieza que evita el duplicado al cambiar el nombre del color (el
+     * emparejamiento lo decide {@link #planificar}).</p>
+     *
      * @return {@code true} si cambió algo (hay UPDATE pendiente)
      */
     private boolean aplicar(VarianteProducto existente, VarianteImportada detectada, List<String> avisos) {
         boolean cambio = false;
+
+        // Color: se copia el del texto solo si de verdad son distintos. Así
+        // "Blanco" → "Blanco/beige" se actualiza y "Negro" → " negro" no toca
+        // nada (la comparación ya ignora mayúsculas y espacios).
+        if (detectada.color() != null && !detectada.color().isBlank()
+                && !normalizar(detectada.color()).equals(normalizar(existente.getColor()))) {
+            existente.setColor(detectada.color());
+            cambio = true;
+        }
 
         if (detectada.stock() != null) {
             int stock = Math.max(0, Math.min(detectada.stock(), STOCK_MAXIMO));
@@ -1345,23 +1579,29 @@ public class AdminAsistenteService {
                     "sugerencia", "Busca el producto con " + TOOL_BUSCAR + ".")));
         }
 
-        // Comparación para la vista previa: cuántas se crean y cuántas se tocan.
-        Set<String> yaExisten = new HashSet<>();
-        for (VarianteProducto variante : varianteProductoRepository.findByProductoId(producto.getId())) {
-            yaExisten.add(DropiParserUtil.clave(variante.getColor(), variante.getTalla()));
-        }
+        // Vista previa con el MISMO emparejamiento que usará la escritura:
+        // así la tarjeta dice la verdad sobre qué se crea, qué se actualiza y
+        // qué colores se renombran.
+        List<VarianteProducto> actuales = varianteProductoRepository.findByProductoId(producto.getId());
+        List<Asignacion> plan = planificar(actuales, detectadas);
 
         int nuevas = 0;
         int cambios = 0;
         int mostradas = 0;
+        List<String> cambiosColor = new ArrayList<>();
         StringBuilder vista = new StringBuilder();
 
-        for (VarianteImportada detectada : detectadas) {
-            boolean existe = yaExisten.contains(detectada.clave());
+        for (Asignacion asignacion : plan) {
+            VarianteImportada detectada = asignacion.importada();
+            boolean existe = asignacion.existente() != null;
             if (existe) {
                 cambios++;
             } else {
                 nuevas++;
+            }
+            if (asignacion.cambioColor()) {
+                cambiosColor.add((asignacion.existente().getColor() == null
+                        ? "—" : asignacion.existente().getColor()) + " → " + detectada.color());
             }
             if (mostradas < MAX_VARIANTES_PREVIEW) {
                 mostradas++;
@@ -1372,7 +1612,12 @@ public class AdminAsistenteService {
                 if (detectada.precioVenta() != null) {
                     vista.append(" · $").append(pesos(detectada.precioVenta()));
                 }
-                vista.append(existe ? "  (actualizar)" : "  (nueva)");
+                if (asignacion.cambioColor()) {
+                    vista.append("  (color: ").append(asignacion.existente().getColor())
+                            .append(" → ").append(detectada.color()).append(')');
+                } else {
+                    vista.append(existe ? "  (actualizar)" : "  (nueva)");
+                }
             }
         }
         if (detectadas.size() > mostradas) {
@@ -1405,6 +1650,14 @@ public class AdminAsistenteService {
         if (precioOverride != null) {
             descripcion.append(" · precio forzado a $").append(pesos(precioOverride)).append(" en todas");
         }
+
+        // Cambio de nombre de color: es la parte menos obvia de la importación
+        // (y la que el administrador quiere revisar antes de aprobar).
+        if (!cambiosColor.isEmpty()) {
+            descripcion.append(" · se actualizarán colores (")
+                    .append(String.join(", ", resumenLista(cambiosColor, 4))).append(')');
+        }
+        descripcion.append(" · se actualizarán stock y precios y el precio base del producto");
 
         descripcion.append(vista);
 

@@ -125,6 +125,100 @@ class DropiParserUtilTest {
         assertEquals(75000d, variantes.get(0).precioVenta());
     }
 
+    // ============================================================
+    // FORMATO DE FILA DE DROPI (Talla antes que Color) Y COLORES COMPUESTOS
+    // ============================================================
+
+    @Test
+    @DisplayName("«Blanco/beige» es UN color, no dos")
+    void colorCompuestoNoSeParte() {
+        List<VarianteImportada> variantes = DropiParserUtil.parsear(
+                "Color: Blanco/beige\nTalla: 40\nStock: 4\nCosto: $45.000\nPrecio sugerido: $75.000");
+
+        assertEquals(1, variantes.size(), "no debe crear «Blanco» y «beige» por separado");
+        assertEquals("Blanco/beige", variantes.get(0).color());
+        assertEquals("40", variantes.get(0).talla());
+    }
+
+    @Test
+    @DisplayName("Colores compuestos con barra: Negro/rojo, Full/negro y con espacios")
+    void coloresCompuestosVariados() {
+        Map<String, VarianteImportada> indice = porClave(DropiParserUtil.parsear("""
+                Color: Negro/rojo
+                Talla: 42
+                Stock: 1
+
+                Color: Full/negro
+                Talla: 43
+                Stock: 2
+
+                Color: Blanco / beige
+                Talla: 44
+                Stock: 3
+                """));
+
+        assertTrue(indice.containsKey("negro/rojo|42"), "falta Negro/rojo: " + indice.keySet());
+        assertTrue(indice.containsKey("full/negro|43"), "falta Full/negro: " + indice.keySet());
+        // Los espacios alrededor de la barra se normalizan
+        assertTrue(indice.containsKey("blanco/beige|44"), "falta Blanco/beige: " + indice.keySet());
+    }
+
+    @Test
+    @DisplayName("Lee una fila de Dropi con Talla ANTES que Color y con IDs delante")
+    void leeFilaDeDropiConTallaAntesQueColor() {
+        String texto = "SKU: 123456789 Talla: 40 Color: Blanco/beige Existencia: 4 "
+                + "Precio del proveedor: $ 45.000 Precio sugerido: $ 75.000";
+
+        List<VarianteImportada> variantes = DropiParserUtil.parsear(texto);
+        assertEquals(1, variantes.size(), "la talla no se debe perder por venir antes del color");
+
+        VarianteImportada variante = variantes.get(0);
+        assertEquals("Blanco/beige", variante.color());
+        assertEquals("40", variante.talla());
+        assertEquals(4, variante.stock(), "«Existencia» es el stock");
+        assertEquals(45000d, variante.costo(), "«Precio del proveedor» es el COSTO");
+        assertEquals(75000d, variante.precioVenta(), "«Precio sugerido» es el precio de venta");
+
+        // El ID de Dropi no se usa como dato propio (ni como SKU ni como color).
+        assertTrue(!String.valueOf(variante.color()).contains("123456789"));
+    }
+
+    @Test
+    @DisplayName("Lee la tabla completa de Dropi (Existencia y Precio del proveedor)")
+    void leeTablaCompletaDeDropi() {
+        String texto = """
+                SKU | Talla | Color | Existencia | Precio del proveedor | Precio sugerido
+                123456789 | 40 | Blanco/beige | 4 | $ 45.000 | $ 75.000
+                123456790 | 41 | Blanco/beige | 2 | $ 45.000 | $ 75.000
+                123456791 | 42 | Negro/rojo | 6 | $ 47.500 | $ 79.900
+                """;
+
+        List<VarianteImportada> variantes = DropiParserUtil.parsear(texto);
+        assertEquals(3, variantes.size());
+
+        Map<String, VarianteImportada> indice = porClave(variantes);
+
+        VarianteImportada primera = indice.get("blanco/beige|40");
+        assertNotNull(primera, "falta Blanco/beige talla 40: " + indice.keySet());
+        assertEquals(4, primera.stock());
+        assertEquals(45000d, primera.costo());
+        assertEquals(75000d, primera.precioVenta());
+
+        VarianteImportada tercera = indice.get("negro/rojo|42");
+        assertNotNull(tercera);
+        assertEquals(6, tercera.stock());
+        assertEquals(47500d, tercera.costo());
+        assertEquals(79900d, tercera.precioVenta());
+    }
+
+    @Test
+    @DisplayName("Un precio con formato «$ 75.000» se lee como 75000")
+    void leePrecioConSignoYMillares() {
+        assertEquals(75000d, precioDe("Precio sugerido: $ 75.000"));
+        assertEquals(75000d, precioDe("Precio sugerido: $75.000"));
+        assertEquals(75000d, precioDe("Precio sugerido: 75.000"));
+    }
+
     @Test
     @DisplayName("Un valor roto no arrastra al resto del inventario")
     void toleraValoresRotos() {

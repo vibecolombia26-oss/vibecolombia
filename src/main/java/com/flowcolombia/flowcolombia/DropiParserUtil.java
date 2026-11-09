@@ -76,12 +76,18 @@ public final class DropiParserUtil {
     /**
      * Etiquetas reconocidas. Van ordenadas de lo más específico a lo más
      * general porque la regex se queda con la primera alternativa que encaje.
+     *
+     * <p>Ojo con el orden de las de dinero: «Precio del proveedor» es el
+     * <strong>costo</strong>, no el precio de venta, y tiene que intentarse
+     * antes que el «Precio» genérico o el texto de Dropi se leería al revés
+     * (el margen saldría invertido).</p>
      */
     private static final String ETIQUETAS =
             "(?:colou?r(?:es)?"
             + "|tallas?|talle"
-            + "|stock|inventario|cantidad|disponibles?|unidades"
+            + "|stock|inventario|existencias?|cantidad|disponibles?|unidades"
             + "|costo(?:\\s+(?:unitario|de\\s+compra|proveedor|del\\s+proveedor))?"
+            + "|precio\\s+(?:del\\s+proveedor|de\\s+proveedor|proveedor|de\\s+compra|compra)"
             + "|precio(?:\\s+(?:sugerido|de\\s+venta|venta|al\\s+p[uú]blico|final|unitario))?"
             + "|pvp"
             + "|sku|referencia|peso|id(?:\\s+(?:de\\s+)?producto)?)";
@@ -329,21 +335,36 @@ public final class DropiParserUtil {
                     case "COLOR" -> {
                         List<String> colores = dividirColores(valor);
                         if (!colores.isEmpty()) {
-                            cerrar(actual, salida, true);
-                            actual = new Borrador();
+                            if (!actual.colores.isEmpty()) {
+                                if (actual.colorHeredado && !actual.tieneDatos()) {
+                                    // El color venía heredado de la fila anterior
+                                    // y ESTA fila trae el suyo: se reemplaza en
+                                    // lugar de cerrar una variante fantasma.
+                                    actual.colores.clear();
+                                } else {
+                                    cerrar(actual, salida, true);
+                                    actual = new Borrador();
+                                }
+                            }
                             actual.colores.addAll(colores);
+                            actual.colorHeredado = false;
                         }
                     }
                     case "TALLA" -> {
                         List<String> tallas = dividirTallas(valor);
                         if (!tallas.isEmpty()) {
-                            // Si el bloque ya traía stock o precios, esta talla
-                            // empieza una variante nueva del mismo color.
-                            if (actual.tieneDatos() || !actual.tallas.isEmpty()) {
+                            // La fila está completa cuando ya tiene una talla:
+                            // una segunda talla abre la siguiente fila del mismo
+                            // color (formato «Color: Negro / Talla: 38 / Stock…»).
+                            // Ojo: NO se cierra por «tener datos», porque el
+                            // formato «Talla: 40 Color: X Existencia: 4» trae la
+                            // talla antes que todo lo demás.
+                            if (!actual.tallas.isEmpty()) {
+                                List<String> coloresPrevios = new ArrayList<>(actual.colores);
                                 cerrar(actual, salida, true);
-                                Borrador nueva = new Borrador();
-                                nueva.colores.addAll(actual.colores);
-                                actual = nueva;
+                                actual = new Borrador();
+                                actual.colores.addAll(coloresPrevios);
+                                actual.colorHeredado = !coloresPrevios.isEmpty();
                             }
                             actual.tallas.addAll(tallas);
                         }
@@ -387,6 +408,13 @@ public final class DropiParserUtil {
         Integer stock;
         Double costo;
         Double precio;
+
+        /**
+         * El color no venía en esta fila: se arrastra de la anterior
+         * («Color: Negro» y debajo varias tallas). Sirve para saber si un
+         * COLOR que llega después debe REEMPLAZARLO o abrir fila nueva.
+         */
+        boolean colorHeredado;
 
         boolean tieneDatos() {
             return stock != null || costo != null || precio != null;
@@ -497,7 +525,16 @@ public final class DropiParserUtil {
         return ETIQUETA.matcher(celda).replaceFirst("").strip();
     }
 
-    /** Divide un valor de color en varios colores ({@code "Negro, Blanco"}). */
+    /**
+     * Divide un valor de color en los colores que contenga.
+     *
+     * <p><strong>Los colores compuestos NO se parten:</strong> en Dropi
+     * «Blanco/beige», «Negro/rojo» o «Full/negro» son <em>un</em> color, no
+     * dos. Si se partieran por la barra, una importación de 35 filas crearía
+     * variantes fantasma («Blanco» y «beige» por separado) y ninguna
+     * coincidiría con la que ya existe en la base. Solo se separa por coma o
+     * punto y coma, que es como se listan colores distintos de verdad.</p>
+     */
     private static List<String> dividirColores(String valor) {
         List<String> colores = new ArrayList<>();
         if (valor == null) {
@@ -505,12 +542,21 @@ public final class DropiParserUtil {
         }
 
         String limpio = quitarEtiqueta(valor);
-        for (String parte : limpio.split("[,/]")) {
+        for (String parte : limpio.split("[,;]")) {
+            // "Blanco / beige" → "Blanco/beige": la barra se queda, los
+            // espacios de alrededor no aportan nada.
             String color = limpiarTexto(parte, MAX_COLOR);
-            if (color == null || color.length() > MAX_NOMBRE_COLOR) {
+            if (color == null) {
+                continue;
+            }
+            color = color.replaceAll("\\s*/\\s*", "/");
+
+            if (color.length() > MAX_NOMBRE_COLOR) {
                 continue;   // demasiado largo: era una frase, no un color
             }
-            colores.add(color);
+            if (!colores.contains(color)) {
+                colores.add(color);
+            }
         }
         return colores;
     }
@@ -637,6 +683,11 @@ public final class DropiParserUtil {
     /**
      * Clasifica una etiqueta (o el título de una columna) en un tipo conocido.
      *
+     * <p>«Precio del proveedor» y «Precio de compra» son <strong>costo</strong>:
+     * se comprueban antes del «precio» genérico. Si se clasificaran como precio
+     * de venta, la importación dejaría el margen al revés (se vendería al costo
+     * del proveedor).</p>
+     *
      * @return {@code COLOR}, {@code TALLA}, {@code STOCK}, {@code COSTO},
      *         {@code PRECIO} u {@code OTRO}
      */
@@ -656,14 +707,21 @@ public final class DropiParserUtil {
             return "TALLA";
         }
         if (limpia.startsWith("stock") || limpia.startsWith("inventario")
-                || limpia.startsWith("cantidad") || limpia.startsWith("disponible")
-                || limpia.startsWith("unidad")) {
+                || limpia.startsWith("existencia") || limpia.startsWith("cantidad")
+                || limpia.startsWith("disponible") || limpia.startsWith("unidad")) {
             return "STOCK";
         }
         if (limpia.startsWith("costo")) {
             return "COSTO";
         }
-        if (limpia.startsWith("precio") || limpia.startsWith("pvp")) {
+        if (limpia.startsWith("precio")) {
+            // "preciodelproveedor", "precioproveedor", "preciodecompra"
+            if (limpia.contains("proveedor") || limpia.contains("compra") || limpia.contains("costo")) {
+                return "COSTO";
+            }
+            return "PRECIO";
+        }
+        if (limpia.startsWith("pvp")) {
             return "PRECIO";
         }
         return "OTRO";
