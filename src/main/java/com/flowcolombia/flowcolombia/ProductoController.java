@@ -208,6 +208,12 @@ public class ProductoController {
 
         // ============================================================
         // 2. GUARDAR PRODUCTO, IMÁGENES Y VARIANTES
+        // ------------------------------------------------------------
+        // El checkbox «Ocultar a Meta» llega en `producto.excluirMeta`
+        // (binding de @ModelAttribute): el navegador solo envía el parámetro
+        // cuando está marcado, y Producto normaliza la ausencia a `false`.
+        // El servicio copia el valor a la entidad gestionada al editar, así
+        // que aquí no hay que tocar nada más.
         // ============================================================
         try {
             productoService.guardarProductoConVariantes(
@@ -345,6 +351,9 @@ public class ProductoController {
             detalle.put("categoria", producto.getCategoria());
             detalle.put("descripcion", producto.getDescripcion());
             detalle.put("descripcionLarga", producto.getDescripcionLarga());
+            // Marca de seguridad para Meta: quien consuma esta API sabe si el
+            // producto puede medirse en el píxel / CAPI.
+            detalle.put("excluirMeta", producto.getExcluirMeta());
 
             // ============================================================
             // 2. IMÁGENES

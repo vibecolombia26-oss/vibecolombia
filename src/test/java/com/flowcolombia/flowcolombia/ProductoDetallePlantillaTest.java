@@ -52,11 +52,22 @@ class ProductoDetallePlantillaTest {
 
     /** Renderiza la ficha y devuelve el HTML final. */
     private String renderizar(boolean esCalzado, int totalResenas) {
-        return renderizar(esCalzado, totalResenas, List.of());
+        return renderizar(esCalzado, totalResenas, List.of(), false);
     }
 
     /** Renderiza la ficha con las imágenes indicadas (url + color). */
     private String renderizar(boolean esCalzado, int totalResenas, List<Map<String, Object>> imagenes) {
+        return renderizar(esCalzado, totalResenas, imagenes, false);
+    }
+
+    /**
+     * Renderiza la ficha.
+     *
+     * @param excluirMeta marca de seguridad de Meta: el producto es de salud
+     *                    íntima / sensible y la ficha no debe disparar el píxel
+     */
+    private String renderizar(boolean esCalzado, int totalResenas,
+                              List<Map<String, Object>> imagenes, boolean excluirMeta) {
         Producto producto = new Producto();
         producto.setId(7L);
         producto.setNombre("Mochila Táctica");
@@ -70,6 +81,7 @@ class ProductoDetallePlantillaTest {
         producto.setLargo("30");
         producto.setAncho("20");
         producto.setAlto("45");
+        producto.setExcluirMeta(excluirMeta);
 
         Map<String, Object> modelo = new HashMap<>();
         modelo.put("producto", producto);
@@ -139,15 +151,15 @@ class ProductoDetallePlantillaTest {
         // La capa de experiencia (barra de progreso + View Transitions) tiene
         // que viajar en todas las páginas públicas.
         assertTrue(html.contains("/js/flow-ui.js?v=1"), "falta flow-ui.js en la ficha");
-        assertTrue(html.contains("/js/flow-assistant.js?v=5"), "falta el asistente (esfera de Tina)");
+        assertTrue(html.contains("/js/flow-assistant.js?v=6"), "falta el asistente (esfera de Tina)");
 
         // Google Analytics 4: script global (public-meta) + evento de ficha.
         assertTrue(html.contains("googletagmanager.com/gtag/js?id=G-5PT3YEX4G7"),
                 "falta el script global de GA4 en la ficha");
         assertTrue(html.contains("trackGA4Event('view_item'"),
                 "la ficha de producto no dispara view_item");
-        assertTrue(html.contains("/js/flow-cart.js?v=4"),
-                "la ficha carga una versión vieja de flow-cart.js (sin GA4)");
+        assertTrue(html.contains("/js/flow-cart.js?v=5"),
+                "la ficha carga una versión vieja de flow-cart.js (sin el filtro de Meta)");
 
         // El píxel de Meta sigue vivo: GA4 se suma, no reemplaza.
         assertTrue(html.contains("fbq('init'"), "desapareció el píxel de Meta");
@@ -172,6 +184,27 @@ class ProductoDetallePlantillaTest {
         assertTrue(html.contains("Garantía Flow"));
     }
 
+    @Test
+    @DisplayName("Producto sensible: la ficha no dispara el ViewContent de Meta")
+    void productoOcultoAMeta() {
+        String html = renderizar(false, 3, List.of(), true);
+
+        // La condición es th:if="${!producto.excluirMeta}", evaluada en el
+        // servidor: el código del píxel ni siquiera llega al navegador.
+        assertFalse(html.contains("trackMeta('ViewContent'"),
+                "un producto marcado como «ocultar a Meta» no debe disparar ViewContent");
+
+        // El píxel sigue instalado (PageView) y GA4 sigue midiendo.
+        assertTrue(html.contains("fbq('init'"), "el píxel de Meta desapareció de la página");
+        assertTrue(html.contains("trackGA4Event('view_item'"),
+                "GA4 debe seguir midiendo los productos sensibles");
+
+        // Y la marca viaja al carrito para filtrar AddToCart/Purchase.
+        assertTrue(html.contains("productoExcluidoMeta = true"),
+                "la marca de exclusión no se serializa para el JavaScript");
+        assertTrue(html.contains("excluirMeta: productoExcluidoMeta === true"),
+                "la línea del carrito no guarda la marca de exclusión");
+    }
     @Test
     @DisplayName("La galería recibe el color de cada imagen y filtra al elegir color")
     void galeriaPorColor() {

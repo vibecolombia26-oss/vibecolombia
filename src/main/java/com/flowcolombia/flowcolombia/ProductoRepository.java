@@ -110,4 +110,19 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     /** IDs de productos que todavía no tienen slug (migración de arranque). */
     @Query("SELECT p.id FROM Producto p WHERE p.slug IS NULL OR p.slug = ''")
     List<Long> findIdsSinSlug();
+
+    // ============================================================
+    // EXCLUSIÓN DE META (Píxel + API de Conversiones)
+    // ============================================================
+
+    /**
+     * Nombres de los productos marcados como «ocultar a Meta».
+     *
+     * <p>Se usa en el checkout cuando el pedido llega sin IDs de producto
+     * (carritos antiguos o clientes que no mandan {@code productosIds}): el
+     * backend busca esos nombres dentro del texto del pedido. Trae solo una
+     * columna, así que no inicializa colecciones ni entidades.</p>
+     */
+    @Query("SELECT p.nombre FROM Producto p WHERE p.excluirMeta = TRUE AND p.nombre IS NOT NULL")
+    List<String> findNombresExcluidosMeta();
 }

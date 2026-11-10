@@ -232,7 +232,8 @@ public class AsistenteService {
                         stock,
                         imagen == null ? "" : imagen,
                         p.getSku() == null ? "" : p.getSku(),
-                        p.getSlug() == null ? "" : p.getSlug()
+                        p.getSlug() == null ? "" : p.getSlug(),
+                        Boolean.TRUE.equals(p.getExcluirMeta())
                 ));
             }
 
@@ -712,7 +713,8 @@ public class AsistenteService {
         }
 
         return elegidos.values().stream()
-                .map(p -> new ProductoRecomendado(p.id(), p.nombre(), p.precio(), p.imagen(), p.slug()))
+                .map(p -> new ProductoRecomendado(p.id(), p.nombre(), p.precio(), p.imagen(), p.slug(),
+                        p.excluirMeta()))
                 .toList();
     }
 
@@ -806,9 +808,12 @@ public class AsistenteService {
      * @param slug URL canónica del producto; se usa para que las tarjetas del
      *             chat enlacen directo a {@code /producto/{slug}} sin pasar por
      *             la redirección 301 de la ruta antigua por id
+     * @param excluirMeta marca de seguridad para Meta (salud íntima /
+     *                    sensibles): el producto no puede medirse en el píxel
      */
     public record ProductoCatalogo(Long id, String nombre, String categoria, Double precio,
-                                   int stock, String imagen, String sku, String slug) {
+                                   int stock, String imagen, String sku, String slug,
+                                   boolean excluirMeta) {
     }
 
     /**
@@ -816,8 +821,12 @@ public class AsistenteService {
      *
      * @param slug URL canónica; {@code flow-assistant.js} la prefiere y solo
      *             cae al {@code id} si faltara
+     * @param excluirMeta si es {@code true}, el botón «Agregar» añade el
+     *                    producto al carrito con la marca de exclusión y el
+     *                    píxel de Meta no lo mide
      */
-    public record ProductoRecomendado(Long id, String nombre, Double precio, String imagen, String slug) {
+    public record ProductoRecomendado(Long id, String nombre, Double precio, String imagen, String slug,
+                                      boolean excluirMeta) {
     }
 
     /**

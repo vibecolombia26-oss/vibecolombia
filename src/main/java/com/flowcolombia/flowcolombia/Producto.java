@@ -109,6 +109,41 @@ public class Producto {
     private Boolean tieneTalla = false;
 
     // ============================================================
+    // EXCLUSIÓN DE META (Píxel + API de Conversiones)
+    // ============================================================
+
+    /**
+     * «Ocultar a Meta»: el producto es de salud íntima o sensible y
+     * <strong>no puede viajar</strong> ni al píxel del navegador ni a la API
+     * de Conversiones (CAPI).
+     *
+     * <p>Es una marca <strong>manual y explícita</strong> del administrador:
+     * Meta prohíbe enviar datos de salud íntima / suplementos y una sola
+     * venta mal medida puede costar la cuenta publicitaria. Cuando está a
+     * {@code true}:</p>
+     * <ul>
+     *   <li>la ficha no dispara {@code ViewContent};</li>
+     *   <li>el carrito excluye el producto de {@code AddToCart},
+     *       {@code InitiateCheckout} y {@code Purchase};</li>
+     *   <li>el backend no envía {@code Purchase} del pedido (ni aunque el
+     *       pedido mezcle productos normales).</li>
+     * </ul>
+     *
+     * <p>Google Analytics 4 <strong>no</strong> se ve afectado: Google no
+     * aplica esta restricción.</p>
+     *
+     * <p><strong>Nota de despliegue:</strong> la columna se crea anulable a
+     * propósito ({@code ddl-auto=update} no puede añadir un {@code NOT NULL}
+     * a una tabla con filas). Las filas antiguas quedan en {@code NULL}, y
+     * tanto {@link #getExcluirMeta()} como {@link #setExcluirMeta(Boolean)}
+     * lo tratan como {@code false}: un producto nunca se excluye por
+     * accidente. Después se puede endurecer con:</p>
+     * <pre>UPDATE producto SET excluir_meta = FALSE WHERE excluir_meta IS NULL;</pre>
+     */
+    @Column(name = "excluir_meta")
+    private Boolean excluirMeta = false;
+
+    // ============================================================
     // NUEVAS RELACIONES (MODELO NORMALIZADO)
     // ============================================================
 
@@ -347,6 +382,31 @@ public class Producto {
     }
 
     // ============================================================
+    // EXCLUSIÓN DE META
+    // ============================================================
+
+    /**
+     * ¿Este producto se oculta a Meta?
+     *
+     * <p>Devuelve siempre un valor definido: las filas antiguas pueden tener
+     * la columna a {@code NULL} y eso significa «no excluir». La plantilla
+     * usa {@code ${!producto.excluirMeta}} y el backend
+     * {@code Boolean.TRUE.equals(...)}; ambos esperan un booleano real.</p>
+     */
+    public Boolean getExcluirMeta() {
+        return Boolean.TRUE.equals(excluirMeta);
+    }
+
+    /**
+     * Marca o desmarca la exclusión de Meta. {@code null} (checkbox sin
+     * marcar llegando de un formulario antiguo) se guarda como {@code false}:
+     * el valor por defecto es «sí se puede medir».
+     */
+    public void setExcluirMeta(Boolean excluirMeta) {
+        this.excluirMeta = Boolean.TRUE.equals(excluirMeta);
+    }
+
+    // ============================================================
     // GETTERS Y SETTERS DE NUEVAS RELACIONES
     // ============================================================
 
@@ -532,6 +592,7 @@ public class Producto {
                 ", sku='" + sku + '\'' +
                 ", precio=" + precio +
                 ", categoria='" + categoria + '\'' +
+                ", excluirMeta=" + getExcluirMeta() +
                 ", variantes=" + (variantes != null ? variantes.size() : 0) +
                 ", imagenes=" + (imagenes != null ? imagenes.size() : 0) +
                 '}';

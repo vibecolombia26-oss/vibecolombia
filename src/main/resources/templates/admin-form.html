@@ -84,6 +84,36 @@
                             <textarea id="descripcionLarga" name="descripcionLarga" rows="4">[[${producto.descripcionLarga}]]</textarea>
                         </div>
                     </div>
+
+                    <!-- ============ SEGURIDAD DE META ============
+                         Meta prohíbe enviar datos de salud íntima y de
+                         suplementos a su píxel y a su API de Conversiones.
+                         Este checkbox es la marca manual con la que el
+                         administrador excluye el producto de Meta SIN tocar
+                         Google Analytics 4 (que sigue midiendo igual). -->
+                    <div class="form-row">
+                        <div class="form-group full">
+                            <label for="excluirMeta"
+                                   style="display:flex; align-items:flex-start; gap:12px; padding:14px 16px;
+                                          border:1px solid rgba(245,158,11,.45); border-radius:12px;
+                                          background:rgba(245,158,11,.08); cursor:pointer; font-weight:500;">
+                                <input type="checkbox" id="excluirMeta" name="excluirMeta" value="true"
+                                       th:checked="${producto.excluirMeta}"
+                                       style="margin-top:2px; width:18px; height:18px; flex:0 0 auto; accent-color:#f59e0b; cursor:pointer;">
+                                <span>
+                                    <strong style="color:#fbbf24; font-size:0.86rem;">
+                                        Ocultar a Meta (Productos de salud íntima o sensibles)
+                                    </strong>
+                                    <small class="form-hint" style="margin-top:6px; line-height:1.5;">
+                                        Si lo marcas, este producto NO se envía al píxel de Meta ni a la API de Conversiones:
+                                        no dispara ViewContent en la ficha, no entra en AddToCart, InitiateCheckout ni Purchase
+                                        del carrito, y el backend no envía el Purchase del pedido que lo contenga.
+                                        Google Analytics 4 <strong>sí</strong> lo sigue midiendo con normalidad.
+                                    </small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- ============ IMÁGENES (URL + color por foto) ============ -->

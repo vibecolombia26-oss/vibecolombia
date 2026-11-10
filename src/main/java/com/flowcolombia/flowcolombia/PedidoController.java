@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.flowcolombia.flowcolombia.service.MetaConversionsService;
 import java.security.SecureRandom;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -26,15 +27,18 @@ public class PedidoController {
     private final MensajeRepository mensajeRepository;
     private final EmailService emailService;
     private final MetaConversionsService metaConversionsService;
+    private final ProductoRepository productoRepository;
 
     public PedidoController(PedidoRepository pedidoRepository,
                             MensajeRepository mensajeRepository,
                             EmailService emailService,
-                            MetaConversionsService metaConversionsService) {
+                            MetaConversionsService metaConversionsService,
+                            ProductoRepository productoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
         this.emailService = emailService;
         this.metaConversionsService = metaConversionsService;
+        this.productoRepository = productoRepository;
     }
 
     /**
@@ -170,10 +174,96 @@ public class PedidoController {
         // navegador desde la pantalla de confirmación: Meta los reconoce
         // como un único evento y no cuenta la venta dos veces.
         // El envío es asíncrono: no retrasa ni puede romper el checkout.
+        //
+        // REGLA DE SEGURIDAD: si el pedido incluye algún producto marcado
+        // como «ocultar a Meta» (salud íntima / sensible), NO se envía
+        // NADA. Es mejor perder una venta registrada en el píxel que
+        // arriesgar la cuenta publicitaria por una política incumplida.
         // ============================================================
-        metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
+        if (contieneProductosOcultosAMeta(pedidoGuardado)) {
+            System.out.println("🚫 Meta CAPI: pedido " + pedidoGuardado.getCodigo()
+                    + " contiene productos excluidos de Meta. No se envía el Purchase.");
+        } else {
+            metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
+        }
 
         return response;
+    }
+
+    /**
+     * ¿El pedido lleva algún producto prohibido para Meta?
+     *
+     * <p>Meta no permite enviar datos de salud íntima ni de suplementos a su
+     * píxel ni a la API de Conversiones, así que el {@code Purchase} se corta
+     * <strong>entero</strong> en cuanto aparece un producto marcado. No se
+     * manda una versión «parcial» del evento: para Meta el pedido y su valor
+     * son indivisibles, y una venta sin registrar no cuesta la cuenta.</p>
+     *
+     * <p>Se comprueba en dos pasos, de más fiable a menos:</p>
+     * <ol>
+     *   <li><strong>Por ID</strong> ({@code pedido.productosIds}): lo envía el
+     *       checkout y es la fuente autoritativa. Una sola consulta por
+     *       pedido y sin depender del texto.</li>
+     *   <li><strong>Por nombre</strong>: los carritos antiguos (y cualquier
+     *       cliente que no mande los IDs) solo traen el detalle en texto, así
+     *       que se busca el nombre de cada producto excluido dentro del
+     *       pedido. Es la red de seguridad para líneas sin {@code productoId};
+     *       cuando los IDs están, el paso 1 es el que decide.</li>
+     * </ol>
+     *
+     * @param pedido pedido recién guardado
+     * @return {@code true} si NO debe enviarse ningún evento a Meta
+     */
+    boolean contieneProductosOcultosAMeta(Pedido pedido) {
+        if (pedido == null) {
+            return false;
+        }
+
+        // 1. IDs enviados por el checkout (autoritativo).
+        List<Long> ids = pedido.getProductosIds();
+        if (ids != null && !ids.isEmpty()) {
+            for (Producto producto : productoRepository.findAllById(ids)) {
+                if (Boolean.TRUE.equals(producto.getExcluirMeta())) {
+                    return true;
+                }
+            }
+        }
+
+        // 2. Respaldo por nombre, para pedidos sin IDs.
+        List<String> nombresOcultos = productoRepository.findNombresExcluidosMeta();
+        if (nombresOcultos.isEmpty()) {
+            return false;
+        }
+
+        String detalle = normalizarTexto(pedido.getProductos());
+        if (detalle.isEmpty()) {
+            return false;
+        }
+
+        for (String nombre : nombresOcultos) {
+            String buscado = normalizarTexto(nombre);
+            // Nombres de una letra no pueden comprobarse sin falsos positivos.
+            if (buscado.length() >= 3 && detalle.contains(buscado)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Texto comparable: minúsculas, sin tildes y con los espacios colapsados.
+     * Es el mismo criterio para el detalle del pedido y para el nombre del
+     * catálogo, así «Crema Íntima» y «crema intima x1» se reconocen.
+     */
+    private static String normalizarTexto(String valor) {
+        if (valor == null) {
+            return "";
+        }
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     /**

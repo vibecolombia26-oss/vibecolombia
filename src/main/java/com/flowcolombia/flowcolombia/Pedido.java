@@ -2,6 +2,7 @@ package com.flowcolombia.flowcolombia;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "pedidos")
@@ -30,6 +31,23 @@ public class Pedido {
 
     // Nuevo campo para saber si el pedido ha sido "leído" en el panel de admin
     private Boolean leido = false;
+
+    /**
+     * IDs de producto que envió el checkout, en el MISMO JSON del pedido.
+     *
+     * <p>No se persiste ({@code @Transient}): la tabla {@code pedidos} guarda
+     * los artículos como texto y no tiene líneas de pedido, así que este dato
+     * solo vive durante la petición {@code POST /api/pedido}.</p>
+     *
+     * <p>Sirve para una única decisión: saber si el pedido contiene algún
+     * producto marcado como «ocultar a Meta» y, en tal caso, no enviar el
+     * evento {@code Purchase} a la API de Conversiones. Es la fuente
+     * autoritativa; el backend además busca los nombres de los productos
+     * excluidos dentro del texto, para los carritos antiguos que no mandan
+     * esta lista.</p>
+     */
+    @Transient
+    private List<Long> productosIds;
 
     public Pedido() {}
 
@@ -87,4 +105,8 @@ public class Pedido {
 
     public Boolean getLeido() { return leido; }
     public void setLeido(Boolean leido) { this.leido = leido; }
+
+    /** IDs de producto enviados por el checkout (no se persisten). */
+    public List<Long> getProductosIds() { return productosIds; }
+    public void setProductosIds(List<Long> productosIds) { this.productosIds = productosIds; }
 }

@@ -100,12 +100,31 @@ class CarritoPlantillaTest {
     }
 
     @Test
-    @DisplayName("El carrito carga la versión de flow-cart.js que ya trae GA4")
+    @DisplayName("El carrito carga la versión de flow-cart.js que filtra Meta")
     void cargaLaVersionNuevaDelCarrito() {
         String html = renderizar();
-        assertTrue(html.contains("/js/flow-cart.js?v=4"),
-                "la plantilla carga una versión vieja de flow-cart.js (sin trackGA4Event)");
-        assertFalse(html.contains("/js/flow-cart.js?v=3"),
+        assertTrue(html.contains("/js/flow-cart.js?v=5"),
+                "la plantilla carga una versión vieja de flow-cart.js (sin el filtro de Meta)");
+        assertFalse(html.contains("/js/flow-cart.js?v=4"),
                 "quedaron referencias a la versión anterior");
+    }
+
+    @Test
+    @DisplayName("Los eventos de Meta del checkout filtran los productos sensibles")
+    void metaFiltraProductosSensibles() {
+        String html = renderizar();
+
+        // InitiateCheckout y Purchase se arman SOLO con las líneas que no
+        // están excluidas; GA4 sigue usando el carrito completo.
+        assertTrue(html.contains("FlowCart.itemsParaMeta"),
+                "el checkout no filtra los productos excluidos de Meta");
+        assertTrue(html.contains("if (datosCompra)"),
+                "Purchase debe poder no dispararse cuando todo el pedido es sensible");
+        assertTrue(html.contains("value: FlowCart.subtotal(itemsMeta)"),
+                "el valor de Meta debe calcularse solo con los productos permitidos");
+
+        // Los IDs viajan al backend para aplicar la regla de la CAPI.
+        assertTrue(html.contains("productosIds:"),
+                "el pedido debe mandar los IDs de producto para la regla de la CAPI");
     }
 }

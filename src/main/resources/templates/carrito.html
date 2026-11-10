@@ -649,7 +649,7 @@
 <!-- ==================== FOOTER COMPARTIDO ==================== -->
 <div th:replace="~{fragments/public-footer :: publicFooter}"></div>
 
-<script th:src="@{/js/flow-cart.js(v=4)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-cart.js(v=5)}" src="/js/flow-cart.js"></script>
 <script>
     // ============================================================
     // DEPARTAMENTOS Y CIUDADES DE COLOMBIA
@@ -1014,21 +1014,30 @@
         // META PÍXEL: InitiateCheckout
         // Se dispara al entrar al checkout, venga del botón del carrito o
         // de /carrito?checkout=1 (drawer), pero solo una vez por visita.
+        //
+        // SEGURIDAD DE CUENTA: solo viajan los productos que NO están
+        // marcados como «ocultar a Meta» (salud íntima / suplementos).
+        // Si el carrito es 100 % sensible, no se envía el evento.
         // ============================================================
         if (!checkoutMedido) {
             checkoutMedido = true;
             const items = itemsCarrito();
-            FlowCart.trackMeta('InitiateCheckout', {
-                content_ids: items.map(function (item) { return item.sku || item.nombre; }),
-                content_type: 'product',
-                value: FlowCart.subtotal(items),
-                currency: 'COP',
-                num_items: items.reduce(function (acc, item) { return acc + (Number(item.cantidad) || 1); }, 0)
-            });
+
+            const itemsMeta = FlowCart.itemsParaMeta(items);
+            if (itemsMeta.length) {
+                FlowCart.trackMeta('InitiateCheckout', {
+                    content_ids: itemsMeta.map(function (item) { return item.sku || item.nombre; }),
+                    content_type: 'product',
+                    value: FlowCart.subtotal(itemsMeta),
+                    currency: 'COP',
+                    num_items: itemsMeta.reduce(function (acc, item) { return acc + (Number(item.cantidad) || 1); }, 0)
+                });
+            }
 
             // GA4: begin_checkout. Se mide en el mismo punto y con el mismo
             // "una vez por visita", pero en su propia llamada: cada plataforma
             // es independiente y ninguna puede tumbar a la otra.
+            // GA4 va con TODOS los productos: Google no tiene esta restricción.
             FlowCart.trackGA4Event('begin_checkout', {
                 currency: 'COP',
                 value: FlowCart.subtotal(items),
@@ -1149,6 +1158,13 @@
             notas: d.indicaciones.trim(),
             tienda: 'FlowColombia',
             productos: productosTexto,
+            // IDs de producto del pedido. El backend los usa para decidir si
+            // puede enviar el Purchase a la API de Conversiones de Meta: si
+            // alguno está marcado como «ocultar a Meta», no envía nada. No se
+            // guardan en la base de datos (Pedido.productosIds es @Transient).
+            productosIds: items
+                .map(function (rawItem) { return Number(rawItem.productoId); })
+                .filter(function (id) { return isFinite(id) && id > 0; }),
             total: FlowCart.subtotal(items),
             metodoPago: 'Contra entrega'
         };
@@ -1158,8 +1174,9 @@
      * Pinta la confirmación y dispara los eventos de compra.
      *
      * @param codigo      código del pedido (lo devuelve el backend)
-     * @param datosCompra contenido y valor capturados ANTES de vaciar el
-     *                    carrito; se usan para el evento del píxel
+     * @param datosCompra contenido y valor SOLO de los productos que pueden
+     *                    viajar a Meta; {@code null} si todo el pedido es
+     *                    sensible y el píxel no debe dispararse
      * @param datosGA4    misma compra en el esquema de GA4 (items[] incluidos),
      *                    también capturada antes de vaciar el carrito
      */
@@ -1173,8 +1190,14 @@
         // META PÍXEL: Purchase con eventID = código del pedido.
         // El backend (API de Conversiones) manda el MISMO event_name con el
         // MISMO event_id. Meta los une y cuenta la venta UNA sola vez.
+        //
+        // Si `datosCompra` viene null es porque TODOS los productos del
+        // pedido están excluidos de Meta: no se dispara nada. El backend
+        // aplica su propia regla (más estricta) y tampoco envía la CAPI.
         // ============================================================
-        FlowCart.trackMeta('Purchase', datosCompra || {}, codigo);
+        if (datosCompra) {
+            FlowCart.trackMeta('Purchase', datosCompra, codigo);
+        }
 
         // ============================================================
         // GA4: purchase
@@ -1277,18 +1300,25 @@
                     // Se capturan los datos del carrito ANTES de vaciarlo:
                     // el píxel necesita el valor y los artículos del pedido.
                     const itemsComprados = itemsCarrito();
-                    const datosPixel = {
-                        content_ids: itemsComprados.map(function (item) { return item.sku || item.nombre; }),
+
+                    // META PÍXEL: Purchase SOLO con los productos que no
+                    // están excluidos (salud íntima / suplementos). Si todo
+                    // el pedido es sensible, datosPixel queda en null y el
+                    // navegador no dispara el píxel.
+                    const itemsMeta = FlowCart.itemsParaMeta(itemsComprados);
+                    const datosPixel = itemsMeta.length ? {
+                        content_ids: itemsMeta.map(function (item) { return item.sku || item.nombre; }),
                         content_type: 'product',
-                        value: FlowCart.subtotal(itemsComprados),
+                        value: FlowCart.subtotal(itemsMeta),
                         currency: 'COP',
-                        num_items: itemsComprados.reduce(function (acc, item) {
+                        num_items: itemsMeta.reduce(function (acc, item) {
                             return acc + (Number(item.cantidad) || 1);
                         }, 0)
-                    };
+                    } : null;
 
                     // GA4 necesita además el transaction_id y los items[]
                     // completos; se arma aquí, con el carrito todavía lleno.
+                    // GA4 mide TODOS los productos, excluidos o no.
                     const datosGA4 = {
                         transaction_id: data.codigo,
                         currency: 'COP',

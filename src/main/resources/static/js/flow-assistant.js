@@ -342,7 +342,10 @@
                 color: '',
                 talla: '',
                 productoId: producto.id != null ? producto.id : null,
-                url: producto.slug ? ('/producto/' + producto.slug) : ''
+                url: producto.slug ? ('/producto/' + producto.slug) : '',
+                // Producto sensible (salud íntima / suplementos): viaja
+                // marcado al carrito para que flow-cart.js no lo envíe a Meta.
+                excluirMeta: producto.excluirMeta === true
             }, { title: 'Añadido desde el chat' });
         } catch (e) {
             console.error('Asistente: no se pudo agregar al carrito', e);

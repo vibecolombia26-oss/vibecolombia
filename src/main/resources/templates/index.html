@@ -1286,7 +1286,7 @@
                         <span class="product-price"
                               th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</span>
                         <button type="button" class="btn-add"
-                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id},data-url=@{/producto/{slug}(slug=${producto.slug})}">
+                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id},data-url=@{/producto/{slug}(slug=${producto.slug})},data-excluir-meta=${producto.excluirMeta}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"></path>
@@ -1424,13 +1424,17 @@
 <!-- ============================================================
      SCRIPTS DE LA TIENDA
      ============================================================ -->
-<script th:src="@{/js/flow-cart.js(v=4)}" src="/js/flow-cart.js"></script>
-<script th:src="@{/js/flow-assistant.js(v=5)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/flow-cart.js(v=5)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=6)}" src="/js/flow-assistant.js"></script>
 <script>
     // ============================================================
     // AGREGAR AL CARRITO (misma firma y mismo localStorage)
+    // ------------------------------------------------------------
+    // `excluirMeta` viaja como atributo data-* desde la tarjeta y se guarda
+    // en la línea del carrito. flow-cart.js lo usa para no enviar a Meta los
+    // productos sensibles (salud íntima/suplementos); GA4 los mide igual.
     // ============================================================
-    function agregarAlCarrito(nombre, precio, imagen, productoId, urlProducto) {
+    function agregarAlCarrito(nombre, precio, imagen, productoId, urlProducto, excluirMeta) {
         const id = (productoId != null && productoId !== '') ? Number(productoId) : null;
         FlowCart.add({
             sku: '',
@@ -1442,7 +1446,8 @@
             talla: '',
             productoId: id,
             // URL amigable con slug (la envía Thymeleaf en data-url)
-            url: urlProducto || (id ? ('/producto/' + id) : '')
+            url: urlProducto || (id ? ('/producto/' + id) : ''),
+            excluirMeta: excluirMeta === true || excluirMeta === 'true'
         }, { title: 'Añadido al carrito' });
     }
 
@@ -1454,7 +1459,8 @@
             Number(btn.dataset.precio) || 0,
             btn.dataset.imagen || '',
             btn.dataset.productoId,
-            btn.dataset.url || ''
+            btn.dataset.url || '',
+            btn.dataset.excluirMeta
         );
     });
 

@@ -48,7 +48,12 @@
             color: String(item.color || ''),
             talla: String(item.talla || ''),
             productoId: (item.productoId === 0 || item.productoId) ? item.productoId : null,
-            url: item.url ? String(item.url) : ''
+            url: item.url ? String(item.url) : '',
+            // Meta: la marca viaja con la línea del carrito. Se acepta
+            // booleano (ficha de producto) o el string "true" que llega
+            // desde los data-* de la portada. Cualquier otra cosa es false:
+            // solo un "true" explícito excluye el producto.
+            excluirMeta: item.excluirMeta === true || item.excluirMeta === 'true'
         };
     }
 
@@ -131,6 +136,38 @@
         } catch (e) {
             console.warn('Meta Pixel: no se pudo registrar ' + evento, e);
         }
+    }
+
+    /* ------------------------------------------------------------
+       EXCLUSIÓN DE META (salud íntima / suplementos)
+       ------------------------------------------------------------
+       Meta prohíbe enviar datos de productos sensibles a su píxel y a su
+       API de Conversiones: una sola venta mal medida puede costar la
+       cuenta publicitaria. Por eso el administrador puede marcar cada
+       producto con «Ocultar a Meta» (campo excluirMeta).
+
+       La marca se copia a la línea del carrito al añadir el producto y se
+       respeta en TODOS los eventos de Meta (AddToCart, InitiateCheckout y
+       Purchase). Google Analytics 4 se queda fuera de este filtro: no se
+       toca ninguna llamada a trackGA4Event.
+       ------------------------------------------------------------ */
+
+    /** ¿Esta línea del carrito está excluida de Meta? */
+    function esExcluidoMeta(item) {
+        return normalize(item).excluirMeta === true;
+    }
+
+    /**
+     * Líneas que SÍ pueden viajar a Meta (las que no están excluidas).
+     *
+     * @param {Array} items carrito; si no se pasa, se lee de localStorage
+     * @returns {Array} subconjunto seguro para el píxel (puede estar vacío)
+     */
+    function itemsParaMeta(items) {
+        var lista = items || read();
+        return lista.filter(function (item) {
+            return !esExcluidoMeta(item);
+        });
     }
 
     /* ------------------------------------------------------------
@@ -233,6 +270,10 @@
             items[index].imagen = nuevo.imagen || items[index].imagen;
             items[index].url = items[index].url || nuevo.url;
             items[index].productoId = items[index].productoId !== null ? items[index].productoId : nuevo.productoId;
+            // La exclusión es pegajosa: si la línea ya estaba marcada (o el
+            // alta actual lo está), se queda marcada. Así un producto
+            // sensible nunca se «desmarca» al volver a añadirlo.
+            items[index].excluirMeta = items[index].excluirMeta === true || nuevo.excluirMeta === true;
         } else {
             items.push(nuevo);
         }
@@ -241,14 +282,20 @@
 
         // Meta Pixel: AddToCart (solo cuando el alta es real; el guard de
         // doble disparo de arriba ya descartó los clics repetidos).
-        trackMeta('AddToCart', {
-            content_ids: [nuevo.sku || nuevo.nombre],
-            content_name: nuevo.nombre,
-            content_type: 'product',
-            value: (Number(nuevo.precio) || 0) * (Number(nuevo.cantidad) || 1),
-            currency: 'COP',
-            num_items: Number(nuevo.cantidad) || 1
-        });
+        //
+        // SEGURIDAD: un producto marcado como «ocultar a Meta» (salud
+        // íntima / sensible) NO se envía al píxel. No se manda una versión
+        // «parcial» del evento: simplemente no hay AddToCart.
+        if (!esExcluidoMeta(nuevo)) {
+            trackMeta('AddToCart', {
+                content_ids: [nuevo.sku || nuevo.nombre],
+                content_name: nuevo.nombre,
+                content_type: 'product',
+                value: (Number(nuevo.precio) || 0) * (Number(nuevo.cantidad) || 1),
+                currency: 'COP',
+                num_items: Number(nuevo.cantidad) || 1
+            });
+        }
 
         // GA4: add_to_cart. Va en su propia llamada (y con sus propios
         // try/catch) a propósito: si Meta falla, GA4 sigue midiendo; y si
@@ -728,7 +775,11 @@
         toast: toast,
         trackMeta: trackMeta,
         trackGA4Event: trackGA4Event,
-        ga4Item: ga4Item
+        ga4Item: ga4Item,
+        // Filtro de Meta (salud íntima / suplementos): el checkout y
+        // cualquier otra vista lo reutilizan en lugar de repetir la regla.
+        esExcluidoMeta: esExcluidoMeta,
+        itemsParaMeta: itemsParaMeta
     };
 
     if (document.readyState === 'loading') {

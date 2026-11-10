@@ -1516,8 +1516,8 @@
     <button type="button" class="flow-lightbox__nav flow-lightbox__nav--next" id="lightboxNext" aria-label="Imagen siguiente">›</button>
 </div>
 
-<script th:src="@{/js/flow-cart.js(v=4)}" src="/js/flow-cart.js"></script>
-<script th:src="@{/js/flow-assistant.js(v=5)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/flow-cart.js(v=5)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-assistant.js(v=6)}" src="/js/flow-assistant.js"></script>
 <script th:inline="javascript">
     // ============================================================
     // DATOS DE LA VISTA (DTOs planos del controlador)
@@ -1528,6 +1528,10 @@
     const productoNombre = /*[[${producto.nombre}]]*/ '';
     const productoUrl = /*[[${urlProducto}]]*/ '/';
     const precioBase = Number(/*[[${producto.precio}]]*/ 0) || 0;
+    /* Seguridad de Meta: el producto es de salud íntima/sensible y no debe
+       viajar al píxel ni a la CAPI. Viaja con cada línea del carrito para que
+       flow-cart.js y el checkout puedan filtrarlo más tarde. */
+    const productoExcluidoMeta = /*[[${producto.excluirMeta}]]*/ false;
 
     let varianteSeleccionada = null;
     let colorSeleccionado = null;
@@ -2088,7 +2092,11 @@
             color: varianteSeleccionada.color || '',
             talla: varianteSeleccionada.talla || '',
             productoId: productoId,
-            url: productoUrl
+            url: productoUrl,
+            // La marca viaja en la línea del carrito: así AddToCart,
+            // InitiateCheckout y Purchase pueden excluirla sin volver al
+            // servidor. Google Analytics 4 la ignora a propósito.
+            excluirMeta: productoExcluidoMeta === true
         };
     }
 
@@ -2166,10 +2174,16 @@
         // ============================================================
         // META PÍXEL: ViewContent de esta ficha
         // content_ids usa el SKU real del producto y value el precio base.
+        //
+        // SEGURIDAD DE CUENTA: si el producto está marcado como «ocultar a
+        // Meta» (salud íntima / sensible) el bloque NI SIQUIERA SE RENDERIZA.
+        // La condición es de servidor (th:if), así que el navegador no
+        // recibe el código y no puede disparar el píxel. GA4 sigue midiendo.
         // ============================================================
         const skuPixel = /*[[${producto.sku}]]*/ '';
         const precioPixel = /*[[${producto.precio}]]*/ 0;
 
+        /*[# th:if="${!producto.excluirMeta}"]*/
         if (skuPixel) {
             FlowCart.trackMeta('ViewContent', {
                 content_ids: [skuPixel],
@@ -2179,6 +2193,7 @@
                 currency: 'COP'
             });
         }
+        /*[/]*/
 
         // ============================================================
         // GA4: view_item

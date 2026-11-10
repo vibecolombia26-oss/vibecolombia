@@ -496,6 +496,11 @@ public class ProductoService {
             productoGuardado.setTieneTalla(productoForm.getTieneTalla());
             productoGuardado.setTieneVariaciones(productoForm.getTieneVariaciones());
             productoGuardado.setVariacionesDisponibles(productoForm.getVariacionesDisponibles());
+            // Flag manual de seguridad para Meta (checkbox del formulario).
+            // Va aquí porque al editar NO se guarda el formulario entero: solo
+            // se copian los campos editables a la entidad gestionada. Sin esta
+            // línea el checkbox se vería marcado y el valor nunca se aplicaría.
+            productoGuardado.setExcluirMeta(productoForm.getExcluirMeta());
             productoGuardado.setImagen1(productoForm.getImagen1());
             productoGuardado.setImagen2(productoForm.getImagen2());
             productoGuardado.setImagen3(productoForm.getImagen3());
