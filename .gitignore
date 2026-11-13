@@ -27,7 +27,12 @@ build/
 !**/src/test/**/build/
 ### VS Code ###
 .vscode/
+### Bases de datos locales (nunca subir: datos y hashes) ###
 data/
+*.mv.db
+*.trace.db
+*.h2.db
+*.lock.db
 ### Secretos locales (nunca subir) ###
 .env
 .env.local
