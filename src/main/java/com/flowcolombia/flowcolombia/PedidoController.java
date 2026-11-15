@@ -154,12 +154,16 @@ public class PedidoController {
 
         if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
             try {
-                emailService.enviarConfirmacion(
-                        pedido.getEmail(),
-                        pedido.getCodigo(),
-                        pedido.getProductos(),
-                        pedido.getTotal()
-                );
+                if (esPedidoCtb234(pedido)) {
+                    emailService.enviarConfirmacionCtb234(pedido);
+                } else {
+                    emailService.enviarConfirmacion(
+                            pedido.getEmail(),
+                            pedido.getCodigo(),
+                            pedido.getProductos(),
+                            pedido.getTotal()
+                    );
+                }
             } catch (Exception e) {
                 System.err.println("❌ Error al enviar correo: " + e.getMessage());
             }
@@ -183,6 +187,9 @@ public class PedidoController {
         if (contieneProductosOcultosAMeta(pedidoGuardado)) {
             System.out.println("🚫 Meta CAPI: pedido " + pedidoGuardado.getCodigo()
                     + " contiene productos excluidos de Meta. No se envía el Purchase.");
+        } else if (contieneProductosConPurchaseBloqueado(pedidoGuardado)) {
+            System.out.println("⏸️ Meta CAPI: pedido " + pedidoGuardado.getCodigo()
+                    + " contiene productos con Purchase bloqueado. No se envía el Purchase.");
         } else {
             metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
         }
@@ -251,6 +258,74 @@ public class PedidoController {
     }
 
     /**
+     * ¿El pedido lleva algún producto que bloquea <strong>solo</strong> el
+     * {@code Purchase} de Meta?
+     *
+     * <p>Es la regla de los productos contraentrega (COD): el pedido se puede
+     * medir en el embudo ({@code ViewContent}, {@code AddToCart},
+     * {@code InitiateCheckout}) y Google Analytics 4 lo mide entero, pero el
+     * {@code Purchase} no se envía a Meta al crear el pedido: para COD, un
+     * formulario enviado todavía no es una venta, y medirlo como tal le enseña
+     * al algoritmo a buscar «form-fillers» en vez de «pagadores».</p>
+     *
+     * <p>Se comprueba en dos pasos, de más fiable a menos, igual que
+     * {@link #contieneProductosOcultosAMeta(Pedido)}:</p>
+     * <ol>
+     *   <li><strong>Por ID</strong> ({@code pedido.productosIds}): lo envía el
+     *       checkout y es la fuente autoritativa. Una sola consulta por pedido
+     *       y sin depender del texto.</li>
+     *   <li><strong>Por nombre</strong> ({@code findNombresBloqueanPurchase}):
+     *       respaldo para carritos antiguos o clientes que no mandan los
+     *       IDs; busca el nombre de cada producto bloqueado dentro del texto
+     *       del pedido.</li>
+     * </ol>
+     *
+     * <p>La decisión de no enviar es binaria por pedido: para Meta el pedido y
+     * su valor son indivisibles, así que si una sola línea bloquea el
+     * {@code Purchase}, no se envía la versión «parcial». Esto no afecta a
+     * {@code excluirMeta}, que se evalúa antes y corta todos los eventos.</p>
+     *
+     * @param pedido pedido recién guardado
+     * @return {@code true} si el {@code Purchase} de este pedido no debe
+     *         enviarse a Meta
+     */
+    boolean contieneProductosConPurchaseBloqueado(Pedido pedido) {
+        if (pedido == null) {
+            return false;
+        }
+
+        // 1. IDs enviados por el checkout (autoritativo).
+        List<Long> ids = pedido.getProductosIds();
+        if (ids != null && !ids.isEmpty()) {
+            for (Producto producto : productoRepository.findAllById(ids)) {
+                if (Boolean.TRUE.equals(producto.getBloquearPurchaseMeta())) {
+                    return true;
+                }
+            }
+        }
+
+        // 2. Respaldo por nombre, para pedidos sin IDs.
+        List<String> nombresBloqueados = productoRepository.findNombresBloqueanPurchase();
+        if (nombresBloqueados.isEmpty()) {
+            return false;
+        }
+
+        String detalle = normalizarTexto(pedido.getProductos());
+        if (detalle.isEmpty()) {
+            return false;
+        }
+
+        for (String nombre : nombresBloqueados) {
+            String buscado = normalizarTexto(nombre);
+            // Nombres de una letra no pueden comprobarse sin falsos positivos.
+            if (buscado.length() >= 3 && detalle.contains(buscado)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Texto comparable: minúsculas, sin tildes y con los espacios colapsados.
      * Es el mismo criterio para el detalle del pedido y para el nombre del
      * catálogo, así «Crema Íntima» y «crema intima x1» se reconocen.
@@ -264,6 +339,39 @@ public class PedidoController {
                 .toLowerCase(Locale.ROOT)
                 .replaceAll("\\s+", " ")
                 .trim();
+    }
+
+    /**
+     * ¿El pedido contiene el producto CTB-234?
+     *
+     * <p>Se detecta por el código en el texto del pedido
+     * ({@code Pedido.productos}) <strong>o</strong> por el SKU cuando llegan
+     * los IDs. Basta con que UNA de las dos vías lo reconozca.</p>
+     *
+     * <p>Es el interruptor del correo específico del lanzamiento: ese pedido
+     * lleva la garantía de 48 horas para reportar defectos de fábrica en el
+     * propio correo de confirmación. El resto de pedidos mantiene el correo
+     * genérico.</p>
+     *
+     * <p>El fallback por texto usa {@link #normalizarTexto(String)}, así que
+     * reconoce «CTB-234» aunque llegue con mayúsculas o con espacios de más.
+     * También acepta el nombre del producto porque los carritos antiguos no
+     * enviaban IDs ni SKU en el detalle.</p>
+     *
+     * @param pedido pedido recién creado
+     * @return {@code true} si el pedido incluye CTB-234
+     */
+    private boolean esPedidoCtb234(Pedido pedido) {
+        if (pedido == null) return false;
+        // Por IDs (autoritativo si viene)
+        if (pedido.getProductosIds() != null && !pedido.getProductosIds().isEmpty()) {
+            for (Producto p : productoRepository.findAllById(pedido.getProductosIds())) {
+                if ("CTB-234".equalsIgnoreCase(p.getSku())) return true;
+            }
+        }
+        // Por texto (fallback para carritos antiguos o sin IDs)
+        String detalle = normalizarTexto(pedido.getProductos());
+        return detalle.contains("ctb-234") || detalle.contains("destornillador");
     }
 
     /**

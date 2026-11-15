@@ -125,4 +125,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      */
     @Query("SELECT p.nombre FROM Producto p WHERE p.excluirMeta = TRUE AND p.nombre IS NOT NULL")
     List<String> findNombresExcluidosMeta();
+
+    /**
+     * Nombres de productos que bloquean SOLO el Purchase de Meta.
+     * El resto de eventos (ViewContent, AddToCart, InitiateCheckout)
+     * se disparan con normalidad.
+     *
+     * <p>Mismo uso que {@link #findNombresExcluidosMeta()}: es el respaldo
+     * para los pedidos que llegan sin {@code productosIds}. Trae una sola
+     * columna, así que no inicializa entidades ni colecciones.</p>
+     */
+    @Query("SELECT p.nombre FROM Producto p WHERE p.bloquearPurchaseMeta = TRUE AND p.nombre IS NOT NULL")
+    List<String> findNombresBloqueanPurchase();
 }

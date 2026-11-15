@@ -36,9 +36,10 @@ class PedidoControllerMetaTest {
     @BeforeEach
     void preparar() {
         catalogo.clear();
-        // Por defecto: catálogo sin productos excluidos.
+        // Por defecto: catálogo sin productos excluidos ni con Purchase bloqueado.
         catalogo.put("findAllById", args -> List.of());
         catalogo.put("findNombresExcluidosMeta", args -> List.of());
+        catalogo.put("findNombresBloqueanPurchase", args -> List.of());
 
         // Los servicios que este método no usa se pasan como null a propósito:
         // si algún día se tocan, la prueba estalla en vez de pasar en falso.
@@ -55,6 +56,14 @@ class PedidoControllerMetaTest {
         producto.setId(id);
         producto.setNombre(nombre);
         producto.setExcluirMeta(excluirMeta);
+        return producto;
+    }
+
+    /** Producto con las dos marcas de Meta (exclusión total y bloqueo de Purchase). */
+    private static Producto productoMeta(Long id, String nombre,
+                                         boolean excluirMeta, boolean bloquearPurchaseMeta) {
+        Producto producto = producto(id, nombre, excluirMeta);
+        producto.setBloquearPurchaseMeta(bloquearPurchaseMeta);
         return producto;
     }
 
@@ -122,6 +131,58 @@ class PedidoControllerMetaTest {
 
         assertFalse(controlador.contieneProductosOcultosAMeta(orden),
                 "solo bloquea si el producto excluido está realmente en el pedido");
+    }
+
+    @Test
+    @DisplayName("Producto con bloquearPurchaseMeta (por ID): no se envía el Purchase")
+    void bloqueaPurchaseMetaPorId() {
+        catalogo.put("findAllById", args -> List.of(
+                productoMeta(9L, "Destornillador de Impacto", false, true)));
+
+        Pedido orden = pedido("Destornillador de Impacto x1 - $89.900", 9L);
+
+        assertTrue(controlador.contieneProductosConPurchaseBloqueado(orden),
+                "un producto contraentrega no debe mandar el Purchase a Meta");
+        assertFalse(controlador.contieneProductosOcultosAMeta(orden),
+                "bloquearPurchaseMeta no es excluirMeta: el producto no está vetado de Meta");
+    }
+
+    @Test
+    @DisplayName("Pedido solo con productos normales: el Purchase se envía")
+    void permitePurchaseMetaSiTodoEsSeguro() {
+        catalogo.put("findAllById", args -> List.of(
+                productoMeta(1L, "Mochila Táctica", false, false)));
+
+        Pedido orden = pedido("Mochila Táctica x1 - $89.900", 1L);
+
+        assertFalse(controlador.contieneProductosConPurchaseBloqueado(orden),
+                "sin marcas de bloqueo el Purchase debe enviarse con normalidad");
+    }
+
+    @Test
+    @DisplayName("Con las dos marcas, excluirMeta sigue teniendo prioridad")
+    void excluirMetaTienePrioridad() {
+        catalogo.put("findAllById", args -> List.of(
+                productoMeta(3L, "Crema Íntima", true, true)));
+
+        Pedido orden = pedido("Crema Íntima x1 - $59.900", 3L);
+
+        assertTrue(controlador.contieneProductosOcultosAMeta(orden),
+                "excluirMeta debe seguir cortando TODOS los eventos de Meta");
+        assertTrue(controlador.contieneProductosConPurchaseBloqueado(orden),
+                "el segundo flag también está marcado en ese producto");
+    }
+
+    @Test
+    @DisplayName("Carrito sin IDs: el bloqueo del Purchase también se detecta por nombre")
+    void bloqueaPurchaseMetaPorNombre() {
+        catalogo.put("findNombresBloqueanPurchase", args -> List.of("Destornillador de Impacto Manual"));
+
+        // Sin IDs (cliente viejo), en mayúsculas y con el precio pegado.
+        Pedido orden = pedido("DESTORNILLADOR DE IMPACTO MANUAL x1 - $89.900");
+
+        assertTrue(controlador.contieneProductosConPurchaseBloqueado(orden),
+                "el respaldo por nombre debe frenar el Purchase de los pedidos sin IDs");
     }
 
     /**

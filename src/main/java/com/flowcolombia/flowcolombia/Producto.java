@@ -143,6 +143,41 @@ public class Producto {
     @Column(name = "excluir_meta")
     private Boolean excluirMeta = false;
 
+    /**
+     * «Bloquear el Purchase de Meta»: el producto se puede medir con
+     * normalidad en el embudo, pero <strong>no puede viajar en el evento
+     * {@code Purchase}</strong> (ni al píxel del navegador ni a la API de
+     * Conversiones).
+     *
+     * <p>Se usa en productos <strong>contraentrega (COD)</strong>: con COD, el
+     * formulario enviado no es una venta, y mandar cada formulario como
+     * {@code Purchase} le enseña a Meta a buscar «personas que llenan
+     * formularios» en lugar de «personas que pagan». La intención se sigue
+     * midiendo (ViewContent, AddToCart, InitiateCheckout), pero el
+     * {@code Purchase} se reserva hasta que el pedido se marque como
+     * entregado.</p>
+     *
+     * <p><strong>Diferencia con {@link #getExcluirMeta()}:</strong>
+     * {@code excluirMeta} es un interruptor de seguridad total —el producto
+     * no viaja en NINGÚN evento de Meta—; {@code bloquearPurchaseMeta} solo
+     * frena el {@code Purchase}. Los otros tres eventos
+     * ({@code ViewContent}, {@code AddToCart}, {@code InitiateCheckout}) se
+     * disparan igual que para cualquier producto. Un producto con
+     * {@code excluirMeta = true} nunca necesita este flag: ya está fuera de
+     * Meta por completo.</p>
+     *
+     * <p><strong>Nota de despliegue:</strong> la columna se crea anulable a
+     * propósito ({@code ddl-auto=update} no puede añadir un {@code NOT NULL}
+     * a una tabla con filas). Las filas antiguas quedan en {@code NULL} y
+     * tanto {@link #getBloquearPurchaseMeta()} como
+     * {@link #setBloquearPurchaseMeta(Boolean)} lo tratan como
+     * {@code false}: un producto nunca se bloquea por accidente. Después se
+     * puede endurecer con:</p>
+     * <pre>UPDATE producto SET bloquear_purchase_meta = FALSE WHERE bloquear_purchase_meta IS NULL;</pre>
+     */
+    @Column(name = "bloquear_purchase_meta")
+    private Boolean bloquearPurchaseMeta = false;
+
     // ============================================================
     // NUEVAS RELACIONES (MODELO NORMALIZADO)
     // ============================================================
@@ -406,6 +441,31 @@ public class Producto {
         this.excluirMeta = Boolean.TRUE.equals(excluirMeta);
     }
 
+    /**
+     * ¿Este producto bloquea el {@code Purchase} de Meta?
+     *
+     * <p>Igual que {@code getExcluirMeta()}, devuelve siempre un booleano
+     * definido: las filas antiguas pueden tener la columna a {@code NULL} y
+     * eso significa «no bloquear». El checkout usa
+     * {@code Boolean.TRUE.equals(...)} y la plantilla espera un booleano
+     * real.</p>
+     *
+     * @return {@code true} si el Purchase del pedido que lo contenga no debe
+     *         enviarse ni al píxel ni a la CAPI
+     */
+    public Boolean getBloquearPurchaseMeta() {
+        return Boolean.TRUE.equals(bloquearPurchaseMeta);
+    }
+
+    /**
+     * Marca o desmarca el bloqueo del {@code Purchase}. {@code null}
+     * (checkbox sin marcar llegando de un formulario antiguo) se guarda como
+     * {@code false}: el valor por defecto es «sí se puede medir la compra».
+     */
+    public void setBloquearPurchaseMeta(Boolean valor) {
+        this.bloquearPurchaseMeta = Boolean.TRUE.equals(valor);
+    }
+
     // ============================================================
     // GETTERS Y SETTERS DE NUEVAS RELACIONES
     // ============================================================
@@ -593,6 +653,7 @@ public class Producto {
                 ", precio=" + precio +
                 ", categoria='" + categoria + '\'' +
                 ", excluirMeta=" + getExcluirMeta() +
+                ", bloquearPurchaseMeta=" + getBloquearPurchaseMeta() +
                 ", variantes=" + (variantes != null ? variantes.size() : 0) +
                 ", imagenes=" + (imagenes != null ? imagenes.size() : 0) +
                 '}';

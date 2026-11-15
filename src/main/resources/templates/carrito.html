@@ -981,7 +981,41 @@
         });
     }
 
+    /* ============================================================
+       EVENTOS CUSTOM POR PASO DEL CHECKOUT (CheckoutStep1..4)
+       ------------------------------------------------------------
+       Se disparan una sola vez por visita y por paso: si el cliente
+       vuelve atrás y avanza de nuevo, el Set evita eventos repetidos
+       (Meta los contaría como pasos distintos y ensuciaría el embudo).
+       En Meta son eventos CUSTOM: hay que registrarlos como
+       conversiones personalizadas en Events Manager (paso manual del
+       dueño, no de código). GA4 los recibe ya, sin configuración.
+       ============================================================ */
+    const pasosDisparados = new Set();
+
+    function dispararEventoPaso(paso) {
+        // Regla: un evento por paso, con el número en el payload.
+        // No se repite si el usuario vuelve atrás y adelante (se guarda
+        // en un Set en memoria).
+        if (pasosDisparados.has(paso)) return;
+        pasosDisparados.add(paso);
+
+        FlowCart.trackMeta('CheckoutStep' + paso, {
+            step: paso,
+            content_ids: ['CTB-234'],
+            content_type: 'product'
+        });
+
+        FlowCart.trackGA4Event('checkout_step_' + paso, {
+            step: paso,
+            currency: 'COP'
+        });
+    }
+
     function mostrarPaso(paso) {
+        // Medición del embudo: cada paso del wizard deja su evento.
+        dispararEventoPaso(paso);
+
         checkoutState.step = paso;
         guardarEstadoCheckout();
 
@@ -1200,6 +1234,36 @@
         }
 
         // ============================================================
+        // META PÍXEL: OrderPlaced (evento CUSTOM)
+        // Dispara SIEMPRE que el pedido se guarda en la base de datos y el
+        // backend devuelve su código de rastreo, aunque el Purchase se haya
+        // reservado (producto contraentrega) o toda la compra sea sensible.
+        // Sirve para contar formularios enviados sin contaminar el modelo de
+        // conversión de Meta: el Purchase queda para cuando el pedido se
+        // entregue. En Meta hay que registrarlo como conversión
+        // personalizada en Events Manager.
+        // ============================================================
+        FlowCart.trackMeta('OrderPlaced', {
+            content_ids: ['CTB-234'],
+            content_type: 'product',
+            value: 89900,
+            currency: 'COP',
+            order_id: codigo
+        });
+
+        FlowCart.trackGA4Event('order_placed', {
+            transaction_id: codigo,
+            currency: 'COP',
+            value: 89900,
+            items: [{
+                item_id: 'CTB-234',
+                item_name: 'Destornillador de Impacto Manual x 13 Piezas',
+                price: 89900,
+                quantity: 1
+            }]
+        });
+
+        // ============================================================
         // GA4: purchase
         // transaction_id = código del pedido (FLOW-XXXX). GA4 deduplica por
         // ese id exactamente igual que el píxel con su eventID, así que
@@ -1306,7 +1370,11 @@
                     // el pedido es sensible, datosPixel queda en null y el
                     // navegador no dispara el píxel.
                     const itemsMeta = FlowCart.itemsParaMeta(itemsComprados);
-                    const datosPixel = itemsMeta.length ? {
+                    // Bloqueo del Purchase (contraentrega): si el pedido lleva
+                    // una línea marcada, el píxel no dispara la venta. Los
+                    // demás eventos de Meta y todo GA4 siguen midiéndose.
+                    const itemsBloquean = FlowCart.itemsBloqueanPurchase(itemsComprados);
+                    const datosPixel = (itemsMeta.length && itemsBloquean.length === 0) ? {
                         content_ids: itemsMeta.map(function (item) { return item.sku || item.nombre; }),
                         content_type: 'product',
                         value: FlowCart.subtotal(itemsMeta),

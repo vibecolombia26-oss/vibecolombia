@@ -53,7 +53,12 @@
             // booleano (ficha de producto) o el string "true" que llega
             // desde los data-* de la portada. Cualquier otra cosa es false:
             // solo un "true" explícito excluye el producto.
-            excluirMeta: item.excluirMeta === true || item.excluirMeta === 'true'
+            excluirMeta: item.excluirMeta === true || item.excluirMeta === 'true',
+            // Bloqueo SOLO del Purchase (productos contraentrega): la línea
+            // viaja al checkout con la marca y allí se decide si el píxel
+            // puede disparar la compra. Igual que excluirMeta, solo un
+            // "true" explícito bloquea; cualquier otra cosa no bloquea nada.
+            bloquearPurchaseMeta: item.bloquearPurchaseMeta === true || item.bloquearPurchaseMeta === 'true'
         };
     }
 
@@ -170,6 +175,25 @@
         });
     }
 
+    /**
+     * Líneas que bloquean SOLO el Purchase de Meta.
+     *
+     * <p>Son productos contraentrega (COD): se pueden medir en el embudo
+     * (ViewContent, AddToCart, InitiateCheckout), pero no se mandan como
+     * Purchase hasta que el pedido esté entregado. La lista es independiente
+     * de {@link itemsParaMeta}: un producto excluido no llega ni a
+     * AddToCart, mientras que uno que bloquea el Purchase sí.</p>
+     *
+     * @param {Array} items carrito; si no se pasa, se lee de localStorage
+     * @returns {Array} líneas con {@code bloquearPurchaseMeta === true}
+     */
+    function itemsBloqueanPurchase(items) {
+        var lista = items || read();
+        return lista.filter(function (item) {
+            return normalize(item).bloquearPurchaseMeta === true;
+        });
+    }
+
     /* ------------------------------------------------------------
        Google Analytics 4 (opcional)
        ------------------------------------------------------------
@@ -274,6 +298,11 @@
             // alta actual lo está), se queda marcada. Así un producto
             // sensible nunca se «desmarca» al volver a añadirlo.
             items[index].excluirMeta = items[index].excluirMeta === true || nuevo.excluirMeta === true;
+            // Misma regla para el bloqueo del Purchase: si cualquiera de las
+            // dos altas lo marca, la línea queda bloqueada. Al revés que
+            // excluirMeta, no impide AddToCart; solo frena el Purchase.
+            items[index].bloquearPurchaseMeta = items[index].bloquearPurchaseMeta === true
+                || nuevo.bloquearPurchaseMeta === true;
         } else {
             items.push(nuevo);
         }
@@ -779,7 +808,10 @@
         // Filtro de Meta (salud íntima / suplementos): el checkout y
         // cualquier otra vista lo reutilizan en lugar de repetir la regla.
         esExcluidoMeta: esExcluidoMeta,
-        itemsParaMeta: itemsParaMeta
+        itemsParaMeta: itemsParaMeta,
+        // Filtro del Purchase (productos contraentrega): el checkout lo usa
+        // para no disparar la venta en el píxel antes de la entrega.
+        itemsBloqueanPurchase: itemsBloqueanPurchase
     };
 
     if (document.readyState === 'loading') {

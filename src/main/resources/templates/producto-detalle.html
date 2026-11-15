@@ -1219,7 +1219,7 @@
 
                 <div class="pdp__benefit">
                     <span class="pdp__benefit-icon" aria-hidden="true">🛡️</span>
-                    <span><strong>Con Garantía Flow:</strong> 10 días por defectos de fábrica, sin letra menuda.</span>
+                    <span><strong>Con Garantía Flow:</strong> 48 horas para reportar defectos de fábrica, sin letra menuda.</span>
                 </div>
 
                 <div class="pdp__benefit">
@@ -1337,10 +1337,10 @@
 
                 <!-- NO CALZADO: reversión del riesgo justo antes del botón -->
                 <div class="pdp__guarantee" th:unless="${esCalzado}">
-                    <span class="pdp__guarantee-seal" aria-hidden="true"><b>10</b><span>días</span></span>
+                    <span class="pdp__guarantee-seal" aria-hidden="true"><b>48</b><span>horas</span></span>
                     <div class="pdp__guarantee-text">
-                        <strong>Garantía Flow · 10 días para devoluciones</strong>
-                        <span>Por defectos de fábrica. Nos escribes y lo resolvemos sin vueltas ni formularios.</span>
+                        <strong>Garantía Flow · 48 horas para reportar defectos de fábrica</strong>
+                        <span>Contadas desde la entrega y reportadas por WhatsApp. Nos escribes y lo resolvemos sin vueltas ni formularios.</span>
                     </div>
                 </div>
 
@@ -1419,7 +1419,7 @@
                         <li><strong>Envío gratis</strong> a todo Colombia, sin monto mínimo de compra.</li>
                         <li><strong>Entrega:</strong> 2 a 4 días hábiles en ciudades principales, 4 a 7 en el resto del país y hasta 10 en zonas rurales.</li>
                         <li><strong>Pago contra entrega en efectivo:</strong> pagas el total al momento de recibir; ten el dinero listo para la transportadora.</li>
-                        <li><strong>Garantía:</strong> 10 días por defectos de fábrica. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso; el envío de devolución corre por tu cuenta.</li>
+                        <li><strong>Garantía:</strong> 48 horas para reportar defectos de fábrica, contadas desde la entrega y por WhatsApp. Cambios dentro de los 5 días hábiles siguientes con el producto sin uso; el envío de devolución corre por tu cuenta.</li>
                         <li><strong>Seguimiento:</strong> recibirás un código para rastrear tu pedido en <a href="/seguimiento" style="color: var(--flow-accent-light); text-decoration: underline;">seguimiento</a>.</li>
                     </ul>
                 </div>
@@ -1442,7 +1442,7 @@
                     </div>
                     <div>
                         <h3>¿El producto tiene garantía?</h3>
-                        <p>Sí, 10 días por defectos de fábrica desde la fecha de entrega.</p>
+                        <p>Sí, 48 horas para reportar defectos de fábrica, contadas desde la fecha de entrega.</p>
                     </div>
                 </div>
             </details>
@@ -1532,6 +1532,10 @@
        viajar al píxel ni a la CAPI. Viaja con cada línea del carrito para que
        flow-cart.js y el checkout puedan filtrarlo más tarde. */
     const productoExcluidoMeta = /*[[${producto.excluirMeta}]]*/ false;
+    /* Medición de compra: el producto es contraentrega (COD) y su Purchase
+       no debe dispararse en el checkout. La marca viaja con la línea del
+       carrito; ViewContent, AddToCart e InitiateCheckout sí se miden. */
+    const productoBloqueaPurchaseMeta = /*[[${producto.bloquearPurchaseMeta}]]*/ false;
 
     let varianteSeleccionada = null;
     let colorSeleccionado = null;
@@ -2096,7 +2100,10 @@
             // La marca viaja en la línea del carrito: así AddToCart,
             // InitiateCheckout y Purchase pueden excluirla sin volver al
             // servidor. Google Analytics 4 la ignora a propósito.
-            excluirMeta: productoExcluidoMeta === true
+            excluirMeta: productoExcluidoMeta === true,
+            // Bloqueo SOLO del Purchase (contraentrega): viaja igual que la
+            // marca de exclusión y el checkout la respeta al confirmar.
+            bloquearPurchaseMeta: productoBloqueaPurchaseMeta === true
         };
     }
 
