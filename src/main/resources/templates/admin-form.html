@@ -114,6 +114,38 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- ============ MEDICIÓN DE COMPRA (COD) ============
+                         Segundo interruptor, independiente del anterior:
+                         excluirMeta saca el producto de TODO Meta; este
+                         solo frena el Purchase. Se usa en productos
+                         contraentrega para medir intención sin enseñarle a
+                         Meta a buscar «form-fillers» en lugar de «pagadores». -->
+                    <div class="form-row">
+                        <div class="form-group full">
+                            <label for="bloquearPurchaseMeta"
+                                   style="display:flex; align-items:flex-start; gap:12px; padding:14px 16px;
+                                          border:1px solid rgba(37,99,235,.45); border-radius:12px;
+                                          background:rgba(37,99,235,.08); cursor:pointer; font-weight:500;">
+                                <input type="checkbox" id="bloquearPurchaseMeta" name="bloquearPurchaseMeta" value="true"
+                                       th:checked="${producto.bloquearPurchaseMeta}"
+                                       style="margin-top:2px; width:18px; height:18px; flex:0 0 auto; accent-color:#2563eb; cursor:pointer;">
+                                <span>
+                                    <strong style="color:#60a5fa; font-size:0.86rem;">
+                                        Bloquear Purchase a Meta (solo Purchase, no los otros eventos)
+                                    </strong>
+                                    <small class="form-hint" style="margin-top:6px; line-height:1.5;">
+                                        Si lo marcas, este producto NO envía el evento <code>Purchase</code> al píxel de Meta
+                                        ni a la API de Conversiones. Los otros 3 eventos (ViewContent, AddToCart,
+                                        InitiateCheckout) SÍ se disparan con normalidad.
+                                        Uso típico: productos COD (contraentrega) que quieres medir en remarketing pero
+                                        sin contaminar el modelo de conversión de Meta hasta que el pedido se marque como
+                                        entregado. Google Analytics 4 <strong>sí</strong> los sigue midiendo.
+                                    </small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- ============ IMÁGENES (URL + color por foto) ============ -->

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destornillador de Impacto Manual x 13 Piezas · FLOW COLOMBIA</title>
+    <meta name="theme-color" content="#050914">
+    <meta name="description" content="Set de 13 puntas intercambiables en acero cromo-vanadio (CR-V) con estuche rígido. Envío gratis a toda Colombia y pago contra entrega.">
+
+    <!-- Píxel de Meta + GA4 (compartidos con el resto de páginas públicas) -->
+    <th:block th:replace="~{fragments/public-meta :: publicMeta}"></th:block>
+
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=7)}" href="/css/flow-ui.css">
+
+    <style>
+        /* ============================================================
+           LANDING CTB-234 · estilos propios
+           ------------------------------------------------------------
+           Todo con prefijo flow-ctb- para no chocar con las clases de
+           la tienda, y todo con los tokens de flow-ui.css (--flow-*).
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--flow-bg);
+            color: var(--flow-text);
+            font-family: var(--flow-font);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img { display: block; max-width: 100%; }
+        a { color: inherit; text-decoration: none; }
+        h1, h2, h3, p, ul, ol, li { margin: 0; padding: 0; }
+        ul, ol { list-style: none; }
+
+        /* ============ HEADER MÍNIMO (NO STICKY) ============ */
+        .flow-ctb-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 56px;
+            padding: 10px 16px;
+            background: rgba(5, 9, 20, 0.9);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--flow-border);
+        }
+
+        .flow-ctb-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #e6edff;
+        }
+
+        .flow-ctb-brand__mark {
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            color: #fff;
+            background: linear-gradient(145deg, #1d4ed8, #2563eb 55%, #60a5fa);
+            box-shadow: 0 6px 16px -8px rgba(37, 99, 235, 0.9);
+        }
+
+        .flow-ctb-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 11px;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            border-radius: 999px;
+            background: rgba(52, 211, 153, 0.1);
+            color: #a7f3d0;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ============ ESTRUCTURA ============ */
+        .flow-ctb-main {
+            max-width: 840px;
+            margin: 0 auto;
+            padding: 18px 16px 96px;
+        }
+
+        .flow-ctb-block {
+            margin-top: 20px;
+            padding: 18px;
+            border: 1px solid var(--flow-border);
+            border-radius: var(--flow-radius);
+            background: var(--flow-surface);
+        }
+
+        .flow-ctb-block--flush {
+            border: 0;
+            background: transparent;
+            padding: 0;
+        }
+
+        .flow-ctb-h2 {
+            font-size: clamp(1.14rem, 4.4vw, 1.42rem);
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+            margin-bottom: 14px;
+        }
+
+        .flow-ctb-lead {
+            font-size: 0.92rem;
+            line-height: 1.65;
+            color: var(--flow-muted);
+        }
+
+        /* ============ BLOQUE 1 · HERO ============ */
+        .flow-ctb-hero {
+            display: grid;
+            gap: 18px;
+        }
+
+        @media (min-width: 760px) {
+            .flow-ctb-hero { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); align-items: start; }
+        }
+
+        .flow-ctb-h1 {
+            font-size: clamp(1.5rem, 5.6vw, 2.1rem);
+            letter-spacing: -0.03em;
+            line-height: 1.12;
+        }
+
+        .flow-ctb-sub {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-left: 3px solid var(--flow-accent);
+            border-radius: 0 10px 10px 0;
+            background: rgba(37, 99, 235, 0.1);
+            color: #dbe7ff;
+            font-size: clamp(0.98rem, 3.9vw, 1.12rem);
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .flow-ctb-desc {
+            margin-top: 12px;
+            color: var(--flow-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .flow-ctb-price {
+            margin-top: 14px;
+            font-size: 0.98rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: #fff;
+        }
+
+        .flow-ctb-price strong { color: var(--flow-accent-light); }
+
+        .flow-ctb-cta {
+            display: block;
+            margin-top: 16px;
+            padding: 17px 18px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            line-height: 1.25;
+            box-shadow: 0 18px 36px -20px rgba(37, 99, 235, 1);
+        }
+
+        .flow-ctb-micro {
+            margin-top: 10px;
+            color: var(--flow-muted);
+            font-size: 0.76rem;
+            line-height: 1.55;
+        }
+
+        /* Foto del producto (slot pendiente de URL de Cloudinary) */
+        .flow-ctb-photo {
+            display: grid;
+            place-items: center;
+            gap: 6px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            padding: 16px;
+            border: 1px dashed var(--flow-border-strong, rgba(148, 163, 184, 0.32));
+            border-radius: var(--flow-radius);
+            background: #0b1226;
+            text-align: center;
+            color: var(--flow-muted);
+            font-size: 0.8rem;
+        }
+
+        .flow-ctb-photo small { font-size: 0.68rem; color: var(--flow-muted-2); line-height: 1.45; }
+
+        /* ============ BLOQUE 2 · FRANJA DE CONFIANZA ============ */
+        .flow-ctb-strip {
+            margin-top: 20px;
+            padding: 13px 16px;
+            border: 1px solid rgba(37, 99, 235, 0.28);
+            border-radius: var(--flow-radius);
+            background: rgba(37, 99, 235, 0.08);
+            color: #c7d2fe;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        /* ============ BLOQUE 3 · VIDEO + BENEFICIOS ============ */
+        .flow-ctb-video {
+            display: grid;
+            place-items: center;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 16px;
+            aspect-ratio: 9 / 16;
+            border: 1px solid var(--flow-border);
+            border-radius: 14px;
+            background: #0b1226;
+            color: var(--flow-muted-2);
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+        }
+
+        .flow-ctb-list { display: grid; gap: 11px; }
+
+        .flow-ctb-list li {
+            position: relative;
+            padding-left: 22px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #d7ddef;
+        }
+
+        .flow-ctb-list li::before {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 0.45em;
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            background: var(--flow-accent-light);
+            box-shadow: 0 0 10px -2px var(--flow-accent-light);
+        }
+
+        .flow-ctb-list--num { counter-reset: ctb; }
+
+        .flow-ctb-list--num li { padding-left: 40px; }
+
+        .flow-ctb-list--num li::before {
+            counter-increment: ctb;
+            content: counter(ctb);
+            top: 0;
+            left: 0;
+            display: grid;
+            place-items: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--flow-accent-soft);
+            border: 1px solid rgba(37, 99, 235, 0.45);
+            color: var(--flow-accent-light);
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: none;
+        }
+
+        .flow-ctb-note {
+            margin-top: 12px;
+            color: var(--flow-muted-2);
+            font-size: 0.74rem;
+            line-height: 1.55;
+        }
+
+        /* ============ BLOQUE 6 · FAQ ============ */
+        .flow-ctb-faq { display: grid; gap: 8px; }
+
+        .flow-ctb-faq details {
+            border: 1px solid var(--flow-border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 14px;
+        }
+
+        .flow-ctb-faq summary {
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 700;
+            list-style: none;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .flow-ctb-faq summary::-webkit-details-marker { display: none; }
+
+        .flow-ctb-faq summary::after {
+            content: '＋';
+            flex: none;
+            color: var(--flow-accent-light);
+            font-weight: 700;
+        }
+
+        .flow-ctb-faq details[open] summary::after { content: '−'; }
+
+        .flow-ctb-faq p {
+            margin-top: 10px;
+            color: var(--flow-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* ============ BLOQUE 7 · CTA FINAL ============ */
+        .flow-ctb-final {
+            margin-top: 20px;
+            padding: 22px 18px;
+            border: 1px solid rgba(37, 99, 235, 0.4);
+            border-radius: var(--flow-radius);
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.14), rgba(13, 20, 46, 0.6));
+            text-align: center;
+        }
+
+        .flow-ctb-final__line {
+            margin-top: 10px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .flow-ctb-final__micro {
+            margin-top: 6px;
+            color: var(--flow-muted);
+            font-size: 0.78rem;
+        }
+
+        .flow-ctb-wa-link {
+            display: inline-block;
+            margin-top: 14px;
+            color: #a7f3d0;
+            font-size: 0.82rem;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        /* ============ BLOQUE 8 · WHATSAPP FLOTANTE ============ */
+        .flow-ctb-wa {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 60;
+            display: grid;
+            place-items: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #25d366;
+            color: #052e16;
+            box-shadow: 0 16px 32px -14px rgba(37, 211, 102, 0.9);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .flow-ctb-wa:hover { transform: translateY(-2px); box-shadow: 0 20px 36px -14px rgba(37, 211, 102, 0.95); }
+        .flow-ctb-wa svg { width: 30px; height: 30px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .flow-ctb-wa { transition: none; }
+        }
+
+        @media (min-width: 760px) {
+            .flow-ctb-header { min-height: 64px; padding: 12px 24px; }
+            .flow-ctb-main { padding: 26px 24px 110px; }
+            .flow-ctb-block { padding: 22px; }
+            .flow-ctb-wa { right: 24px; bottom: 24px; }
+        }
+    </style>
+</head>
+<body class="flow-ctb">
+
+<!-- ==================== BLOQUE 0 · HEADER MÍNIMO ====================
+     Sin menú, sin enlaces salientes y sin "volver a la tienda": en una
+     landing de pago cada enlace extra es una fuga. No es sticky. -->
+<header class="flow-ctb-header">
+    <span class="flow-ctb-brand">
+        <span class="flow-ctb-brand__mark" aria-hidden="true">F</span>
+        FLOW COLOMBIA
+    </span>
+    <span class="flow-ctb-badge">🔒 Compra segura</span>
+</header>
+
+<main class="flow-ctb-main">
+
+    <!-- ==================== BLOQUE 1 · HERO ==================== -->
+    <section class="flow-ctb-hero" aria-label="Destornillador de Impacto Manual x 13 Piezas">
+        <div>
+            <h1 class="flow-ctb-h1">Destornillador de Impacto Manual x 13 Piezas</h1>
+
+            <!-- Objeción #1 resuelta antes de que se la hagan -->
+            <p class="flow-ctb-sub">Es manual: se acciona con el golpe de la mano, no necesita batería ni corriente.</p>
+
+            <p class="flow-ctb-desc">Set de 13 puntas intercambiables en acero cromo-vanadio (CR-V), con estuche rígido. Para uso en casa y taller ocasional.</p>
+
+            <p class="flow-ctb-price">$89.900 COP — Envío gratis — Pago contra entrega</p>
+
+            <a class="flow-btn flow-btn--primary flow-btn--block flow-ctb-cta"
+               id="ctaHero"
+               data-ctb-cta
+               href="/carrito?checkout=1">CONFIRMAR MI PEDIDO — PAGO AL RECIBIR</a>
+
+            <p class="flow-ctb-micro">✅ Despacha desde Cali · Envío rápido desde Colombia · Imágenes del producto tal como lo recibes</p>
+        </div>
+
+        <!-- Foto: solo URL de Cloudinary pegada aquí. Sin SDK.
+             TODO(Cloudinary): cuando exista la foto real, sustituir el div por:
+             <img class="flow-ctb-photo" alt="Set completo del destornillador de impacto manual con estuche y 13 puntas"
+                  src="https://res.cloudinary.com/<cuenta>/image/upload/f_auto,q_auto/<ruta>" width="920" height="920">
+             (f_auto,q_auto en la ruta /upload/ = formato y peso automáticos) -->
+        <div class="flow-ctb-photo" role="img"
+             aria-label="Foto del set completo del destornillador de impacto manual con estuche y 13 puntas">
+            <span>Foto del producto</span>
+            <small>Pendiente de la URL de Cloudinary<br>(f_auto,q_auto)</small>
+        </div>
+    </section>
+
+    <!-- ==================== BLOQUE 2 · FRANJA DE CONFIANZA ==================== -->
+    <p class="flow-ctb-strip">🚚 Envío gratis a toda Colombia · 📦 Despacha desde Cali · 💵 Pagas en efectivo cuando lo recibes · 🔍 Revisa tu pedido al recibirlo · 📞 Reporta defectos de fábrica en las primeras 48 horas</p>
+
+    <!-- ==================== BLOQUE 3 · VIDEO + BENEFICIOS ==================== -->
+    <section class="flow-ctb-block" aria-label="Video y beneficios">
+        <h2 class="flow-ctb-h2">Míralo en uso: así trabaja el golpe manual</h2>
+
+        <!-- Video 9:16. Si algún día hay iframe, va aquí dentro; mientras, placeholder. -->
+        <div class="flow-ctb-video"><span>Video próximamente</span></div>
+
+        <ul class="flow-ctb-list">
+            <li>Acero CR-V: las puntas no se deforman con tornillos apretados.</li>
+            <li>13 puntas intercambiables: planas, Phillips y hexagonales en un solo estuche.</li>
+            <li>Sin batería ni cables: funciona donde no hay corriente.</li>
+            <li>Estuche rígido: se guarda ordenado y se lleva a cualquier parte.</li>
+        </ul>
+    </section>
+
+    <!-- ==================== BLOQUE 4 · QUÉ INCLUYE ==================== -->
+    <section class="flow-ctb-block" aria-label="Qué recibes exactamente">
+        <h2 class="flow-ctb-h2">Qué recibes exactamente</h2>
+
+        <ol class="flow-ctb-list flow-ctb-list--num">
+            <li>1 destornillador de impacto manual (cuerpo metálico).</li>
+            <li>13 puntas intercambiables de acero CR-V.</li>
+            <li>1 estuche rígido de transporte.</li>
+        </ol>
+
+        <p class="flow-ctb-note">Imágenes del producto tal como lo recibes. No es eléctrico, no requiere batería ni corriente.</p>
+
+        <!-- Igual que el hero: solo URL de Cloudinary pegada en el HTML. -->
+        <div class="flow-ctb-photo" role="img"
+             aria-label="Foto del kit abierto con el destornillador, las 13 puntas y el estuche"
+             style="margin-top:14px; aspect-ratio: 4 / 3;">
+            <span>Foto del kit abierto</span>
+            <small>Pendiente de la URL de Cloudinary<br>(f_auto,q_auto)</small>
+        </div>
+    </section>
+
+    <!-- ==================== BLOQUE 5 · CÓMO COMPRAS EN 3 PASOS ==================== -->
+    <section class="flow-ctb-block" aria-label="Cómo compras en 3 pasos">
+        <h2 class="flow-ctb-h2">Comprar es así de simple</h2>
+
+        <ol class="flow-ctb-list flow-ctb-list--num">
+            <li>Confirmas tus datos (nombre, dirección y teléfono).</li>
+            <li>Despachamos desde Cali con envío gratis.</li>
+            <li>Pagas en efectivo al mensajero cuando te entrega el kit.</li>
+        </ol>
+
+        <a class="flow-btn flow-btn--primary flow-btn--block flow-ctb-cta"
+           data-ctb-cta
+           href="/carrito?checkout=1">CONFIRMAR MI PEDIDO</a>
+
+        <p class="flow-ctb-micro">No pagas ahora. Pagas cuando recibes.</p>
+    </section>
+
+    <!-- ==================== BLOQUE 6 · FAQ CORTO ==================== -->
+    <section class="flow-ctb-block" aria-label="Preguntas frecuentes">
+        <h2 class="flow-ctb-h2">Preguntas frecuentes</h2>
+
+        <div class="flow-ctb-faq">
+            <details>
+                <summary>¿Es eléctrico o manual?</summary>
+                <p>Es manual: se acciona con el golpe de la mano. No necesita batería ni corriente.</p>
+            </details>
+
+            <details>
+                <summary>¿Cuánto demora el envío?</summary>
+                <p>Desde Cali, a ciudades principales llega en 1-2 días hábiles después del despacho; a ciudades secundarias, 2-4 días hábiles. Te compartimos la guía de rastreo.</p>
+            </details>
+
+            <details>
+                <summary>¿Puedo pagar contra entrega?</summary>
+                <p>Pagas en efectivo al mensajero cuando te entrega el producto. No pagas nada por adelantado.</p>
+            </details>
+
+            <details>
+                <summary>¿Qué pasa si llega con un defecto?</summary>
+                <p>Revisa el kit cuando lo recibas. Si hay un defecto de fábrica, repórtalo por WhatsApp dentro de las 48 horas siguientes a la entrega y lo resolvemos. Pasado ese plazo no podemos gestionar el reemplazo.</p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ==================== BLOQUE 7 · CTA FINAL ==================== -->
+    <section class="flow-ctb-final" aria-label="Confirma tu pedido">
+        <h2 class="flow-ctb-h2">Tu pedido está listo para despacho</h2>
+        <p class="flow-ctb-final__line">Destornillador de Impacto Manual x 13 Piezas — $89.900 COP</p>
+        <p class="flow-ctb-final__micro">Envío gratis · Pago contra entrega · Despacha desde Cali</p>
+
+        <a class="flow-btn flow-btn--primary flow-btn--block flow-ctb-cta"
+           data-ctb-cta
+           href="/carrito?checkout=1">CONFIRMAR MI PEDIDO AHORA</a>
+
+        <p class="flow-ctb-final__micro" style="margin-top:12px;">
+            ¿Tienes una duda antes de confirmar?
+            <a class="flow-ctb-wa-link" data-ctb-wa
+               href="https://wa.me/573150152056?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20Destornillador%20de%20Impacto%20Manual%20CTB-234"
+               target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+        </p>
+    </section>
+
+</main>
+
+<!-- ==================== BLOQUE 8 · WHATSAPP FALLBACK FLOTANTE ==================== -->
+<a class="flow-ctb-wa" id="whatsappFallback" data-ctb-wa
+   href="https://wa.me/573150152056?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20Destornillador%20de%20Impacto%20Manual%20CTB-234"
+   target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.5 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.4.5-.6.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.6-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .2.2 1.9 3 4.7 4.1 2.3 1 2.8.8 3.3.8.5-.1 1.6-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.2-.2-.4-.3z"></path>
+        <path d="M12 2C6.5 2 2 6.5 2 12c0 1.9.5 3.6 1.5 5.1L2 22l5-1.4c1.4.8 3.1 1.3 5 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.7 0-3.3-.5-4.6-1.3l-.3-.2-3 .8.8-2.9-.2-.3A8.1 8.1 0 0 1 3.8 12c0-4.5 3.7-8.2 8.2-8.2s8.2 3.7 8.2 8.2-3.7 8.2-8.2 8.2z"></path>
+    </svg>
+</a>
+
+<script th:src="@{/js/flow-cart.js(v=5)}" src="/js/flow-cart.js"></script>
+<script th:src="@{/js/flow-ui.js(v=1)}" src="/js/flow-ui.js"></script>
+<script th:src="@{/js/flow-landing-ctb.js(v=1)}" src="/js/flow-landing-ctb.js"></script>
+</body>
+</html>

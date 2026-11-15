@@ -501,6 +501,10 @@ public class ProductoService {
             // se copian los campos editables a la entidad gestionada. Sin esta
             // línea el checkbox se vería marcado y el valor nunca se aplicaría.
             productoGuardado.setExcluirMeta(productoForm.getExcluirMeta());
+            // Segundo interruptor de Meta: solo frena el Purchase (productos
+            // contraentrega). Va aquí por el mismo motivo que el anterior: al
+            // editar se copian campo a campo, no se guarda el formulario.
+            productoGuardado.setBloquearPurchaseMeta(productoForm.getBloquearPurchaseMeta());
             productoGuardado.setImagen1(productoForm.getImagen1());
             productoGuardado.setImagen2(productoForm.getImagen2());
             productoGuardado.setImagen3(productoForm.getImagen3());

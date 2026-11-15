@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/admin-layout :: head('Landing CTB-234')}"></head>
+<body class="admin-body">
+
+<div class="admin-shell">
+    <div th:replace="~{fragments/admin-layout :: sidebar('landing')}"></div>
+
+    <div class="admin-main">
+        <header th:replace="~{fragments/admin-layout :: topbar('Landing CTB-234','Marketing')}"></header>
+
+        <main class="admin-content">
+            <div class="admin-card" style="padding:20px 22px;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:space-between;">
+                    <h2 style="margin:0; font-size:1.08rem; letter-spacing:-0.01em;">
+                        Landing del Destornillador de Impacto Manual x 13 Piezas
+                    </h2>
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                                 border-radius:999px; font-size:0.72rem; font-weight:800; letter-spacing:0.06em;
+                                 background:rgba(52,211,153,.14); border:1px solid rgba(52,211,153,.45); color:#6ee7b7;">
+                        ACTIVA
+                    </span>
+                </div>
+
+                <!-- ==================== DATOS DEL PRODUCTO ==================== -->
+                <div style="display:grid; gap:10px; margin-top:16px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
+                    <div style="padding:12px 14px; border:1px solid var(--ad-border); border-radius:12px; background:rgba(255,255,255,.02);">
+                        <span style="display:block; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ad-muted-2);">SKU</span>
+                        <strong style="font-size:0.92rem;">CTB-234</strong>
+                    </div>
+                    <div style="padding:12px 14px; border:1px solid var(--ad-border); border-radius:12px; background:rgba(255,255,255,.02);">
+                        <span style="display:block; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ad-muted-2);">Precio</span>
+                        <strong style="font-size:0.92rem;">$89.900 COP</strong>
+                    </div>
+                    <div style="padding:12px 14px; border:1px solid var(--ad-border); border-radius:12px; background:rgba(255,255,255,.02);">
+                        <span style="display:block; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ad-muted-2);">Pago</span>
+                        <strong style="font-size:0.92rem;">Contraentrega en efectivo</strong>
+                    </div>
+                    <div style="padding:12px 14px; border:1px solid var(--ad-border); border-radius:12px; background:rgba(255,255,255,.02);">
+                        <span style="display:block; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ad-muted-2);">Ruta</span>
+                        <a th:href="@{/landing/ctb-234}" target="_blank" rel="noopener"
+                           style="font-size:0.92rem; font-weight:700; color:var(--ad-accent-light); text-decoration:underline; text-underline-offset:3px;">
+                            /landing/ctb-234 ↗
+                        </a>
+                    </div>
+                </div>
+
+                <!-- ==================== NOTA DE SOLO LECTURA ==================== -->
+                <p style="margin:16px 0 0; padding:12px 14px; border-radius:10px; font-size:0.78rem; line-height:1.6;
+                          background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.3); color:#c7d2fe;">
+                    Esta vista es de solo lectura. El copy de la landing está en el código (fase 1).
+                    En fase 2 se habilitará edición desde este panel.
+                </p>
+
+                <p style="margin:10px 0 0; font-size:0.74rem; line-height:1.6; color:var(--ad-muted);">
+                    <strong>Acceso:</strong> mientras <code>/landing/**</code> no esté en la lista blanca de
+                    <code>SecurityConfig</code>, la ruta hereda el login del panel (decisión pendiente del dueño).
+                </p>
+            </div>
+
+            <!-- ==================== EVENTOS ==================== -->
+            <div class="admin-card" style="margin-top:14px; padding:20px 22px;">
+                <h3 style="margin:0 0 4px; font-size:0.95rem;">Eventos de medición del lanzamiento</h3>
+                <p style="margin:0 0 14px; font-size:0.76rem; color:var(--ad-muted);">
+                    Vista informativa: lo medido en la landing y lo que aporta el checkout global.
+                </p>
+
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                        <thead>
+                        <tr style="text-align:left; color:var(--ad-muted-2); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase;">
+                            <th style="padding:8px 10px; border-bottom:1px solid var(--ad-border);">Evento</th>
+                            <th style="padding:8px 10px; border-bottom:1px solid var(--ad-border);">Plataforma</th>
+                            <th style="padding:8px 10px; border-bottom:1px solid var(--ad-border);">Dónde dispara</th>
+                            <th style="padding:8px 10px; border-bottom:1px solid var(--ad-border);">Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>ViewContent</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Landing · al cargar</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>Scroll50</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Landing · 50 % de lectura</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>Scroll90</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Landing · 90 % de lectura</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>InitiateCheckout</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Landing · CTA del hero</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>CheckoutStep1…4</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Checkout global (S1)</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>OrderPlaced</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Confirmación global (S1)</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);"><code>Contact</code></td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Meta + GA4</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border);">Landing · WhatsApp</td>
+                            <td style="padding:9px 10px; border-bottom:1px solid var(--ad-border); color:#6ee7b7;">✔ Implementado</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:9px 10px;"><code>Purchase</code></td>
+                            <td style="padding:9px 10px;">Meta (píxel + CAPI)</td>
+                            <td style="padding:9px 10px;">Checkout global</td>
+                            <td style="padding:9px 10px; color:#fbbf24;">⏸ Pausado por <code>bloquearPurchaseMeta</code> (S1)</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{fragments/admin-layout :: confirmModal}"></div>
+<div th:replace="~{fragments/admin-layout :: asistenteAdmin}"></div>
+
+</body>
+</html>

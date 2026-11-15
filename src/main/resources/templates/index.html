@@ -1286,7 +1286,7 @@
                         <span class="product-price"
                               th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</span>
                         <button type="button" class="btn-add"
-                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id},data-url=@{/producto/{slug}(slug=${producto.slug})},data-excluir-meta=${producto.excluirMeta}">
+                                th:attr="data-nombre=${producto.nombre},data-precio=${producto.precio},data-imagen=${not #lists.isEmpty(producto.imagenes) ? producto.imagenes[0].url : (producto.imagen1 != null ? producto.imagen1 : '')},data-producto-id=${producto.id},data-url=@{/producto/{slug}(slug=${producto.slug})},data-excluir-meta=${producto.excluirMeta},data-bloquear-purchase-meta=${producto.bloquearPurchaseMeta}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"></path>
@@ -1434,7 +1434,7 @@
     // en la línea del carrito. flow-cart.js lo usa para no enviar a Meta los
     // productos sensibles (salud íntima/suplementos); GA4 los mide igual.
     // ============================================================
-    function agregarAlCarrito(nombre, precio, imagen, productoId, urlProducto, excluirMeta) {
+    function agregarAlCarrito(nombre, precio, imagen, productoId, urlProducto, excluirMeta, bloquearPurchaseMeta) {
         const id = (productoId != null && productoId !== '') ? Number(productoId) : null;
         FlowCart.add({
             sku: '',
@@ -1447,7 +1447,9 @@
             productoId: id,
             // URL amigable con slug (la envía Thymeleaf en data-url)
             url: urlProducto || (id ? ('/producto/' + id) : ''),
-            excluirMeta: excluirMeta === true || excluirMeta === 'true'
+            excluirMeta: excluirMeta === true || excluirMeta === 'true',
+            // Producto contraentrega: el checkout no disparará el Purchase.
+            bloquearPurchaseMeta: bloquearPurchaseMeta === true || bloquearPurchaseMeta === 'true'
         }, { title: 'Añadido al carrito' });
     }
 
@@ -1460,7 +1462,8 @@
             btn.dataset.imagen || '',
             btn.dataset.productoId,
             btn.dataset.url || '',
-            btn.dataset.excluirMeta
+            btn.dataset.excluirMeta,
+            btn.dataset.bloquearPurchaseMeta
         );
     });
 
