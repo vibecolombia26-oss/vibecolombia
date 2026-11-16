@@ -53,8 +53,9 @@
                 </p>
 
                 <p style="margin:10px 0 0; font-size:0.74rem; line-height:1.6; color:var(--ad-muted);">
-                    <strong>Acceso:</strong> mientras <code>/landing/**</code> no esté en la lista blanca de
-                    <code>SecurityConfig</code>, la ruta hereda el login del panel (decisión pendiente del dueño).
+                    <strong>Acceso:</strong> pública. <code>/landing/**</code> está en la lista blanca
+                    <code>TIENDA_PUBLICA</code> de <code>SecurityConfig</code> (solo <code>GET</code>, sin estado);
+                    este panel de seguimiento sigue exigiendo rol ADMIN.
                 </p>
             </div>
 

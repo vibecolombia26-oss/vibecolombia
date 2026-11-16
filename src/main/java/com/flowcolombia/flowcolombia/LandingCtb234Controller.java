@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.GetMapping;
  * presenta el producto y dispara los eventos de medición desde
  * {@code flow-landing-ctb.js}.</p>
  *
- * <p><strong>Acceso:</strong> al vivir bajo {@code /landing/**}, esta ruta NO
- * está en la lista blanca de {@code SecurityConfig}, así que hereda
- * {@code anyRequest().authenticated()} y redirige al login del panel. Abrirla
- * al público exige una línea explícita en {@code TIENDA_PUBLICA}, que por ahora
- * es una decisión del dueño (no se toca desde esta sesión).</p>
+ * <p><strong>Acceso:</strong> la ruta es pública. {@code /landing/**} está en
+ * la lista blanca {@code TIENDA_PUBLICA} de {@code SecurityConfig} (solo
+ * {@code GET}, sin estado y sin privilegios), así que el tráfico orgánico del
+ * marketplace entra sin sesión. El panel de seguimiento
+ * ({@code /admin/landing/ctb-234}) sigue exigiendo rol ADMIN.</p>
  */
 @Controller
 public class LandingCtb234Controller {
