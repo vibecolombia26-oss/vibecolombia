@@ -51,15 +51,20 @@ public class SecurityConfig {
     @Value("${admin.password}")
     private String adminPassword;
 
-    /** Rutas públicas del escaparate que deben poder verse sin sesión. */
+    /**
+     * Rutas públicas del escaparate que deben poder verse sin sesión.
+     *
+     * IMPORTANTE: /landing/** es pública A PROPÓSITO. Sirve HTML
+     * estático de campañas de marketing (smoke tests de productos
+     * Dropi). Son GET sin estado, sin API, sin escritura. Solo la
+     * landing CTB-234 la usa hoy; futuras landings usan el mismo
+     * prefijo. Si alguna landing necesitara escribir, NO añadirla
+     * aquí: crear su propio endpoint protegido.
+     */
     private static final String[] TIENDA_PUBLICA = {
             "/", "/producto/**", "/carrito", "/envios",
             "/seguimiento", "/privacidad", "/terminos", "/contacto",
-            // Landing de campaña del smoke test CTB-234. Es una vista GET sin
-            // estado y sin privilegios: se abre para que el tráfico orgánico
-            // llegue sin sesión, igual que /producto/**. El panel de la landing
-            // (/admin/landing/ctb-234) sigue exigiendo rol ADMIN.
-            "/landing/**"
+            "/landing/**"   // smoke test CTB-234: landing de campaña (GET, estático, sin sesión)
     };
 
     /**

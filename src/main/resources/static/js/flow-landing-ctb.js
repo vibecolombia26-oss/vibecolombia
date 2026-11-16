@@ -78,9 +78,40 @@
     /* ------------------------------------------------------------
        Carrito: el CTA existe para comprar, no solo para medir
        ------------------------------------------------------------ */
+
+    /**
+     * ID real del producto en BD (lo inyecta la plantilla por Thymeleaf).
+     *
+     * <p>Es la pieza que cierra el riesgo del respaldo por nombre: con ID, el
+     * pedido viaja con {@code productosIds} y el backend decide por fila, no
+     * por el texto del producto.</p>
+     *
+     * @returns {number|null} ID válido o null si el producto aún no existe
+     */
+    function idProducto() {
+        try {
+            var id = window.CTB234_PRODUCTO_ID;
+            var numero = Number(id);
+            return (isFinite(numero) && numero > 0) ? numero : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * Mete CTB-234 en el carrito con su productoId real.
+     *
+     * @returns {boolean} true si el carrito quedó con el producto
+     */
     function agregarProductoAlCarrito() {
         try {
-            if (!window.FlowCart || typeof window.FlowCart.add !== 'function') return;
+            if (!window.FlowCart || typeof window.FlowCart.add !== 'function') return false;
+
+            var productoId = idProducto();
+            // Sin ID no se agrega nada: un pedido con productosIds vacío
+            // obligaría al backend a adivinar por nombre.
+            if (!productoId) return false;
+
             var item = {
                 sku: SKU,
                 nombre: NOMBRE,
@@ -89,7 +120,7 @@
                 cantidad: 1,
                 color: '',
                 talla: '',
-                productoId: null,
+                productoId: productoId,
                 url: RUTA,
                 excluirMeta: false,
                 // Regla S1: este producto es COD y su Purchase está
@@ -99,10 +130,26 @@
             };
             // Si ya está en el carrito no se duplica: el CTA puede pulsarse
             // varias veces (hero, mitad y cierre de la página).
-            if (typeof window.FlowCart.has === 'function' && window.FlowCart.has(item)) return;
+            if (typeof window.FlowCart.has === 'function' && window.FlowCart.has(item)) return true;
             window.FlowCart.add(item, { toast: false });
+            return true;
         } catch (e) {
             /* Si el carrito falla, el enlace sigue llevando al checkout. */
+            return false;
+        }
+    }
+
+    /** Aviso cuando el producto todavía no está publicado en la base de datos. */
+    function avisarProximamente() {
+        try {
+            if (window.FlowCart && typeof window.FlowCart.toast === 'function') {
+                window.FlowCart.toast({
+                    title: 'Próximamente',
+                    message: 'Producto próximamente disponible. Escríbenos por WhatsApp.'
+                });
+            }
+        } catch (e) {
+            /* Sin toast tampoco pasa nada: el CTA simplemente no navega. */
         }
     }
 
@@ -181,8 +228,16 @@
         var ctas = document.querySelectorAll('[data-ctb-cta]');
 
         Array.prototype.forEach.call(ctas, function (cta) {
-            cta.addEventListener('click', function () {
+            cta.addEventListener('click', function (event) {
                 try {
+                    // Sin producto en BD no hay compra posible: se corta la
+                    // navegación a un checkout que llegaría vacío.
+                    if (!idProducto()) {
+                        if (event && typeof event.preventDefault === 'function') event.preventDefault();
+                        avisarProximamente();
+                        return;
+                    }
+
                     agregarProductoAlCarrito();
 
                     // InitiateCheckout adrede SOLO en el CTA del hero: marca

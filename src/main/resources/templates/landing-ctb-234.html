@@ -551,6 +551,14 @@
 
 <script th:src="@{/js/flow-cart.js(v=5)}" src="/js/flow-cart.js"></script>
 <script th:src="@{/js/flow-ui.js(v=1)}" src="/js/flow-ui.js"></script>
+
+<script th:inline="javascript">
+    // ID real del producto CTB-234 en BD. Se usa en el carrito para
+    // que el backend detecte el pedido por ID (autoritativo) y no
+    // dependa del fallback por nombre.
+    window.CTB234_PRODUCTO_ID = /*[[${productoId}]]*/ null;
+</script>
+
 <script th:src="@{/js/flow-landing-ctb.js(v=1)}" src="/js/flow-landing-ctb.js"></script>
 </body>
 </html>

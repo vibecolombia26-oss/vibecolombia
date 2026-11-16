@@ -53,7 +53,19 @@ class LandingCtb234PlantillaTest {
 
     /** La landing no recibe modelo: todo el copy vive en la plantilla. */
     private String renderizar() {
+        return renderizar(null);
+    }
+
+    /**
+     * Renderiza la landing con el ID real del producto en el modelo.
+     *
+     * @param productoId ID del producto en BD ({@code null} = aún no existe)
+     */
+    private String renderizar(Long productoId) {
         Map<String, Object> modelo = new HashMap<>();
+        if (productoId != null) {
+            modelo.put("productoId", productoId);
+        }
 
         MockHttpServletRequest request = new MockHttpServletRequest(servletContext);
         request.setRequestURI("/landing/ctb-234");
@@ -65,6 +77,29 @@ class LandingCtb234PlantillaTest {
                 Locale.forLanguageTag("es-CO"), modelo);
 
         return motor.process("landing-ctb-234", contexto);
+    }
+
+    @Test
+    @DisplayName("El ID real del producto viaja al JS antes del script de la landing")
+    void productoIdPropagadoAlJavaScript() {
+        String html = renderizar(7L);
+
+        // Sin este dato el pedido llegaría con productosIds vacío y el backend
+        // tendría que adivinar el producto por nombre.
+        assertTrue(html.contains("window.CTB234_PRODUCTO_ID = 7;"),
+                "el ID del producto no se está inyectando en el JavaScript");
+        assertTrue(html.indexOf("window.CTB234_PRODUCTO_ID")
+                        < html.indexOf("/js/flow-landing-ctb.js"),
+                "el script inline con el ID debe ir ANTES de flow-landing-ctb.js");
+    }
+
+    @Test
+    @DisplayName("Sin producto en BD, el ID llega como null (modo próximamente)")
+    void sinProductoElIdEsNulo() {
+        String html = renderizar();
+
+        assertTrue(html.contains("window.CTB234_PRODUCTO_ID = null;"),
+                "sin producto publicado el ID debe llegar null, no romper la plantilla");
     }
 
     @Test
