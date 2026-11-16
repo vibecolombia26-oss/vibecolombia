@@ -387,6 +387,79 @@
             .flow-ctb-block { padding: 22px; }
             .flow-ctb-wa { right: 24px; bottom: 24px; }
         }
+
+        /* ============================================================
+           IMÁGENES DEL LANZAMIENTO (Cloudinary, sin SDK)
+           ------------------------------------------------------------
+           Todas las URLs llevan f_auto,q_auto,w_<ancho>,c_fill,
+           g_center antes del v<version>: WebP/AVIF automático,
+           compresión automática y recorte cuadrado centrado.
+           ============================================================ */
+
+        /* Hero: la imagen es la protagonista */
+        .flow-ctb-hero-img {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            aspect-ratio: 1 / 1;
+            border-radius: var(--flow-radius, 16px);
+            overflow: hidden;
+            border: 1px solid var(--flow-border, rgba(255,255,255,0.08));
+            background: #0b1226;
+            box-shadow: 0 30px 60px -30px rgba(0,0,0,0.95);
+        }
+
+        .flow-ctb-hero-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Galería de beneficios: 2 columnas móvil, 4 desktop */
+        .flow-ctb-galeria {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 20px 0 24px;
+        }
+
+        @media (min-width: 720px) {
+            .flow-ctb-galeria { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        .flow-ctb-galeria figure {
+            margin: 0;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0b1226;
+            border: 1px solid var(--flow-border, rgba(255,255,255,0.08));
+        }
+
+        .flow-ctb-galeria img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .flow-ctb-galeria figure:hover img { transform: scale(1.04); }
+
+        /* Banner de oferta antes del CTA #2 */
+        .flow-ctb-oferta {
+            display: block;
+            width: 100%;
+            max-width: 720px;
+            margin: 24px auto 16px;
+            border-radius: var(--flow-radius, 16px);
+            border: 1px solid var(--flow-border, rgba(255,255,255,0.08));
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .flow-ctb-galeria img { transition: none; }
+        }
     </style>
 </head>
 <body class="flow-ctb">
@@ -424,15 +497,19 @@
             <p class="flow-ctb-micro">✅ Despacha desde Cali · Envío rápido desde Colombia · Imágenes del producto tal como lo recibes</p>
         </div>
 
-        <!-- Foto: solo URL de Cloudinary pegada aquí. Sin SDK.
-             TODO(Cloudinary): cuando exista la foto real, sustituir el div por:
-             <img class="flow-ctb-photo" alt="Set completo del destornillador de impacto manual con estuche y 13 puntas"
-                  src="https://res.cloudinary.com/<cuenta>/image/upload/f_auto,q_auto/<ruta>" width="920" height="920">
-             (f_auto,q_auto en la ruta /upload/ = formato y peso automáticos) -->
-        <div class="flow-ctb-photo" role="img"
-             aria-label="Foto del set completo del destornillador de impacto manual con estuche y 13 puntas">
-            <span>Foto del producto</span>
-            <small>Pendiente de la URL de Cloudinary<br>(f_auto,q_auto)</small>
+        <!-- Imagen del hero: la 3 (13 puntas) mientras llega la foto limpia
+             del set completo. Solo URL de Cloudinary pegada aquí, sin SDK.
+             w_900 porque es la imagen above-the-fold en móvil y retina. -->
+        <div class="flow-ctb-hero-img">
+            <img
+                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_900,c_fill,g_center/v1794849340/13_Puntas_Intercambiables___Plano__Estrella__He_yj4xiv.png"
+                    alt="13 puntas intercambiables: plano, estrella y hexagonal en un solo estuche"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
+                    width="900"
+                    height="900"
+            >
         </div>
     </section>
 
@@ -442,6 +519,52 @@
     <!-- ==================== BLOQUE 3 · VIDEO + BENEFICIOS ==================== -->
     <section class="flow-ctb-block" aria-label="Video y beneficios">
         <h2 class="flow-ctb-h2">Míralo en uso: así trabaja el golpe manual</h2>
+
+        <!-- Galería de casos reales (4 imágenes 600px, recorte cuadrado).
+             Todos los <figure> son role="listitem" para que un lector de
+             pantalla anuncie la lista de ventajas, no cuatro imágenes sueltas. -->
+        <div class="flow-ctb-galeria" role="list">
+            <figure role="listitem">
+                <img
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794847855/Tornillos_Pegados_o_Barridos__Afloja_tornillos_di_jqkn6i.png"
+                        alt="Afloja tornillos pegados o barridos con el golpe manual"
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="600"
+                >
+            </figure>
+            <figure role="listitem">
+                <img
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794848008/Te_ha_pasado___Tornillos_oxidados__Tornillos_ba_j06br6.png"
+                        alt="Afloja tornillos oxidados que otros destornilladores no pueden"
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="600"
+                >
+            </figure>
+            <figure role="listitem">
+                <img
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794849340/13_Puntas_Intercambiables___Plano__Estrella__He_yj4xiv.png"
+                        alt="13 puntas intercambiables: plano, estrella y hexagonal en un solo estuche"
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="600"
+                >
+            </figure>
+            <figure role="listitem">
+                <img
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794849595/Ideal_para___Motos__Autos__Reparaciones_del__llylhq.png"
+                        alt="Ideal para reparar motos, autos y tareas del hogar"
+                        loading="lazy"
+                        decoding="async"
+                        width="600"
+                        height="600"
+                >
+            </figure>
+        </div>
 
         <!-- Video 9:16. Si algún día hay iframe, va aquí dentro; mientras, placeholder. -->
         <div class="flow-ctb-video"><span>Video próximamente</span></div>
@@ -466,6 +589,7 @@
 
         <p class="flow-ctb-note">Imágenes del producto tal como lo recibes. No es eléctrico, no requiere batería ni corriente.</p>
 
+        <!-- TODO(Cloudinary): foto del kit abierto mostrando las 13 puntas -->
         <!-- Igual que el hero: solo URL de Cloudinary pegada en el HTML. -->
         <div class="flow-ctb-photo" role="img"
              aria-label="Foto del kit abierto con el destornillador, las 13 puntas y el estuche"
@@ -484,6 +608,16 @@
             <li>Despachamos desde Cali con envío gratis.</li>
             <li>Pagas en efectivo al mensajero cuando te entrega el kit.</li>
         </ol>
+
+        <img
+                class="flow-ctb-oferta"
+                src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_800,c_fill,g_center/v1794849956/Env%C3%ADo_Gratis___Pago_Contra_Entrega__Stock_Limit_wmp9iv.png"
+                alt="Envío gratis, pago contra entrega y stock limitado"
+                loading="lazy"
+                decoding="async"
+                width="800"
+                height="800"
+        >
 
         <a class="flow-btn flow-btn--primary flow-btn--block flow-ctb-cta"
            data-ctb-cta
