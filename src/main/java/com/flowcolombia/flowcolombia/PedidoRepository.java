@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +54,17 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      */
     @Query("SELECT p.productos, p.total FROM Pedido p WHERE p.estado = 'Entregado'")
     List<Object[]> findEntregadosParaMargen();
+
+    /**
+     * Pedidos abiertos que el sync con Dropi puede mover.
+     *
+     * <p>Una sola consulta: filtra por estado en la base de datos (no trae la
+     * tabla completa para descartar en memoria) y {@code Pedido} no tiene
+     * colecciones perezosas, así que no hay N+1. El número de filas es el de
+     * pedidos Pendiente/Procesando, normalmente decenas.</p>
+     *
+     * @param estados estados permitidos ({@code Pendiente}, {@code Procesando})
+     */
+    @Query("SELECT p FROM Pedido p WHERE p.estado IN :estados ORDER BY p.id")
+    List<Pedido> findAbiertosParaSync(@Param("estados") Collection<String> estados);
 }

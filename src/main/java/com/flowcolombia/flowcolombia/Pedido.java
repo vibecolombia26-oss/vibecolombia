@@ -29,6 +29,22 @@ public class Pedido {
     private String numeroGuia;
     private LocalDateTime fecha;
 
+    /**
+     * ID del pedido <strong>en Dropi</strong> (el correlador del sync).
+     *
+     * <p>Nuestro código {@code FLOW-…} lo genera la tienda y Dropi no lo
+     * conoce: si el pedido se crea a mano en el panel de Dropi, no hay forma
+     * de cruzarlo con nuestra fila salvo que el administrador pegue aquí el ID
+     * que Dropi asigna. El job de sincronización usa este campo para pedir el
+     * estado exacto y, solo si está vacío, cae al respaldo por código.</p>
+     *
+     * <p>Coste en Neon: una columna de texto anulable, sin índice ni consultas
+     * nuevas por sí misma; se actualiza a mano desde el detalle del pedido.
+     * Las filas antiguas quedan en {@code NULL} y el sync las ignora.</p>
+     */
+    @Column(name = "dropi_order_id", length = 64)
+    private String dropiOrderId;
+
     // Nuevo campo para saber si el pedido ha sido "leído" en el panel de admin
     private Boolean leido = false;
 
@@ -102,6 +118,10 @@ public class Pedido {
 
     public LocalDateTime getFecha() { return fecha; }
     public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+
+    /** ID del pedido en Dropi (correlador del sync); {@code null} si no se ha pegado. */
+    public String getDropiOrderId() { return dropiOrderId; }
+    public void setDropiOrderId(String dropiOrderId) { this.dropiOrderId = dropiOrderId; }
 
     public Boolean getLeido() { return leido; }
     public void setLeido(Boolean leido) { this.leido = leido; }

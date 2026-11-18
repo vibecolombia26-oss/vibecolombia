@@ -20,8 +20,21 @@
             <!-- ==================== ALERTAS ==================== -->
             <section class="admin-section" aria-labelledby="alertasTitulo">
                 <div class="admin-section__head">
-                    <h2 id="alertasTitulo">Qué necesita atención ahora</h2>
-                    <p>Se actualiza al cargar · usa “Refrescar” para volver a consultar</p>
+                    <div>
+                        <h2 id="alertasTitulo">Qué necesita atención ahora</h2>
+                        <p>Se actualiza al cargar · usa “Refrescar” para volver a consultar</p>
+                    </div>
+
+                    <!-- Sync manual con Dropi: POST con CSRF (la ruta ya exige
+                         rol ADMIN por estar bajo /admin/**). Útil cuando el
+                         cliente pregunta por su pedido y hace falta el estado
+                         al minuto, sin esperar al job de las 6 horas. -->
+                    <form th:action="@{/admin/sync-dropi}" method="post" style="margin:0;">
+                        <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm"
+                                title="Actualiza estado y número de guía de los pedidos abiertos desde Dropi">
+                            🔄 Sincronizar con Dropi
+                        </button>
+                    </form>
                 </div>
 
                 <div class="alert-grid">

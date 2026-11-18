@@ -191,6 +191,24 @@
                                 </button>
                             </form>
 
+                            <!-- Correlador del sync: ID del pedido en Dropi.
+                                 Se guarda a mano porque Dropi no conoce
+                                 nuestro código FLOW-… -->
+                            <form th:action="@{/admin/dropi-id/{id}(id=${pedidoSeleccionado.id})}"
+                                  method="post" class="order-ship-form">
+                                <div>
+                                    <label class="order-data__label" th:for="'dropi-' + ${pedidoSeleccionado.id}">ID en Dropi</label>
+                                    <input class="admin-input" type="text" name="dropiOrderId"
+                                           placeholder="Ej: 987654"
+                                           th:id="'dropi-' + ${pedidoSeleccionado.id}"
+                                           th:value="${pedidoSeleccionado.dropiOrderId}">
+                                </div>
+                                <button type="submit" class="admin-btn admin-btn--ghost admin-btn--sm"
+                                        title="El job de Dropi preguntará por este pedido exacto">
+                                    Guardar ID Dropi
+                                </button>
+                            </form>
+
                             <form th:action="@{/admin/eliminar-pedido/{id}(id=${pedidoSeleccionado.id})}"
                                   method="post" style="margin:0;">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

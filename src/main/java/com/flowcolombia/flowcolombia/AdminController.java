@@ -83,6 +83,38 @@ public class AdminController {
     }
 
     // ============================================================
+    // ID DEL PEDIDO EN DROPI (correlador del sync)
+    // ============================================================
+    /**
+     * Guarda el ID que Dropi asignó al pedido.
+     *
+     * <p>Nuestro {@code FLOW-…} no existe en Dropi, así que este es el único
+     * vínculo fiable entre las dos plataformas: el administrador lo pega en el
+     * detalle y el job de sincronización pregunta por ese ID exacto. Vaciar el
+     * campo lo borra (el pedido queda fuera del sync hasta que se vuelva a
+     * vincular).</p>
+     */
+    @PostMapping("/dropi-id/{id}")
+    public String guardarDropiId(@PathVariable Long id,
+                                 @RequestParam(required = false) String dropiOrderId,
+                                 RedirectAttributes redirect) {
+        Pedido pedido = pedidoService.obtenerPorId(id);
+        if (pedido == null) {
+            redirect.addFlashAttribute("mensaje", "❌ Pedido no encontrado.");
+            return "redirect:/admin/pedidos";
+        }
+
+        String limpio = dropiOrderId == null ? "" : dropiOrderId.trim();
+        pedido.setDropiOrderId(limpio.isEmpty() ? null : limpio);
+        pedidoService.guardar(pedido);
+
+        redirect.addFlashAttribute("mensaje", limpio.isEmpty()
+                ? "🔗 ID de Dropi borrado del pedido " + pedido.getCodigo() + "."
+                : "🔗 ID de Dropi guardado: " + limpio + ".");
+        return "redirect:/admin/pedidos?seleccionado=" + id;
+    }
+
+    // ============================================================
     // ELIMINAR PEDIDO
     // ============================================================
     // POST (no GET): con GET, un enlace o una imagen en un correo podía
