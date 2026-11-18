@@ -127,4 +127,24 @@ class CarritoPlantillaTest {
         assertTrue(html.contains("productosIds:"),
                 "el pedido debe mandar los IDs de producto para la regla de la CAPI");
     }
+
+    @Test
+    @DisplayName("La confirmación ofrece el código en grande y por WhatsApp")
+    void confirmacionConCodigoGrandeYWhatsApp() {
+        String html = renderizar();
+
+        // El checkout ya no pide correo: el código es la prueba de compra.
+        assertTrue(html.contains("id=\"codigoPedido\""),
+                "falta el código de seguimiento en la confirmación");
+        assertTrue(html.contains("class=\"confirm__code\""),
+                "el código debe pintarse con el bloque grande de confirmación");
+        assertTrue(html.contains("id=\"btnWaCodigo\""),
+                "falta el botón para recibir el código por WhatsApp");
+        assertTrue(html.contains("Recibir mi código por WhatsApp"),
+                "el botón de WhatsApp debe decir qué hace");
+        assertTrue(html.contains("wa.me/573150152056"),
+                "el enlace del botón debe apuntar al WhatsApp del negocio");
+        assertTrue(html.contains("https://wa.me/573150152056?text=' + encodeURIComponent(mensajeWa)"),
+                "el enlace debe construirse con el código real del pedido");
+    }
 }

@@ -176,7 +176,11 @@ public class PedidoController {
             // entera. Sin NTFY_TOPIC_URL configurada no se envía nada.
             notificacionService.notificarPedidoNuevo(pedidoGuardado);
 
-            if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
+            // El correo es OPCIONAL: el checkout ya no lo pide (CRO). Sin
+            // dirección no se llama a SendGrid; el código de seguimiento vive
+            // en la pantalla de confirmación y en el botón de WhatsApp.
+            String emailCliente = emailParaConfirmacion(pedido);
+            if (!emailCliente.isEmpty()) {
                 try {
                     // EmailService es @Async: aquí solo se encola, el envío
                     // (que era lo único que hablaba con la red en el hilo del
@@ -185,7 +189,7 @@ public class PedidoController {
                         emailService.enviarConfirmacionCtb234(pedido);
                     } else {
                         emailService.enviarConfirmacion(
-                                pedido.getEmail(),
+                                emailCliente,
                                 pedido.getCodigo(),
                                 pedido.getProductos(),
                                 pedido.getTotal()
@@ -401,6 +405,24 @@ public class PedidoController {
         // Por texto (fallback para carritos antiguos o sin IDs)
         String detalle = normalizarTexto(pedido.getProductos());
         return detalle.contains("ctb-234") || detalle.contains("destornillador");
+    }
+
+    /**
+     * Correo al que se puede enviar la confirmación, o cadena vacía.
+     *
+     * <p>Desde el ajuste de CRO el checkout no pide correo, así que este
+     * método devuelve vacío en la mayoría de pedidos y <strong>no se llama a
+     * SendGrid</strong>. Se recorta porque un campo con espacios tampoco es una
+     * dirección válida.</p>
+     *
+     * @param pedido pedido recién guardado (o {@code null})
+     * @return dirección lista para enviar, o {@code ""} si no hay
+     */
+    private static String emailParaConfirmacion(Pedido pedido) {
+        if (pedido == null || pedido.getEmail() == null) {
+            return "";
+        }
+        return pedido.getEmail().trim();
     }
 
     /**

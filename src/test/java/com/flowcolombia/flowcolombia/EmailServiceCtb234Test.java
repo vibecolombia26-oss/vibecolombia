@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -31,9 +32,11 @@ class EmailServiceCtb234Test {
         String destinatario;
         String asunto;
         String contenido;
+        int envios;
 
         @Override
         public void enviarCorreo(String destinatario, String asunto, String contenidoHtml) {
+            this.envios++;
             this.destinatario = destinatario;
             this.asunto = asunto;
             this.contenido = contenidoHtml;
@@ -97,5 +100,27 @@ class EmailServiceCtb234Test {
                 "el correo del resto del catálogo no debe cambiar");
         assertFalse(captura.contenido.contains("48 horas"),
                 "la garantía de 48h es exclusiva del CTB-234");
+    }
+
+    @Test
+    @DisplayName("Sin correo no se llama a SendGrid (ni genérico ni CTB-234)")
+    void sinCorreoNoSeEnviaNada() throws Exception {
+        Captura captura = new Captura();
+
+        Pedido sinCorreo = pedidoCtb234();
+        sinCorreo.setEmail(null);
+        captura.enviarConfirmacionCtb234(sinCorreo);
+
+        Pedido conEspacios = pedidoCtb234();
+        conEspacios.setEmail("   ");
+        captura.enviarConfirmacionCtb234(conEspacios);
+
+        captura.enviarConfirmacion("", "FLOW-ZZZ999", "Mochila Táctica x1", 89900d);
+        captura.enviarConfirmacion(null, "FLOW-ZZZ998", "Mochila Táctica x1", 89900d);
+        captura.enviarConfirmacion("  ", "FLOW-ZZZ997", "Mochila Táctica x1", 89900d);
+
+        assertEquals(0, captura.envios,
+                "sin dirección válida no debe existir ni una petición a SendGrid");
+        assertNull(captura.contenido, "no se debe construir ningún correo sin destinatario");
     }
 }
