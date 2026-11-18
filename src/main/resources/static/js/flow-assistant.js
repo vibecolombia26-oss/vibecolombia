@@ -18,6 +18,18 @@
     /** El prompt pide máximo 2 productos: el chat muestra esos 2. */
     var MAX_TARJETAS = 2;
 
+    /* ------------------------------------------------------------
+       GLOBO PROACTIVO
+       ------------------------------------------------------------
+       Aparece a los 3 s de calma, se cierra solo a los 10 s y solo se
+       muestra una vez por sesión (sessionStorage). Si el cliente toca
+       la burbuja o el globo, el chat se abre y el globo desaparece.
+       ------------------------------------------------------------ */
+    var HINT_TEXTO = '¡Hola! Soy la magia de FlowColombia ✨ ¿Buscas algo en especial o te ayudo a elegir?';
+    var HINT_CLAVE = 'flowAiHintVisto';
+    var HINT_RETRASO_MS = 3000;
+    var HINT_DURACION_MS = 10000;
+
     var fab = null;
     var panel = null;
     var feed = null;
@@ -29,6 +41,10 @@
     var started = false;
     var busy = false;
     var lastFocus = null;
+
+    var hint = null;
+    var hintTimer = null;
+    var hintCierreTimer = null;
 
     function isMobile() {
         // Mismo corte que el CSS: por debajo de 768px el chat es pantalla completa.
@@ -163,6 +179,9 @@
         lastFocus = document.activeElement;
         panel.hidden = false;
         fab.setAttribute('aria-expanded', 'true');
+
+        // Si el globo proactivo estaba a la vista, desaparece al abrir el chat.
+        ocultarGlobo(true);
 
         if (isMobile()) document.body.classList.add('flow-lock');
 
@@ -501,10 +520,133 @@
     }
 
     /* ------------------------------------------------------------
+       Globo proactivo
+       ------------------------------------------------------------ */
+    /** ¿Toca mostrar el globo? Una vez por sesión y nunca con el chat abierto. */
+    function globoPendiente() {
+        try {
+            if (window.sessionStorage.getItem(HINT_CLAVE) === '1') {
+                return false;
+            }
+        } catch (e) {
+            // Modo privado sin storage: se muestra una vez por carga.
+        }
+        return !panel || panel.hidden;
+    }
+
+    /**
+     * Programa el globo para dentro de 3 s de calma.
+     *
+     * <p>Cada interacción (clic, tecla o scroll) reinicia la espera: así el
+     * globo llega cuando el cliente ya está tranquilo mirando la tienda y no
+     * en mitad de una acción.</p>
+     */
+    function programarGlobo() {
+        if (!globoPendiente()) return;
+        if (hintTimer) {
+            window.clearTimeout(hintTimer);
+            hintTimer = null;
+        }
+
+        var eventos = ['pointerdown', 'keydown', 'scroll'];
+        var alInteractuar = function () {
+            eventos.forEach(function (ev) { window.removeEventListener(ev, alInteractuar); });
+            programarGlobo();
+        };
+
+        eventos.forEach(function (ev) {
+            window.addEventListener(ev, alInteractuar, { passive: true });
+        });
+
+        hintTimer = window.setTimeout(function () {
+            eventos.forEach(function (ev) { window.removeEventListener(ev, alInteractuar); });
+            hintTimer = null;
+            if (globoPendiente()) mostrarGlobo();
+        }, HINT_RETRASO_MS);
+    }
+
+    /** Crea el globo junto a la burbuja y lo retira solo a los 10 s. */
+    function mostrarGlobo() {
+        if (hint) return;
+
+        try {
+            window.sessionStorage.setItem(HINT_CLAVE, '1');
+        } catch (e) {
+            // Sin storage: como mucho se verá una vez por carga.
+        }
+
+        hint = document.createElement('div');
+        hint.className = 'flow-ai-hint';
+        hint.setAttribute('role', 'status');
+
+        var texto = document.createElement('span');
+        texto.className = 'flow-ai-hint__text';
+        texto.textContent = HINT_TEXTO;
+
+        var cerrar = document.createElement('button');
+        cerrar.type = 'button';
+        cerrar.className = 'flow-ai-hint__close';
+        cerrar.setAttribute('aria-label', 'Cerrar sugerencia');
+        cerrar.textContent = '×';
+        cerrar.addEventListener('click', function (evento) {
+            evento.stopPropagation();
+            ocultarGlobo();
+        });
+
+        hint.appendChild(texto);
+        hint.appendChild(cerrar);
+
+        // Tocar el globo también abre el chat.
+        hint.addEventListener('click', function () {
+            ocultarGlobo(true);
+            open();
+        });
+
+        document.body.appendChild(hint);
+
+        hintCierreTimer = window.setTimeout(function () {
+            hintCierreTimer = null;
+            ocultarGlobo();
+        }, HINT_DURACION_MS);
+    }
+
+    /**
+     * Retira el globo.
+     *
+     * @param {boolean} inmediato si es {@code true}, se quita sin animación
+     *                            (al abrir el chat no debe quedarse flotando)
+     */
+    function ocultarGlobo(inmediato) {
+        if (hintTimer) {
+            window.clearTimeout(hintTimer);
+            hintTimer = null;
+        }
+        if (hintCierreTimer) {
+            window.clearTimeout(hintCierreTimer);
+            hintCierreTimer = null;
+        }
+        if (!hint) return;
+
+        var nodo = hint;
+        hint = null;
+
+        if (inmediato) {
+            if (nodo.parentNode) nodo.parentNode.removeChild(nodo);
+            return;
+        }
+
+        nodo.classList.add('is-hiding');
+        window.setTimeout(function () {
+            if (nodo.parentNode) nodo.parentNode.removeChild(nodo);
+        }, 260);
+    }
+
+    /* ------------------------------------------------------------
        Inicio
        ------------------------------------------------------------ */
     function init() {
         build();
+        programarGlobo();
     }
 
     if (document.readyState === 'loading') {
