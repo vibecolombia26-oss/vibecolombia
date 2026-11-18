@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.flowcolombia.flowcolombia.service.MetaConversionsService;
+import com.flowcolombia.flowcolombia.service.NotificacionService;
 import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -28,17 +29,20 @@ public class PedidoController {
     private final EmailService emailService;
     private final MetaConversionsService metaConversionsService;
     private final ProductoRepository productoRepository;
+    private final NotificacionService notificacionService;
 
     public PedidoController(PedidoRepository pedidoRepository,
                             MensajeRepository mensajeRepository,
                             EmailService emailService,
                             MetaConversionsService metaConversionsService,
-                            ProductoRepository productoRepository) {
+                            ProductoRepository productoRepository,
+                            NotificacionService notificacionService) {
         this.pedidoRepository = pedidoRepository;
         this.mensajeRepository = mensajeRepository;
         this.emailService = emailService;
         this.metaConversionsService = metaConversionsService;
         this.productoRepository = productoRepository;
+        this.notificacionService = notificacionService;
     }
 
     /**
@@ -151,6 +155,11 @@ public class PedidoController {
         System.out.println("   Total guardado: " + pedidoGuardado.getTotal());
         System.out.println("   Productos guardados: " + pedidoGuardado.getProductos());
         System.out.println("=========================================");
+
+        // Aviso push al celular del dueño (ntfy.sh). Es @Async: no retrasa la
+        // respuesta al cliente y, si ntfy no responde, la tienda no se entera.
+        // Sin NTFY_TOPIC_URL configurada no se envía nada (robot dormido).
+        notificacionService.notificarPedidoNuevo(pedidoGuardado);
 
         if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
             try {

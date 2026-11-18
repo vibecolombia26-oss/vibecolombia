@@ -43,12 +43,15 @@ class PedidoControllerMetaTest {
 
         // Los servicios que este método no usa se pasan como null a propósito:
         // si algún día se tocan, la prueba estalla en vez de pasar en falso.
+        // (La notificación push es la sexta dependencia y tampoco interviene
+        // en la decisión de bloquear el Purchase.)
         controlador = new PedidoController(
                 simular(PedidoRepository.class),
                 simular(MensajeRepository.class),
                 null,
                 null,
-                simular(ProductoRepository.class));
+                simular(ProductoRepository.class),
+                null);
     }
 
     private static Producto producto(Long id, String nombre, boolean excluirMeta) {
