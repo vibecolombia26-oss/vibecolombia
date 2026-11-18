@@ -460,6 +460,50 @@
         @media (prefers-reduced-motion: reduce) {
             .flow-ctb-galeria img { transition: none; }
         }
+
+        /* ============================================================
+           CRO · HERO (H1 beneficio + H2 producto) y PRUEBA SOCIAL
+           ============================================================ */
+
+        .flow-ctb-hero h1 {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: #fff;
+            margin: 0 0 8px;
+        }
+
+        .flow-ctb-hero h2 {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 500;
+            color: var(--flow-muted, #9aa4bf);
+            margin: 0 0 16px;
+        }
+
+        .flow-ctb-social-proof {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            margin: 16px auto 0;
+            max-width: 640px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #c7d2fe;
+            text-align: center;
+            border: 1px solid rgba(252, 209, 22, 0.25);
+            border-radius: 10px;
+            background: rgba(252, 209, 22, 0.06);
+        }
+
+        @media (max-width: 480px) {
+            .flow-ctb-social-proof {
+                font-size: 0.75rem;
+                padding: 10px 12px;
+            }
+        }
     </style>
 </head>
 <body class="flow-ctb">
@@ -480,7 +524,10 @@
     <!-- ==================== BLOQUE 1 · HERO ==================== -->
     <section class="flow-ctb-hero" aria-label="Destornillador de Impacto Manual x 13 Piezas">
         <div>
-            <h1 class="flow-ctb-h1">Destornillador de Impacto Manual x 13 Piezas</h1>
+            <!-- CRO: el H1 vende el beneficio (dolor → resultado); el nombre
+                 técnico baja a H2 para SEO y para quien ya sabe qué busca. -->
+            <h1>Afloja los tornillos imposibles con un solo golpe</h1>
+            <h2>Destornillador de Impacto Manual x 13 Piezas</h2>
 
             <!-- Objeción #1 resuelta antes de que se la hagan -->
             <p class="flow-ctb-sub">Es manual: se acciona con el golpe de la mano, no necesita batería ni corriente.</p>
@@ -497,13 +544,13 @@
             <p class="flow-ctb-micro">✅ Despacha desde Cali · Envío rápido desde Colombia · Imágenes del producto tal como lo recibes</p>
         </div>
 
-        <!-- Imagen del hero: la 3 (13 puntas) mientras llega la foto limpia
-             del set completo. Solo URL de Cloudinary pegada aquí, sin SDK.
-             w_900 porque es la imagen above-the-fold en móvil y retina. -->
+        <!-- Imagen del hero: close-up del producto (mango rojo y negro).
+             Solo URL de Cloudinary pegada aquí, sin SDK. w_900 porque es la
+             imagen above-the-fold en móvil y retina. -->
         <div class="flow-ctb-hero-img">
             <img
-                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_900,c_fill,g_center/v1794849340/13_Puntas_Intercambiables___Plano__Estrella__He_yj4xiv.png"
-                    alt="13 puntas intercambiables: plano, estrella y hexagonal en un solo estuche"
+                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_900,c_fill,g_center/v1794957028/Close-up_product_shot_of_a_premium_red_and_black_t_lkkpxg.png"
+                    alt="Destornillador de impacto manual con mango rojo y negro, primer plano"
                     loading="eager"
                     fetchpriority="high"
                     decoding="async"
@@ -512,6 +559,12 @@
             >
         </div>
     </section>
+
+    <!-- Prueba social / reversión del riesgo: justo debajo del hero,
+         antes de que el visitante decida si sigue leyendo. -->
+    <div class="flow-ctb-social-proof">
+        ⭐ Compra 100% segura en FlowColombia · Despacho inmediato desde Colombia
+    </div>
 
     <!-- ==================== BLOQUE 2 · FRANJA DE CONFIANZA ==================== -->
     <p class="flow-ctb-strip">🚚 Envío gratis a toda Colombia · 📦 Despacha desde Cali · 💵 Pagas en efectivo cuando lo recibes · 🔍 Revisa tu pedido al recibirlo · 📞 Reporta defectos de fábrica en las primeras 48 horas</p>
@@ -526,8 +579,8 @@
         <div class="flow-ctb-galeria" role="list">
             <figure role="listitem">
                 <img
-                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794847855/Tornillos_Pegados_o_Barridos__Afloja_tornillos_di_jqkn6i.png"
-                        alt="Afloja tornillos pegados o barridos con el golpe manual"
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794957031/Extreme_macro_photography_of_a_rusty_stripped_scr_p8yv7y.png"
+                        alt="Tornillo oxidado y barrido que el destornillador de impacto puede aflojar"
                         loading="lazy"
                         decoding="async"
                         width="600"
@@ -536,8 +589,8 @@
             </figure>
             <figure role="listitem">
                 <img
-                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794848008/Te_ha_pasado___Tornillos_oxidados__Tornillos_ba_j06br6.png"
-                        alt="Afloja tornillos oxidados que otros destornilladores no pueden"
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794957030/Top-down_flat_lay_photography_of_13_different_meta_pedomb.png"
+                        alt="13 puntas intercambiables de acero CR-V vistas desde arriba"
                         loading="lazy"
                         decoding="async"
                         width="600"
@@ -546,8 +599,8 @@
             </figure>
             <figure role="listitem">
                 <img
-                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794849340/13_Puntas_Intercambiables___Plano__Estrella__He_yj4xiv.png"
-                        alt="13 puntas intercambiables: plano, estrella y hexagonal en un solo estuche"
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794957028/Cinematic_photography_of_a_mechanic_s_hands_using__ikzgu7.png"
+                        alt="Mecánico usando el destornillador de impacto manual en un taller"
                         loading="lazy"
                         decoding="async"
                         width="600"
@@ -556,8 +609,8 @@
             </figure>
             <figure role="listitem">
                 <img
-                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794849595/Ideal_para___Motos__Autos__Reparaciones_del__llylhq.png"
-                        alt="Ideal para reparar motos, autos y tareas del hogar"
+                        src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_600,c_fill,g_center/v1794957029/Professional_product_photography_of_an_open_red_an_mznuzx.png"
+                        alt="Estuche rígido abierto con el destornillador y las 13 puntas"
                         loading="lazy"
                         decoding="async"
                         width="600"
@@ -589,14 +642,16 @@
 
         <p class="flow-ctb-note">Imágenes del producto tal como lo recibes. No es eléctrico, no requiere batería ni corriente.</p>
 
-        <!-- TODO(Cloudinary): foto del kit abierto mostrando las 13 puntas -->
-        <!-- Igual que el hero: solo URL de Cloudinary pegada en el HTML. -->
-        <div class="flow-ctb-photo" role="img"
-             aria-label="Foto del kit abierto con el destornillador, las 13 puntas y el estuche"
-             style="margin-top:14px; aspect-ratio: 4 / 3;">
-            <span>Foto del kit abierto</span>
-            <small>Pendiente de la URL de Cloudinary<br>(f_auto,q_auto)</small>
-        </div>
+        <!-- Foto del kit abierto: solo URL de Cloudinary pegada en el HTML, sin SDK. -->
+        <img
+                class="flow-ctb-oferta"
+                src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_800,c_fill,g_center/v1794957029/Professional_product_photography_of_an_open_red_an_mznuzx.png"
+                alt="Estuche rígido abierto con el destornillador y las 13 puntas"
+                loading="lazy"
+                decoding="async"
+                width="800"
+                height="800"
+        >
     </section>
 
     <!-- ==================== BLOQUE 5 · CÓMO COMPRAS EN 3 PASOS ==================== -->
@@ -611,8 +666,8 @@
 
         <img
                 class="flow-ctb-oferta"
-                src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_800,c_fill,g_center/v1794849956/Env%C3%ADo_Gratis___Pago_Contra_Entrega__Stock_Limit_wmp9iv.png"
-                alt="Envío gratis, pago contra entrega y stock limitado"
+                src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto,w_800,c_fill,g_center/v1794957028/Close-up_product_shot_of_a_premium_red_and_black_t_lkkpxg.png"
+                alt="Destornillador de impacto manual con mango rojo y negro, primer plano"
                 loading="lazy"
                 decoding="async"
                 width="800"

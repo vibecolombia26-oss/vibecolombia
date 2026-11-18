@@ -103,12 +103,15 @@ class LandingCtb234PlantillaTest {
     }
 
     @Test
-    @DisplayName("La landing renderiza el hero con precio y CTA al checkout")
+    @DisplayName("La landing renderiza el hero con H1 de beneficio, H2 de producto, precio y CTA")
     void heroCompleto() {
         String html = renderizar();
 
-        assertTrue(html.contains("Destornillador de Impacto Manual x 13 Piezas"),
-                "falta el nombre del producto en el H1");
+        // CRO: el H1 vende el beneficio; el nombre técnico vive en el H2.
+        assertTrue(html.contains("<h1>Afloja los tornillos imposibles con un solo golpe</h1>"),
+                "falta el H1 emocional del hero");
+        assertTrue(html.contains("<h2>Destornillador de Impacto Manual x 13 Piezas</h2>"),
+                "falta el H2 con el nombre técnico del producto");
         assertTrue(html.contains("Es manual: se acciona con el golpe de la mano, no necesita batería ni corriente."),
                 "falta la respuesta a la objeción #1");
         assertTrue(html.contains("$89.900 COP — Envío gratis — Pago contra entrega"),
@@ -117,6 +120,8 @@ class LandingCtb234PlantillaTest {
                 "el CTA del hero necesita id para el evento de intención");
         assertTrue(html.contains("href=\"/carrito?checkout=1\""),
                 "el CTA debe llevar al checkout de la tienda");
+        assertTrue(html.contains("⭐ Compra 100% segura en FlowColombia · Despacho inmediato desde Colombia"),
+                "falta la franja de prueba social debajo del hero");
     }
 
     @Test
