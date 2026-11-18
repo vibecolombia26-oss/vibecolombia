@@ -55,7 +55,7 @@ public class AsistenteController {
                     new AsistenteService.ContextoCarrito(carrito.size(), carrito);
 
             AsistenteService.RespuestaAsistente respuesta =
-                    asistenteService.responder(peticion.mensaje(), peticion.historial(), contexto);
+                    asistenteService.responder(peticion.mensaje(), peticion.historial(), contexto, peticion.pagina());
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("respuesta", respuesta.respuesta());
@@ -117,9 +117,14 @@ public class AsistenteController {
      * @param carrito   nombres de los productos que el cliente ya tiene en el
      *                  carrito (los lee el navegador de localStorage). Se usan
      *                  para personalizar la recomendación con un complemento.
+     * @param pagina    ruta que está viendo el cliente (p. ej.
+     *                  {@code /producto/mochila-tactica}). Solo se usa para
+     *                  añadir al prompt el nombre del producto; nunca lleva
+     *                  datos personales y es opcional.
      */
     public record Peticion(String mensaje,
                            List<AsistenteService.MensajeHistorial> historial,
-                           List<String> carrito) {
+                           List<String> carrito,
+                           String pagina) {
     }
 }

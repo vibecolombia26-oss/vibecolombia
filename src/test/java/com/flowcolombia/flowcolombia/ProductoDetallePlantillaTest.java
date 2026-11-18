@@ -151,7 +151,8 @@ class ProductoDetallePlantillaTest {
         // La capa de experiencia (barra de progreso + View Transitions) tiene
         // que viajar en todas las páginas públicas.
         assertTrue(html.contains("/js/flow-ui.js?v=1"), "falta flow-ui.js en la ficha");
-        assertTrue(html.contains("/js/flow-assistant.js?v=6"), "falta el asistente (esfera de Tina)");
+        assertTrue(html.contains("/js/flow-assistant.js?v=7"),
+                "falta el asistente (esfera de cristal, sin nombre)");
 
         // Google Analytics 4: script global (public-meta) + evento de ficha.
         assertTrue(html.contains("googletagmanager.com/gtag/js?id=G-5PT3YEX4G7"),

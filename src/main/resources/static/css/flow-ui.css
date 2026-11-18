@@ -755,16 +755,17 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
    ASISTENTE DE COMPRAS (IA)
    ============================================================ */
 /* ============================================================
-   ESFERA DE TINA (asistente IA) · la luz es el botón
+   PRESENCIA AMBIENTAL · esfera de cristal (asistente IA)
    ------------------------------------------------------------
    Cero imágenes: tres capas apiladas dentro del mismo <button>
-   que ya crea flow-assistant.js (su HTML no se toca).
+   que crea flow-assistant.js.
 
-     1. ARO TRICOLOR   → el fondo del propio botón (conic-gradient)
-     2. HALO EXTERIOR  → ::before, radial-gradient + filter: blur()
-     3. ESFERA         → ::after, radial-gradient + luces interiores
+     1. ARO TRICOLOR   → filo de bandera del propio botón (conic-gradient)
+     2. AURA           → ::before, radial-gradient tricolor + blur + respiración
+     3. CRISTAL        → ::after, esfera con luces interiores y brillo
 
-   El "F" y el punto de estado flotan por encima con z-index.
+   Sin texto: la esfera no tiene nombre ni letra, solo luz. El único
+   elemento por encima es el punto de estado.
    ============================================================ */
 .flow-ai-fab {
     position: fixed;
@@ -781,9 +782,8 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
     display: grid;
     place-items: center;
     font: 800 1.3rem/1 var(--flow-font);
-    /* 1. ARO TRICOLOR: la esfera se dibuja a inset:2px, así que del fondo
-       del botón solo asoma el filo de 2px. Acento de bandera donde toca:
-       un detalle fino, nunca un bloque de color. */
+    /* 1. ARO TRICOLOR: el cristal se dibuja a inset:2px, así que del fondo
+       del botón solo asoma el filo de 2px con los tres colores de la bandera. */
     background: conic-gradient(from 205deg,
             var(--flow-flag-yellow) 0deg,
             var(--flow-accent) 150deg,
@@ -792,57 +792,71 @@ a.flow-line__name:hover { color: var(--flow-accent-light); }
     /* Contexto de apilado propio para que los pseudos no se escapen */
     isolation: isolate;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.25s ease, bottom 0.25s ease;
+    transition: transform 0.28s ease, bottom 0.25s ease;
 }
 
-/* 2. HALO: la luz que se escapa de la esfera. El blur real va aquí. */
+/* 2. AURA: la luz que se escapa del cristal. El blur real va aquí y su
+   tamaño/opacidad respiran despacio (flowSphereHalo). */
 .flow-ai-fab::before {
     content: "";
     position: absolute;
-    inset: -17px;
+    inset: -18px;
     z-index: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%,
-            rgba(96, 165, 250, 0.62) 0%,
-            rgba(99, 102, 241, 0.4) 34%,
-            rgba(139, 92, 246, 0.26) 56%,
-            rgba(139, 92, 246, 0) 72%);
-    filter: blur(9px);
-    animation: flowSphereHalo 5.6s ease-in-out infinite;
+    background: radial-gradient(circle at 34% 64%,
+            rgba(252, 209, 22, 0.5) 0%,
+            rgba(252, 209, 22, 0) 46%),
+        radial-gradient(circle at 50% 50%,
+            rgba(37, 99, 235, 0.55) 0%,
+            rgba(37, 99, 235, 0.28) 42%,
+            rgba(37, 99, 235, 0) 70%),
+        radial-gradient(circle at 70% 34%,
+            rgba(206, 17, 38, 0.42) 0%,
+            rgba(206, 17, 38, 0) 50%);
+    filter: blur(10px);
+    animation: flowSphereHalo 6.4s ease-in-out infinite;
     pointer-events: none;
 }
 
-/* 3. ESFERA: el núcleo de energía, con la luz entrando por arriba a la izquierda. */
+/* 3. CRISTAL: esfera con brillo especular arriba-izquierda y los tres colores
+   refractados por dentro. El borde claro simula el filo del vidrio. */
 .flow-ai-fab::after {
     content: "";
     position: absolute;
     inset: 2px;
     z-index: 1;
     border-radius: 50%;
-    background: radial-gradient(circle at 33% 27%,
-            #e0efff 0%,
-            #60a5fa 20%,
-            #3b82f6 42%,
-            #1d4ed8 70%,
-            #312e81 100%);
+    background:
+        /* brillo del vidrio */
+        radial-gradient(circle at 32% 26%,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.42) 9%,
+            rgba(255, 255, 255, 0) 30%),
+        /* amarillo de la bandera */
+        radial-gradient(circle at 30% 76%,
+            rgba(252, 209, 22, 0.85) 0%,
+            rgba(252, 209, 22, 0) 46%),
+        /* rojo de la bandera */
+        radial-gradient(circle at 72% 72%,
+            rgba(206, 17, 38, 0.8) 0%,
+            rgba(206, 17, 38, 0) 48%),
+        /* azul de la bandera (corazón del cristal) */
+        radial-gradient(circle at 52% 42%,
+            rgba(96, 165, 250, 0.95) 0%,
+            rgba(37, 99, 235, 0.92) 38%,
+            rgba(29, 78, 216, 0.95) 62%,
+            rgba(12, 8, 48, 0.98) 100%);
     box-shadow:
-        inset 0 -9px 18px rgba(12, 8, 48, 0.6),
-        inset 0 7px 14px rgba(255, 255, 255, 0.32),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        inset 0 -10px 18px rgba(10, 6, 40, 0.55),
+        inset 0 8px 16px rgba(255, 255, 255, 0.28),
         0 14px 30px -12px rgba(37, 99, 235, 0.95);
-    animation: flowSphereCore 5.6s ease-in-out infinite;
+    animation: flowSphereCore 6.4s ease-in-out infinite;
     pointer-events: none;
     transition: background 0.4s ease;
 }
 
-/* El "F" (primer span del botón) vive sobre la luz, no dentro de ella */
-.flow-ai-fab > span:first-child {
-    position: relative;
-    z-index: 2;
-    text-shadow: 0 0 10px rgba(224, 239, 255, 0.95),
-                 0 0 24px rgba(96, 165, 250, 0.75);
-}
-
-.flow-ai-fab:hover { transform: translateY(-2px) scale(1.03); }
+.flow-ai-fab:hover { transform: translateY(-2px) scale(1.04); }
 
 /* La barra flotante del carrito ocupa la franja inferior: el botón del
    asistente sube por encima con la altura real que inyecta flow-cart.js. */
@@ -860,64 +874,72 @@ body.has-cart-bar .flow-ai-fab { bottom: calc(var(--cart-bar-h, 0px) + 14px); }
     border: 2px solid #050914;
 }
 
-/* ---- Estado 1: chat abierto → la esfera se enciende en violeta ---- */
+/* ---- Estado 1: chat abierto → la esfera se expande y se enciende ---- */
+.flow-ai-fab[aria-expanded="true"] {
+    transform: scale(1.14);
+}
+
 .flow-ai-fab[aria-expanded="true"]::before {
-    animation-duration: 2.4s;
-    background: radial-gradient(circle at 50% 50%,
-            rgba(196, 181, 253, 0.62) 0%,
-            rgba(139, 92, 246, 0.46) 38%,
-            rgba(139, 92, 246, 0) 72%);
+    inset: -24px;
+    animation-duration: 3.2s;
+    background: radial-gradient(circle at 34% 64%,
+            rgba(252, 209, 22, 0.62) 0%,
+            rgba(252, 209, 22, 0) 48%),
+        radial-gradient(circle at 50% 50%,
+            rgba(96, 165, 250, 0.7) 0%,
+            rgba(37, 99, 235, 0.34) 44%,
+            rgba(37, 99, 235, 0) 72%),
+        radial-gradient(circle at 70% 34%,
+            rgba(206, 17, 38, 0.55) 0%,
+            rgba(206, 17, 38, 0) 52%);
 }
 
 .flow-ai-fab[aria-expanded="true"]::after {
-    animation-duration: 2.4s;
+    animation-duration: 3.2s;
 }
 
-/* ---- Estado 2: Tina escribe → pulso rápido y núcleo blanco-violeta ----
+/* ---- Estado 2: la IA escribe → pulso rápido y aura más intensa ----
    `:has()` permite reaccionar al DOM del chat SIN tocar su lógica: la
    burbuja .flow-ai-typing la pinta flow-assistant.js y aquí solo se mira. */
-body:has(.flow-ai-typing) .flow-ai-fab { transform: scale(1.05); }
+body:has(.flow-ai-typing) .flow-ai-fab { transform: scale(1.06); }
 
 body:has(.flow-ai-typing) .flow-ai-fab::before {
-    animation-duration: 0.9s;
-    inset: -22px;
-    background: radial-gradient(circle at 50% 50%,
-            rgba(233, 213, 255, 0.8) 0%,
-            rgba(167, 139, 250, 0.5) 40%,
-            rgba(139, 92, 246, 0) 74%);
+    animation-duration: 1.1s;
+    inset: -26px;
 }
 
 body:has(.flow-ai-typing) .flow-ai-fab::after {
-    animation-duration: 0.9s;
-    background: radial-gradient(circle at 34% 28%,
-            #f5f3ff 0%,
-            #c4b5fd 20%,
-            #8b5cf6 48%,
-            #4c1d95 80%,
-            #2e1065 100%);
+    animation-duration: 1.1s;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+        inset 0 -10px 18px rgba(10, 6, 40, 0.45),
+        inset 0 8px 16px rgba(255, 255, 255, 0.4),
+        0 20px 44px -14px rgba(37, 99, 235, 1);
 }
 
-/* Respiración: escala y opacidad del halo suben y bajan a la vez. Es lo que
-   hace que la esfera parezca "viva" y no un adorno quieto. */
+/* Respiración: la aura crece y se apaga despacio. Es lo que hace que la
+   esfera parezca viva y no un adorno quieto. */
 @keyframes flowSphereHalo {
     0%, 100% { transform: scale(0.9); opacity: 0.55; }
-    50%      { transform: scale(1.08); opacity: 0.95; }
+    50%      { transform: scale(1.1); opacity: 0.95; }
 }
 
-/* Pulso del núcleo: la luz interior late desfasada del halo (mismo periodo,
+/* Pulso del cristal: la luz interior late desfasada del aura (mismo periodo,
    distinta fase) para que el movimiento no se lea mecánico. */
 @keyframes flowSphereCore {
     0%, 100% {
         box-shadow:
-            inset 0 -9px 18px rgba(12, 8, 48, 0.6),
-            inset 0 7px 14px rgba(255, 255, 255, 0.3),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+            inset 0 -10px 18px rgba(10, 6, 40, 0.55),
+            inset 0 8px 16px rgba(255, 255, 255, 0.26),
             0 14px 30px -12px rgba(37, 99, 235, 0.9);
     }
     50% {
         box-shadow:
-            inset 0 -9px 18px rgba(12, 8, 48, 0.5),
-            inset 0 8px 16px rgba(255, 255, 255, 0.46),
-            0 20px 42px -14px rgba(99, 102, 241, 1);
+            inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+            inset 0 -10px 18px rgba(10, 6, 40, 0.45),
+            inset 0 9px 18px rgba(255, 255, 255, 0.4),
+            0 20px 44px -14px rgba(37, 99, 235, 1);
     }
 }
 

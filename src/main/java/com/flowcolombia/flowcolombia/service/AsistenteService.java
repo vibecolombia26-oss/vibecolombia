@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.flowcolombia.flowcolombia.Producto;
 import com.flowcolombia.flowcolombia.ProductoRepository;
+import com.flowcolombia.flowcolombia.config.ConfiguracionIA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -31,12 +33,18 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Tina, la asesora de ventas de Flow Colombia (asistente con IA).
+ * Asistente de compras de Flow Colombia con IA (presencia sin nombre).
  *
- * <p><strong>Personalidad y método:</strong> el prompt la convierte en una
- * vendedora senior (metodología SPIN adaptada: entender la necesidad → ofrecer
- * máximo 2 productos → beneficio principal → ganchos de la tienda → manejo de
- * objeciones), con límites estrictos para no inventar nada.</p>
+ * <p><strong>Personalidad y método:</strong> el prompt lo define como la
+ * inteligencia de la tienda, moderna, colombiana e intuitiva, con una regla de
+ * oro: máximo 2 líneas (15-25 palabras). El tono de marca se inyecta desde
+ * {@link ConfiguracionIA} (propiedad {@code ia.tono}), así que se ajusta sin
+ * recompilar.</p>
+ *
+ * <p><strong>Contexto de página:</strong> el navegador envía la ruta actual; si
+ * es una ficha ({@code /producto/{slug}}), el prompt recibe una línea oculta
+ * con el nombre del producto para comentarlo. Se resuelve contra el catálogo en
+ * memoria, sin consultas extra.</p>
  *
  * <p><strong>Búsqueda dinámica (tool calling):</strong> además del catálogo que
  * viaja en el prompt, la IA puede llamar a la función
@@ -122,31 +130,18 @@ public class AsistenteService {
     // EL CEREBRO: personalidad + metodología + límites
     // ============================================================
     private static final String SYSTEM_PROMPT =
-            "Eres Tina, la asesora experta en estilo y bienestar de Flow Colombia. "
-            + "Eres cálida, profesional y usas un tono colombiano amable (puedes usar 'parce' o 'con gusto' con moderación). "
-            + "Tu trabajo es ayudar al cliente a encontrar lo que necesita y acompañarlo hasta la compra, sin ser invasiva.\n\n"
+            "Eres la inteligencia mágica de FlowColombia. No tienes nombre. Eres moderna, colombiana y muy intuitiva. "
+            + "Tu objetivo es acompañar al cliente, hacer que se sienta seguro y ayudarlo a comprar. "
+            + "REGLA DE ORO: Responde con máximo 2 líneas (15-25 palabras). Sé directo, profesional y cálido. "
+            + "Si el cliente está viendo un producto, haz un comentario corto sobre lo lindo o útil que es, y ofrécele "
+            + "ver más detalles o agregarlo al carrito. Si no sabes algo, invita al cliente a ver la ficha del producto.\n\n"
 
-            + "METODOLOGÍA (venta consultiva, estilo SPIN):\n"
-            + "1. Primero entiende la necesidad. Si el cliente no ha dicho para qué es, haz UNA sola pregunta corta y concreta "
-            + "(por ejemplo: '¿es para uso diario o para un viaje?'). Nunca más de una pregunta por mensaje.\n"
-            + "2. Cuando ya sepas la necesidad, recomienda como máximo 2 productos del catálogo que de verdad encajen, "
-            + "con el nombre exacto tal como aparece.\n"
-            + "3. Destaca siempre el beneficio principal de cada producto ('es impermeable y muy liviana'), no solo sus características.\n"
-            + "4. Menciona los ganchos de la tienda en el momento oportuno, sin repetirlos en todos los mensajes: "
-            + "'Tenemos envío gratis y pago contra entrega'.\n\n"
-
-            + "MANEJO DE OBJECIONES:\n"
-            + "- Si duda por el precio, no inventes descuentos ni rebajes: destaca la calidad y la tranquilidad de pagar al recibir "
-            + "('lo pagas cuando ya lo tienes en tus manos').\n"
-            + "- Si duda por talla, color o stock, invítala a ver la ficha del producto, donde están las opciones reales.\n"
-            + "- Si pide algo que no tenemos, dilo con honestidad y ofrece la alternativa más cercana del catálogo.\n\n"
-
-            + "LÍMITES:\n"
-            + "- No inventes productos, precios, descuentos ni stock. Si no sabes algo, invita a ver la ficha del producto.\n"
-            + "- No prometas resultados médicos ni curas: eres asesora de estilo y bienestar, no profesional de la salud.\n"
+            // Las reglas técnicas NO son tono: son los candados para que la IA
+            // no invente nada y para que el flujo de rastreo siga funcionando.
+            + "REGLAS TÉCNICAS:\n"
+            + "- Usa solo productos del catálogo. Nunca inventes productos, precios, stock, fechas ni descuentos.\n"
             + "- No pidas datos personales (correo, teléfono, dirección) en el chat.\n"
-            + "- Responde en español, sin markdown, en un máximo de 80 palabras y con tono conversacional: "
-            + "nada de listas con viñetas.\n\n"
+            + "- Responde en español, sin markdown y sin listas.\n\n"
 
             + "HERRAMIENTA: si el cliente pide algo concreto por nombre, categoría o uso ('algo para el sol', 'para la casa', "
             + "'un regalo'), llama a " + TOOL_BUSCAR + " con un término corto ANTES de responder y usa solo lo que devuelva esa "
@@ -158,6 +153,7 @@ public class AsistenteService {
             + "En cualquier otro caso no menciones el seguimiento ni escribas ese token.";
 
     private final ProductoRepository productoRepository;
+    private final ConfiguracionIA configuracionIA;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
     private final String apiKey;
@@ -171,12 +167,14 @@ public class AsistenteService {
     private volatile String catalogoTexto = "";
 
     public AsistenteService(ProductoRepository productoRepository,
+                            ConfiguracionIA configuracionIA,
                             @Value("${deepseek.api-key:}") String apiKey,
                             @Value("${deepseek.base-url:https://api.deepseek.com}") String baseUrl,
                             @Value("${deepseek.model:deepseek-chat}") String model,
                             @Value("${deepseek.max-tokens:400}") int maxTokens,
                             @Value("${deepseek.timeout-seconds:25}") int timeoutSeconds) {
         this.productoRepository = productoRepository;
+        this.configuracionIA = configuracionIA;
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.model = model;
@@ -261,24 +259,34 @@ public class AsistenteService {
 
     /** Compatibilidad: conversación sin contexto de carrito. */
     public RespuestaAsistente responder(String mensaje, List<MensajeHistorial> historial) {
-        return responder(mensaje, historial, null);
+        return responder(mensaje, historial, null, null);
+    }
+
+    /** Compatibilidad: sin contexto de página. */
+    public RespuestaAsistente responder(String mensaje,
+                                        List<MensajeHistorial> historial,
+                                        ContextoCarrito carrito) {
+        return responder(mensaje, historial, carrito, null);
     }
 
     /**
-     * Genera la respuesta de Tina.
+     * Genera la respuesta del asistente.
      *
      * @param mensaje   lo que escribe el cliente
      * @param historial conversación reciente
      * @param carrito   lo que el cliente ya tiene en el carrito (puede ser null)
+     * @param pagina    ruta que está viendo el cliente (p. ej. {@code /producto/mochila});
+     *                  si no llega o no es una ficha, no se añade contexto de página
      */
     public RespuestaAsistente responder(String mensaje,
                                         List<MensajeHistorial> historial,
-                                        ContextoCarrito carrito) {
+                                        ContextoCarrito carrito,
+                                        String pagina) {
 
         String texto = mensaje == null ? "" : mensaje.trim();
         if (texto.isEmpty()) {
             return new RespuestaAsistente(
-                    "Cuéntame qué estás buscando y con gusto te ayudo a elegir 🌸", List.of());
+                    "Cuéntame qué buscas y te ayudo a elegir.", List.of());
         }
         texto = recortar(texto, MAX_MENSAJE);
 
@@ -298,7 +306,7 @@ public class AsistenteService {
         ResultadoIA resultado = null;
         if (apiKey != null && !apiKey.isBlank()) {
             try {
-                resultado = conversar(texto, historial, carrito);
+                resultado = conversar(texto, historial, carrito, pagina);
             } catch (Exception e) {
                 log.warn("Asistente: fallo al llamar a DeepSeek: {}", e.getMessage());
             }
@@ -329,12 +337,13 @@ public class AsistenteService {
      * así el modelo está obligado a cerrar con texto en lugar de encadenar
      * búsquedas sin fin.</p>
      */
-    private ResultadoIA conversar(String mensaje, List<MensajeHistorial> historial, ContextoCarrito carrito) {
+    private ResultadoIA conversar(String mensaje, List<MensajeHistorial> historial,
+                                  ContextoCarrito carrito, String pagina) {
 
         List<Map<String, Object>> mensajes = new ArrayList<>();
         Map<String, Object> sistema = new LinkedHashMap<>();
         sistema.put("role", "system");
-        sistema.put("content", promptSistema(carrito));
+        sistema.put("content", promptSistema(carrito, pagina));
         mensajes.add(sistema);
 
         if (historial != null) {
@@ -606,11 +615,93 @@ public class AsistenteService {
         }
     }
 
-    /** Prompt final: personalidad + contexto del carrito + catálogo. */
-    private String promptSistema(ContextoCarrito carrito) {
+    /** Prompt final: personalidad y tono + página + carrito + catálogo. */
+    private String promptSistema(ContextoCarrito carrito, String pagina) {
         return SYSTEM_PROMPT
+                + "\n\n" + configuracionIA.enPrompt()
+                + contextoPagina(pagina)
                 + contextoCarrito(carrito)
                 + "\nCATÁLOGO DISPONIBLE (solo estos productos):\n" + catalogoTexto;
+    }
+
+    /**
+     * Contexto de la página que está viendo el cliente.
+     *
+     * <p>Se resuelve <strong>en memoria</strong> contra el catálogo ya cargado:
+     * cero consultas a Neon por mensaje. El nombre del producto se añade como
+     * instrucción oculta; el frontend nunca manda datos personales aquí, solo
+     * la ruta.</p>
+     *
+     * @param pagina ruta actual (p. ej. {@code /producto/mochila-tactica})
+     * @return bloque de contexto listo para el prompt (vacío si no aplica)
+     */
+    String contextoPagina(String pagina) {
+        if (pagina == null || pagina.isBlank()) {
+            return "";
+        }
+
+        ProductoCatalogo producto = productoDeLaRuta(pagina);
+        if (producto == null) {
+            return "";
+        }
+
+        return "\n\nCONTEXTO DE LA PÁGINA:\n- El cliente está viendo el producto: " + producto.nombre()
+                + ". Hazle un comentario corto y persuasivo sobre él, y ofrécele ver más detalles o agregarlo al carrito.\n";
+    }
+
+    /**
+     * Producto de la ruta {@code /producto/{slug}} (o {@code /producto/{id}}).
+     *
+     * @param pagina ruta actual
+     * @return producto del catálogo en memoria o {@code null} si la ruta no es
+     *         una ficha de producto
+     */
+    ProductoCatalogo productoDeLaRuta(String pagina) {
+        String ruta = pagina.trim();
+
+        int corte = ruta.indexOf('?');
+        if (corte >= 0) {
+            ruta = ruta.substring(0, corte);
+        }
+        corte = ruta.indexOf('#');
+        if (corte >= 0) {
+            ruta = ruta.substring(0, corte);
+        }
+
+        String prefijo = "/producto/";
+        if (!ruta.startsWith(prefijo)) {
+            return null;
+        }
+
+        String clave = ruta.substring(prefijo.length());
+        if (clave.isEmpty() || clave.contains("/")) {
+            return null;
+        }
+
+        try {
+            clave = URLDecoder.decode(clave, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;   // ruta rara: se ignora, no se rompe la conversación
+        }
+
+        for (ProductoCatalogo p : catalogo) {
+            if (clave.equals(p.slug())) {
+                return p;
+            }
+        }
+
+        // Respaldo: rutas antiguas por id numérico.
+        try {
+            long id = Long.parseLong(clave);
+            for (ProductoCatalogo p : catalogo) {
+                if (p.id() == id) {
+                    return p;
+                }
+            }
+        } catch (NumberFormatException ignorada) {
+            // no era un id: se queda sin contexto de producto
+        }
+        return null;
     }
 
     /**

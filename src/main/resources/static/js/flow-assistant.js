@@ -8,7 +8,7 @@
     'use strict';
 
     var API_URL = '/api/asistente';
-    var GREETING = '¡Hola! Soy Tina de Flow Colombia 🌸. ¿Buscas algo para ti, para tu casa o un regalo especial?';
+    var GREETING = 'Hola. Estoy aquí para ayudarte a elegir. ¿Buscas algo para ti, para tu casa o un regalo?';
     var QUICK_OPTIONS = [
         { label: 'Para mí', text: 'Busco algo para mí.' },
         { label: 'Para mi casa', text: 'Busco algo para mi casa.' },
@@ -90,6 +90,10 @@
 
     /* ------------------------------------------------------------
        Construcción del widget (una sola vez)
+       ------------------------------------------------------------
+       El botón flotante es una esfera de cristal sin texto: su luz y
+       su aura viven en flow-ui.css (.flow-ai-fab). Aquí solo se crea
+       el <button> vacío con el punto de estado.
        ------------------------------------------------------------ */
     function build() {
         if (fab) return;
@@ -99,20 +103,19 @@
         fab.className = 'flow-ai-fab';
         fab.setAttribute('aria-label', 'Abrir asistente de compras');
         fab.setAttribute('aria-expanded', 'false');
-        fab.innerHTML = '<span aria-hidden="true">F</span>' +
-            '<span class="flow-ai-fab__dot" aria-hidden="true"></span>';
+        fab.innerHTML = '<span class="flow-ai-fab__dot" aria-hidden="true"></span>';
 
         panel = document.createElement('section');
         panel.className = 'flow-ai-panel';
         panel.setAttribute('role', 'dialog');
-        panel.setAttribute('aria-label', 'Tina, asesora de Flow Colombia');
+        panel.setAttribute('aria-label', 'Asistente de compras de Flow Colombia');
         panel.hidden = true;
         panel.innerHTML =
             '<header class="flow-ai-head">' +
-            '  <span class="flow-ai-head__mark" aria-hidden="true">S</span>' +
+            '  <span class="flow-ai-head__mark" aria-hidden="true">F</span>' +
             '  <div class="flow-ai-head__text">' +
-            '    <strong>Tina · Flow Colombia</strong>' +
-            '    <span class="flow-ai-head__status"><i aria-hidden="true"></i> Asesora de estilo</span>' +
+            '    <strong>Flow Colombia</strong>' +
+            '    <span class="flow-ai-head__status"><i aria-hidden="true"></i> Asistente de compras</span>' +
             '  </div>' +
             '  <button type="button" class="flow-ai-close" aria-label="Cerrar asistente">✕</button>' +
             '</header>' +
@@ -123,7 +126,7 @@
             '         placeholder="Ej: busco algo para mi casa" autocomplete="off">' +
             '  <button type="submit" class="flow-ai-send" aria-label="Enviar mensaje">→</button>' +
             '</form>' +
-            '<p class="flow-ai-foot">Tina responde con el catálogo real · envío gratis y pago contra entrega.</p>';
+            '<p class="flow-ai-foot">Responde con el catálogo real · envío gratis y pago contra entrega.</p>';
 
         document.body.appendChild(fab);
         document.body.appendChild(panel);
@@ -414,7 +417,7 @@
         busy = value;
         if (input) input.disabled = value;
         if (sendBtn) sendBtn.disabled = value;
-        if (input) input.placeholder = value ? 'Tina está escribiendo…' : 'Ej: busco algo para mi casa';
+        if (input) input.placeholder = value ? 'Escribiendo…' : 'Ej: busco algo para mi casa';
     }
 
     function send(text) {
@@ -436,11 +439,14 @@
         fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            // El carrito viaja para que Tina pueda ofrecer un complemento lógico.
+            // El carrito viaja para que el asistente ofrezca un complemento
+            // lógico, y la ruta actual para que sepa qué producto está viendo
+            // el cliente (solo la ruta: nunca datos personales).
             body: JSON.stringify({
                 mensaje: message,
                 historial: previous,
-                carrito: carritoActual()
+                carrito: carritoActual(),
+                pagina: window.location.pathname
             })
         })
             .then(function (response) {
