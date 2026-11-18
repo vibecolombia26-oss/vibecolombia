@@ -504,6 +504,36 @@
                 padding: 10px 12px;
             }
         }
+
+        /* ============================================================
+           GIF VERTICAL (9:16) · Bloque 3
+           ------------------------------------------------------------
+           Sin aspect-ratio fijo ni object-fit: la altura la manda el
+           propio GIF para no deformar el vertical. Solo se limita el
+           ancho (400 móvil / 480 desktop).
+           ============================================================ */
+
+        .flow-ctb-gif-wrap {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin: 0 auto 24px;
+        }
+
+        .flow-ctb-gif {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: var(--flow-radius, 16px);
+            border: 1px solid var(--flow-border, rgba(255,255,255,0.08));
+            background: #0b1226;
+            box-shadow: 0 20px 50px -25px rgba(0,0,0,0.9);
+        }
+
+        @media (min-width: 720px) {
+            .flow-ctb-gif { max-width: 480px; }
+        }
     </style>
 </head>
 <body class="flow-ctb">
@@ -573,6 +603,19 @@
     <section class="flow-ctb-block" aria-label="Video y beneficios">
         <h2 class="flow-ctb-h2">Míralo en uso: así trabaja el golpe manual</h2>
 
+        <!-- GIF vertical (9:16, origen TikTok). Sin c_fill ni h_ en la URL:
+             el recorte rompería el formato. Pesa como una imagen en Cloudinary
+             (f_auto,q_auto:good) y no consume Neon ni Render. -->
+        <div class="flow-ctb-gif-wrap">
+            <img
+                    class="flow-ctb-gif"
+                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto:good,w_800/v1794967391/ssstik.io_1794966185584-cloudinary_xeghno.gif"
+                    alt="El destornillador de impacto manual en uso: aflojando un tornillo con un solo golpe"
+                    loading="lazy"
+                    decoding="async"
+            >
+        </div>
+
         <!-- Galería de casos reales (4 imágenes 600px, recorte cuadrado).
              Todos los <figure> son role="listitem" para que un lector de
              pantalla anuncie la lista de ventajas, no cuatro imágenes sueltas. -->
@@ -618,9 +661,6 @@
                 >
             </figure>
         </div>
-
-        <!-- Video 9:16. Si algún día hay iframe, va aquí dentro; mientras, placeholder. -->
-        <div class="flow-ctb-video"><span>Video próximamente</span></div>
 
         <ul class="flow-ctb-list">
             <li>Acero CR-V: las puntas no se deforman con tornillos apretados.</li>
