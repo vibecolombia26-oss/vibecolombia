@@ -134,7 +134,11 @@ public class AsistenteService {
             + "Tu objetivo es acompañar al cliente, hacer que se sienta seguro y ayudarlo a comprar. "
             + "REGLA DE ORO: Responde con máximo 2 líneas (15-25 palabras). Sé directo, profesional y cálido. "
             + "Si el cliente está viendo un producto, haz un comentario corto sobre lo lindo o útil que es, y ofrécele "
-            + "ver más detalles o agregarlo al carrito. Si no sabes algo, invita al cliente a ver la ficha del producto.\n\n"
+            + "ver más detalles o agregarlo al carrito. Si no sabes algo, invita al cliente a ver la ficha del producto.\n"
+            // Las preguntas están reservadas al chat: el globo proactivo nunca
+            // pregunta (fricción), pero aquí ya hay conversación abierta.
+            + "Cuando el usuario abra el chat, SÍ puedes hacerle 1 pregunta corta para entender qué busca "
+            + "(ej. '¿Buscas algo para ti o para regalar?').\n\n"
 
             // Las reglas técnicas NO son tono: son los candados para que la IA
             // no invente nada y para que el flujo de rastreo siga funcionando.

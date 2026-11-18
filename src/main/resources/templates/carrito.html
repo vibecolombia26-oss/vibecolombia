@@ -11,7 +11,7 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
 
-    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=9)}" href="/css/flow-ui.css">
+    <link rel="stylesheet" th:href="@{/css/flow-ui.css(v=10)}" href="/css/flow-ui.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -1575,5 +1575,8 @@
 </script>
 <!-- Capa de experiencia compartida: barra de progreso + View Transitions -->
 <script th:src="@{/js/flow-ui.js(v=1)}" src="/js/flow-ui.js"></script>
+<!-- Asistente (burbuja de cristal): en el carrito sugiere el pago contra entrega -->
+<script th:src="@{/js/flow-assistant.js(v=9)}" src="/js/flow-assistant.js"></script>
+<script th:src="@{/js/orb-3d.js(v=1)}" src="/js/orb-3d.js"></script>
 </body>
 </html>

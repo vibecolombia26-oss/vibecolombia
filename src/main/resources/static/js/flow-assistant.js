@@ -19,16 +19,31 @@
     var MAX_TARJETAS = 2;
 
     /* ------------------------------------------------------------
-       GLOBO PROACTIVO
+       GLOBO PROACTIVO · sugerencias, nunca preguntas
        ------------------------------------------------------------
-       Aparece a los 3 s de calma, se cierra solo a los 10 s y solo se
-       muestra una vez por sesión (sessionStorage). Si el cliente toca
-       la burbuja o el globo, el chat se abre y el globo desaparece.
+       Regla psicológica del dueño: el globo NO pregunta. Una pregunta
+       obliga al cliente a responder y genera fricción; aquí solo llega
+       información útil (sugerencias ingeniosas y persuasivas). Las
+       preguntas quedan reservadas para dentro del chat.
+
+       Un solo globo por página, una vez por sesión y página:
+         - ficha de producto  → 7 s
+         - carrito            → 10 s
+         - resto de la tienda → 20 s sin moverse
        ------------------------------------------------------------ */
-    var HINT_TEXTO = '¡Hola! Soy la magia de FlowColombia ✨ ¿Buscas algo en especial o te ayudo a elegir?';
-    var HINT_CLAVE = 'flowAiHintVisto';
-    var HINT_RETRASO_MS = 3000;
+    var HINT_MEMORIA = 'flowAiHint:';
+    var HINT_RETRASO_PRODUCTO_MS = 7000;
+    var HINT_RETRASO_CARRITO_MS = 10000;
+    var HINT_RETRASO_GENERAL_MS = 20000;
     var HINT_DURACION_MS = 10000;
+
+    /** Sugerencia de carrito: sin preguntas, solo tranquilidad. */
+    var HINT_CARRITO = 'Recuerda que no pagas nada por adelantado. '
+        + 'Tu pedido llega a tu puerta y pagas en efectivo al mensajero.';
+
+    /** Sugerencia general para el resto de la tienda. */
+    var HINT_GENERAL = 'Tenemos envíos rápidos desde Colombia y pago contra entrega. '
+        + 'Encuentra tu próximo favorito en nuestra tienda.';
 
     var fab = null;
     var panel = null;
@@ -522,20 +537,88 @@
     /* ------------------------------------------------------------
        Globo proactivo
        ------------------------------------------------------------ */
-    /** ¿Toca mostrar el globo? Una vez por sesión y nunca con el chat abierto. */
-    function globoPendiente() {
+    /** Memoria por página: si ya salió (o lo cerraron con la ×), no vuelve. */
+    function claveMemoriaGlobo() {
+        return HINT_MEMORIA + (window.location.pathname || '/');
+    }
+
+    function globoYaVistoEnEstaPagina() {
         try {
-            if (window.sessionStorage.getItem(HINT_CLAVE) === '1') {
-                return false;
-            }
+            return window.sessionStorage.getItem(claveMemoriaGlobo()) === '1';
         } catch (e) {
-            // Modo privado sin storage: se muestra una vez por carga.
+            return false;   // modo privado: como mucho sale una vez por carga
+        }
+    }
+
+    function marcarGloboVisto() {
+        try {
+            window.sessionStorage.setItem(claveMemoriaGlobo(), '1');
+        } catch (e) {
+            // Sin storage no se puede recordar; no rompe nada.
+        }
+    }
+
+    /** ¿Toca mostrar el globo? Una vez por página y nunca con el chat abierto. */
+    function globoPendiente() {
+        if (globoYaVistoEnEstaPagina()) {
+            return false;
         }
         return !panel || panel.hidden;
     }
 
     /**
-     * Programa el globo para dentro de 3 s de calma.
+     * Texto para la ficha de producto.
+     *
+     * <p>Afirmación, nunca pregunta: el cliente ve el nombre real del producto
+     * que tiene delante y dos razones para comprar.</p>
+     *
+     * @param {string} nombre nombre del producto que se está viendo
+     * @returns {string} sugerencia de una sola frase
+     */
+    function textoGloboProducto(nombre) {
+        var sujeto = (nombre && String(nombre).trim())
+            ? 'Esos ' + String(nombre).trim()
+            : 'Esos productos';
+        return sujeto + ' son de los más pedidos. Envío gratis y pagas al recibir en tu casa.';
+    }
+
+    /** Nombre del producto de la ficha: primero el H1 real, luego el <title>. */
+    function nombreProductoDeLaFicha() {
+        try {
+            var h1 = document.querySelector('.pdp__title') || document.querySelector('h1');
+            var texto = h1 ? h1.textContent.trim() : '';
+            if (!texto) {
+                texto = (document.title || '').split('|')[0].trim();
+            }
+            return texto;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    /**
+     * Qué sugerencia corresponde y con qué retraso.
+     *
+     * @returns {{retrasoMs: number, texto: string}} globo de esta página
+     */
+    function contextoGlobo() {
+        var ruta = window.location.pathname || '/';
+
+        if (ruta.indexOf('/producto/') === 0) {
+            return {
+                retrasoMs: HINT_RETRASO_PRODUCTO_MS,
+                texto: textoGloboProducto(nombreProductoDeLaFicha())
+            };
+        }
+        if (ruta.indexOf('/carrito') === 0) {
+            return { retrasoMs: HINT_RETRASO_CARRITO_MS, texto: HINT_CARRITO };
+        }
+        return { retrasoMs: HINT_RETRASO_GENERAL_MS, texto: HINT_GENERAL };
+    }
+
+    /**
+     * Programa el globo según la página (7 s producto · 10 s carrito ·
+     * 20 s general).
      *
      * <p>Cada interacción (clic, tecla o scroll) reinicia la espera: así el
      * globo llega cuando el cliente ya está tranquilo mirando la tienda y no
@@ -547,6 +630,8 @@
             window.clearTimeout(hintTimer);
             hintTimer = null;
         }
+
+        var contexto = contextoGlobo();
 
         var eventos = ['pointerdown', 'keydown', 'scroll'];
         var alInteractuar = function () {
@@ -561,19 +646,21 @@
         hintTimer = window.setTimeout(function () {
             eventos.forEach(function (ev) { window.removeEventListener(ev, alInteractuar); });
             hintTimer = null;
-            if (globoPendiente()) mostrarGlobo();
-        }, HINT_RETRASO_MS);
+            if (globoPendiente()) mostrarGlobo(contexto.texto);
+        }, contexto.retrasoMs);
     }
 
-    /** Crea el globo junto a la burbuja y lo retira solo a los 10 s. */
-    function mostrarGlobo() {
+    /**
+     * Crea el globo junto a la burbuja y lo retira solo a los 10 s.
+     *
+     * @param {string} mensaje sugerencia a mostrar (nunca una pregunta)
+     */
+    function mostrarGlobo(mensaje) {
         if (hint) return;
 
-        try {
-            window.sessionStorage.setItem(HINT_CLAVE, '1');
-        } catch (e) {
-            // Sin storage: como mucho se verá una vez por carga.
-        }
+        // Se apunta en sessionStorage al mostrarse: si el cliente lo cierra
+        // con la × (o se cierra solo), no vuelve a salir en esta página.
+        marcarGloboVisto();
 
         hint = document.createElement('div');
         hint.className = 'flow-ai-hint';
@@ -581,7 +668,7 @@
 
         var texto = document.createElement('span');
         texto.className = 'flow-ai-hint__text';
-        texto.textContent = HINT_TEXTO;
+        texto.textContent = mensaje;
 
         var cerrar = document.createElement('button');
         cerrar.type = 'button';
