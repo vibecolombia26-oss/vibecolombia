@@ -604,12 +604,14 @@
         <h2 class="flow-ctb-h2">Míralo en uso: así trabaja el golpe manual</h2>
 
         <!-- GIF vertical (9:16, origen TikTok). Sin c_fill ni h_ en la URL:
-             el recorte rompería el formato. Pesa como una imagen en Cloudinary
-             (f_auto,q_auto:good) y no consume Neon ni Render. -->
+             el recorte rompería el formato. En GIF animado la compresión con
+             pérdida se pide con f_auto:animated,fl_lossy (q_auto:good NO es
+             válido para animaciones y Cloudinary devuelve 400). No consume
+             Neon ni Render. -->
         <div class="flow-ctb-gif-wrap">
             <img
                     class="flow-ctb-gif"
-                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto,q_auto:good,w_800/v1794967391/ssstik.io_1794966185584-cloudinary_xeghno.gif"
+                    src="https://res.cloudinary.com/bcpwhn6o/image/upload/f_auto:animated,fl_lossy,w_800/v1794967391/ssstik.io_1794966185584-cloudinary_xeghno.gif"
                     alt="El destornillador de impacto manual en uso: aflojando un tornillo con un solo golpe"
                     loading="lazy"
                     decoding="async"
