@@ -5,6 +5,7 @@ import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -32,6 +33,16 @@ public class EmailService {
     }
 
     // 🔥 Método para enviar confirmación de pedido
+    /**
+     * Correo genérico de confirmación.
+     *
+     * <p>Es {@link Async}: el checkout NO espera a SendGrid. Antes el envío se
+     * hacía en el hilo HTTP y, con la red lenta, la respuesta al cliente podía
+     * perderse aunque el pedido ya estuviera guardado (y el cliente repetía la
+     * compra). En los tests se invoca sobre una instancia normal, así que se
+     * ejecuta en el mismo hilo y se puede inspeccionar el contenido.</p>
+     */
+    @Async
     public void enviarConfirmacion(String destinatario, String codigoPedido, String productos, Double total) throws IOException {
         String asunto = "✅ Confirmación de pedido - FLOW COLOMBIA";
         String contenido = "<h2>¡Gracias por tu compra!</h2>"
@@ -59,6 +70,7 @@ public class EmailService {
      * @param pedido pedido recién guardado (usa correo, código y total)
      * @throws IOException si SendGrid rechaza el envío
      */
+    @Async
     public void enviarConfirmacionCtb234(Pedido pedido) throws IOException {
         // El total se formatea a la colombiana ($89.900): concatenar el Double
         // directo mostraría «$89900.0», que en un correo de confirmación se lee

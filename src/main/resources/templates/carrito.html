@@ -1281,6 +1281,35 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // ============================================================
+    // ENFRIAMIENTO ANTI-DUPLICADOS
+    // ------------------------------------------------------------
+    // Si el POST falla por red, el pedido PUDO haberse guardado igual: el
+    // correo y el push salen en segundo plano y el backend responde en
+    // milisegundos. Se bloquea el botón unos segundos para que el clic de
+    // pánico no cree un pedido duplicado (y suene otra notificación).
+    // ============================================================
+    let reintentoBloqueadoHasta = 0;
+
+    function iniciarEnfriamiento(ms) {
+        reintentoBloqueadoHasta = Date.now() + ms;
+        btnConfirmar.disabled = true;
+
+        let restante = Math.ceil(ms / 1000);
+        btnConfirmar.textContent = 'Espera ' + restante + ' s…';
+
+        const tic = setInterval(function () {
+            restante--;
+            if (restante <= 0) {
+                clearInterval(tic);
+                btnConfirmar.disabled = false;
+                btnConfirmar.textContent = 'Confirmar pedido';
+                return;
+            }
+            btnConfirmar.textContent = 'Espera ' + restante + ' s…';
+        }, 1000);
+    }
+
     // Eventos de campos (estado + validación en vivo)
     form.querySelectorAll('[data-checkout-field]').forEach(function (input) {
         const nombre = input.getAttribute('data-checkout-field');
@@ -1315,6 +1344,10 @@
 
     form.addEventListener('submit', function (event) {
         event.preventDefault();
+
+        // Si viene de un fallo de red reciente, no se permite otro intento
+        // todavía: el pedido anterior pudo guardarse.
+        if (Date.now() < reintentoBloqueadoHasta) return;
 
         for (let paso = 1; paso <= 3; paso++) {
             if (!validarPaso(paso)) { mostrarPaso(paso); return; }
@@ -1406,12 +1439,21 @@
                     checkoutError.textContent = 'Tu sesión caducó por seguridad. Recarga la página y confirma otra vez: no se perdió nada de lo que escribiste.';
                 } else if (error.message === 'RATE_LIMIT') {
                     checkoutError.textContent = 'Hiciste varios intentos seguidos. Espera un minuto y vuelve a confirmar.';
+                } else if (error.message === 'Respuesta inválida del servidor' || error.message.indexOf('HTTP ') === 0) {
+                    // El servidor contestó, pero no con un pedido válido.
+                    checkoutError.textContent = 'El servidor no confirmó tu pedido. Si no recibes el correo en unos minutos, vuelve a intentarlo.';
                 } else {
-                    checkoutError.textContent = 'No pudimos enviar tu pedido. Revisa tu conexión e inténtalo de nuevo.';
+                    // Fallo de red / respuesta perdida: el pedido PUDO guardarse.
+                    // No se invita a reintentar de inmediato: se enfría el botón.
+                    checkoutError.textContent = 'No recibimos confirmación del servidor. Puede que tu pedido SÍ se haya registrado: espera unos segundos y revisa tu correo antes de volver a confirmar.';
+                    iniciarEnfriamiento(8000);
                 }
                 checkoutError.classList.add('is-visible');
             })
             .finally(function () {
+                // El enfriamiento (si lo hay) manda: no se reactiva el botón
+                // hasta que pasen los segundos.
+                if (Date.now() < reintentoBloqueadoHasta) return;
                 btnConfirmar.disabled = false;
                 btnConfirmar.textContent = 'Confirmar pedido';
             });

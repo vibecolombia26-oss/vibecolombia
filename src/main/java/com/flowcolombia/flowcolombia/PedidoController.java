@@ -156,51 +156,71 @@ public class PedidoController {
         System.out.println("   Productos guardados: " + pedidoGuardado.getProductos());
         System.out.println("=========================================");
 
-        // Aviso push al celular del dueño (ntfy.sh). Es @Async: no retrasa la
-        // respuesta al cliente y, si ntfy no responde, la tienda no se entera.
-        // Sin NTFY_TOPIC_URL configurada no se envía nada (robot dormido).
-        notificacionService.notificarPedidoNuevo(pedidoGuardado);
-
-        if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
-            try {
-                if (esPedidoCtb234(pedido)) {
-                    emailService.enviarConfirmacionCtb234(pedido);
-                } else {
-                    emailService.enviarConfirmacion(
-                            pedido.getEmail(),
-                            pedido.getCodigo(),
-                            pedido.getProductos(),
-                            pedido.getTotal()
-                    );
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error al enviar correo: " + e.getMessage());
-            }
-        }
-
+        // ============================================================
+        // RESPUESTA AL CLIENTE: a partir de aquí, SIEMPRE 200
+        // ------------------------------------------------------------
+        // El pedido ya está guardado. Todo lo que sigue es «best-effort»
+        // (push al móvil, correo, Meta CAPI) y va dentro de un único
+        // try/catch: antes, un fallo de cualquiera de esas tareas se escapaba
+        // del método y el navegador recibía la página de error AUNQUE el
+        // pedido existiera. El cliente volvía a pulsar y se duplicaban los
+        // pedidos, con varias notificaciones por el mismo pedido.
+        // ============================================================
         Map<String, String> response = new HashMap<>();
         response.put("codigo", pedido.getCodigo());
         response.put("status", "OK");
-        // ============================================================
-        // META CAPI: evento Purchase desde el servidor.
-        // El event_id es el código del pedido, el MISMO que enviará el
-        // navegador desde la pantalla de confirmación: Meta los reconoce
-        // como un único evento y no cuenta la venta dos veces.
-        // El envío es asíncrono: no retrasa ni puede romper el checkout.
-        //
-        // REGLA DE SEGURIDAD: si el pedido incluye algún producto marcado
-        // como «ocultar a Meta» (salud íntima / sensible), NO se envía
-        // NADA. Es mejor perder una venta registrada en el píxel que
-        // arriesgar la cuenta publicitaria por una política incumplida.
-        // ============================================================
-        if (contieneProductosOcultosAMeta(pedidoGuardado)) {
-            System.out.println("🚫 Meta CAPI: pedido " + pedidoGuardado.getCodigo()
-                    + " contiene productos excluidos de Meta. No se envía el Purchase.");
-        } else if (contieneProductosConPurchaseBloqueado(pedidoGuardado)) {
-            System.out.println("⏸️ Meta CAPI: pedido " + pedidoGuardado.getCodigo()
-                    + " contiene productos con Purchase bloqueado. No se envía el Purchase.");
-        } else {
-            metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
+
+        try {
+            // Aviso push al celular del dueño (ntfy.sh). Es @Async: no
+            // retrasa la respuesta y, si ntfy no responde, la tienda no se
+            // entera. Sin NTFY_TOPIC_URL configurada no se envía nada.
+            notificacionService.notificarPedidoNuevo(pedidoGuardado);
+
+            if (pedido.getEmail() != null && !pedido.getEmail().isEmpty()) {
+                try {
+                    // EmailService es @Async: aquí solo se encola, el envío
+                    // (que era lo único que hablaba con la red en el hilo del
+                    // request) ya no bloquea la confirmación al cliente.
+                    if (esPedidoCtb234(pedido)) {
+                        emailService.enviarConfirmacionCtb234(pedido);
+                    } else {
+                        emailService.enviarConfirmacion(
+                                pedido.getEmail(),
+                                pedido.getCodigo(),
+                                pedido.getProductos(),
+                                pedido.getTotal()
+                        );
+                    }
+                } catch (Exception e) {
+                    System.err.println("❌ Error al enviar correo: " + e.getMessage());
+                }
+            }
+
+            // ============================================================
+            // META CAPI: evento Purchase desde el servidor.
+            // El event_id es el código del pedido, el MISMO que enviará el
+            // navegador desde la pantalla de confirmación: Meta los reconoce
+            // como un único evento y no cuenta la venta dos veces.
+            // El envío es asíncrono: no retrasa ni puede romper el checkout.
+            //
+            // REGLA DE SEGURIDAD: si el pedido incluye algún producto marcado
+            // como «ocultar a Meta» (salud íntima / sensible), NO se envía
+            // NADA. Es mejor perder una venta registrada en el píxel que
+            // arriesgar la cuenta publicitaria por una política incumplida.
+            // ============================================================
+            if (contieneProductosOcultosAMeta(pedidoGuardado)) {
+                System.out.println("🚫 Meta CAPI: pedido " + pedidoGuardado.getCodigo()
+                        + " contiene productos excluidos de Meta. No se envía el Purchase.");
+            } else if (contieneProductosConPurchaseBloqueado(pedidoGuardado)) {
+                System.out.println("⏸️ Meta CAPI: pedido " + pedidoGuardado.getCodigo()
+                        + " contiene productos con Purchase bloqueado. No se envía el Purchase.");
+            } else {
+                metaConversionsService.enviarPurchase(pedidoGuardado, contextoMeta(request));
+            }
+        } catch (Exception e) {
+            // El pedido YA está en la base de datos: se responde igual.
+            System.out.println("⚠️ Post-proceso del pedido " + pedido.getCodigo()
+                    + " falló, pero el pedido está guardado: " + e.getMessage());
         }
 
         return response;
